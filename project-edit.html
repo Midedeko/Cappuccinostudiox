@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Project - Admin</title>
+    <style>
+        @font-face {
+            font-family: 'Code Saver';
+            src: url('Fonts/CodeSaver-Regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background-color: #E70017;
+            font-family: 'Code Saver', sans-serif;
+            color: #FFF212;
+            padding: 40px 80px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 24px;
+            color: #FFF212;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+        .back-link:hover { color: #fff; }
+        h1 { text-transform: uppercase; margin-bottom: 24px; font-size: 24px; }
+        .upload-zone {
+            border: 2px dashed #FFF212;
+            padding: 32px;
+            text-align: center;
+            margin-bottom: 24px;
+            cursor: pointer;
+            background: rgba(255,242,18,0.05);
+        }
+        .upload-zone:hover { background: rgba(255,242,18,0.15); }
+        .upload-zone input[type="file"] { display: none; }
+        .playlist {
+            list-style: none;
+        }
+        .playlist li {
+            background: rgba(255,242,18,0.1);
+            border: 1px solid #FFF212;
+            margin-bottom: 8px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        .playlist .drag-handle {
+            cursor: grab;
+            padding: 4px;
+            user-select: none;
+        }
+        .playlist .drag-handle:active { cursor: grabbing; }
+        .playlist .preview {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: #000;
+        }
+        .playlist .preview-video { width: 80px; height: 60px; object-fit: cover; flex-shrink: 0; background: #000; }
+        .playlist .body { flex: 1; min-width: 0; }
+        .playlist .name { font-weight: bold; text-transform: uppercase; margin-bottom: 8px; word-break: break-all; }
+        .playlist .row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .playlist .switch-label { text-transform: uppercase; font-size: 12px; }
+        .playlist .switch {
+            width: 44px;
+            height: 24px;
+            background: rgba(255,242,18,0.3);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+        }
+        .playlist .switch.on { background: #FFF212; }
+        .playlist .switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #E70017;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+        }
+        .playlist .switch.on::after { transform: translateX(20px); }
+        .playlist textarea.storyline {
+            width: 100%;
+            min-height: 60px;
+            padding: 8px;
+            background: #000;
+            border: 1px solid #FFF212;
+            color: #FFF212;
+            font-family: 'Code Saver', sans-serif;
+            font-size: 12px;
+            resize: vertical;
+        }
+        .playlist .move-btns { display: flex; flex-direction: column; gap: 4px; }
+        .playlist .move-btn {
+            background: #FFF212;
+            color: #E70017;
+            border: none;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-family: 'Code Saver', sans-serif;
+            font-size: 12px;
+        }
+        .playlist .move-btn:hover { background: #fff; }
+        .playlist .delete-item-btn {
+            background: transparent;
+            color: #FFF212;
+            border: 1px solid #FFF212;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .playlist .delete-item-btn:hover { background: #FFF212; color: #E70017; }
+        .project-name-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid #FFF212;
+            color: #FFF212;
+            font-family: 'Code Saver', sans-serif;
+            font-size: 16px;
+        }
+        .project-name-input::placeholder { color: rgba(255,242,18,0.6); }
+        .storyline-project {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid #FFF212;
+            color: #FFF212;
+            font-family: 'Code Saver', sans-serif;
+            font-size: 14px;
+            resize: vertical;
+        }
+        .storage-usage { margin: 12px 0; font-size: 12px; text-transform: uppercase; opacity: 0.9; }
+        .save-btn {
+            background: #FFF212;
+            color: #E70017;
+            border: 2px solid #FFF212;
+            padding: 12px 24px;
+            font-family: 'Code Saver', sans-serif;
+            font-size: 16px;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-top: 24px;
+        }
+        .save-btn:hover { background: #fff; border-color: #fff; }
+    </style>
+</head>
+<body>
+    <a href="content-management.html" class="back-link">â† Back to Content Management</a>
+    <h1 id="pageTitle">Edit Project</h1>
+    <div class="project-name-panel" style="margin-bottom: 20px;">
+        <label class="switch-label" style="display: block; margin-bottom: 8px;">Project name</label>
+        <input type="text" id="projectNameInput" class="project-name-input" placeholder="Project name (shown on project page menu)">
+    </div>
+    <p style="margin-bottom: 16px;">Upload content. Drag items to reorder. Toggle â€œBackground rosterâ€ to use in the default background loop. Add a storyline to show when this content is hovered on the project page.</p>
+    <div class="storyline-panel" style="margin-bottom: 24px;">
+        <label class="switch-label" style="display: block; margin-bottom: 8px;">Storyline (project)</label>
+        <textarea id="projectStoryline" class="storyline-project" placeholder="Storyline text for this project (shown on the project page when content is active)"></textarea>
+    </div>
+    <div class="upload-zone" id="uploadZone">
+        <input type="file" id="fileInput" accept="image/*,video/*" multiple>
+        <span>Click or drop files here to add content (images and videos)</span>
+    </div>
+    <ul class="playlist" id="playlist"></ul>
+    <p class="storage-usage" id="storageUsage">Storage: 0 / 100 MB</p>
+    <button type="button" class="save-btn" id="saveBtn">Save project</button>
+
+    <script type="module" src="js/pages/project-edit.js"></script>
+</body>
+</html>
