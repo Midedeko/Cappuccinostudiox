@@ -1,2 +1,3 @@
--- Optional: add phone to bookings (run if you want to store phone from the booking form)
+-- Add phone to bookings so the booking form can store phone numbers.
+-- Run this once in Supabase: Dashboard → SQL Editor → New query → paste → Run.
 alter table public.bookings add column if not exists phone text;

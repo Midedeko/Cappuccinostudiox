@@ -28,7 +28,12 @@ export async function POST(request) {
         });
     }
     const service = body.service != null ? String(body.service) : '';
-    const datetime = body.datetime != null ? String(body.datetime) : '';
+    let datetime = body.datetime != null ? String(body.datetime).trim() : null;
+    if (datetime) {
+        const d = new Date(datetime);
+        if (!Number.isNaN(d.getTime())) datetime = d.toISOString().replace('T', ' ').replace('Z', '+00');
+        else datetime = null;
+    }
     const name = body.name != null ? String(body.name) : '';
     const email = body.email != null ? String(body.email) : '';
     const phone = body.phone != null ? String(body.phone).trim() || null : null;
