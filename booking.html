@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Session</title>
+    <style>
+        @font-face {
+            font-family: 'Code Saver';
+            src: url('Fonts/CodeSaver-Regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background-color: #0a0a0a;
+            color: #FFF212;
+            font-family: 'Code Saver', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .booking-wrap {
+            width: 100%;
+            max-width: 420px;
+            position: relative;
+        }
+
+        .step-panel {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.35s ease, visibility 0.35s ease;
+        }
+
+        .step-panel.active {
+            position: relative;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .step-title {
+            font-size: 0.9rem;
+            color: #FFF212;
+            margin-bottom: 1.25rem;
+            min-height: 1.4em;
+        }
+
+        .booking-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-family: 'Code Saver', monospace;
+            font-size: 0.85rem;
+            background: rgba(255, 242, 18, 0.08);
+            border: 2px solid #FFF212;
+            color: #FFF212;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23FFF212' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+        }
+
+        .booking-select option {
+            background: #0a0a0a;
+            color: #FFF212;
+        }
+
+        .booking-select:focus {
+            outline: none;
+            border-color: #E70017;
+            box-shadow: 0 0 0 2px rgba(231, 0, 23, 0.3);
+        }
+
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.6rem;
+        }
+
+        .slot-btn {
+            padding: 0.7rem;
+            font-family: 'Code Saver', monospace;
+            font-size: 0.8rem;
+            background: rgba(255, 242, 18, 0.08);
+            border: 2px solid #FFF212;
+            color: #FFF212;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+        }
+
+        .slot-btn:hover {
+            background: rgba(255, 242, 18, 0.2);
+        }
+
+        .slot-btn.selected {
+            background: #FFF212;
+            color: #0a0a0a;
+            border-color: #FFF212;
+        }
+
+        .summary-block {
+            margin-bottom: 1.25rem;
+            padding: 0.75rem;
+            border: 1px solid rgba(255, 242, 18, 0.4);
+            font-size: 0.85rem;
+        }
+
+        .summary-block p { margin: 0.25rem 0; }
+
+        .booking-input {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            font-family: 'Code Saver', monospace;
+            font-size: 0.85rem;
+            background: rgba(255, 242, 18, 0.08);
+            border: 2px solid rgba(255, 242, 18, 0.5);
+            color: #FFF212;
+            margin-bottom: 0.75rem;
+        }
+
+        .booking-input::placeholder { color: rgba(255, 242, 18, 0.5); }
+
+        .booking-input:focus {
+            outline: none;
+            border-color: #FFF212;
+        }
+
+        .confirm-btn {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            font-family: 'Code Saver', monospace;
+            font-size: 0.9rem;
+            background: #E70017;
+            border: 2px solid #FFF212;
+            color: #FFF212;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .confirm-btn:hover {
+            background: #FFF212;
+            color: #E70017;
+        }
+
+        .confirm-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .booking-message {
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            min-height: 1.2em;
+        }
+
+        .booking-message.error { color: #E70017; }
+        .booking-message.success { color: #FFF212; }
+    </style>
+</head>
+<body>
+    <div class="booking-wrap">
+        <div id="step1" class="step-panel active">
+            <div id="step1Title" class="step-title">Choose a service</div>
+            <select id="serviceSelect" class="booking-select" aria-label="Service">
+                <option value="">— Select service —</option>
+            </select>
+        </div>
+        <div id="step2" class="step-panel">
+            <div id="step2Title" class="step-title">Pick a time</div>
+            <div id="slotsGrid" class="slots-grid"></div>
+        </div>
+        <div id="step3" class="step-panel">
+            <div id="step3Title" class="step-title">Confirm</div>
+            <div id="summaryBlock" class="summary-block"></div>
+            <input type="text" id="bookingName" class="booking-input" placeholder="Name" autocomplete="name" />
+            <input type="email" id="bookingEmail" class="booking-input" placeholder="Email" autocomplete="email" />
+            <input type="tel" id="bookingPhone" class="booking-input" placeholder="Phone" autocomplete="tel" />
+            <button type="button" id="confirmBookingBtn" class="confirm-btn">Confirm Booking</button>
+            <div id="bookingMessage" class="booking-message"></div>
+        </div>
+    </div>
+    <script type="module" src="js/pages/booking.js"></script>
+</body>
+</html>
