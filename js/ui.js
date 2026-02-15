@@ -104,8 +104,12 @@ export function setupMenuAnimated(containerId, buttonId, options = {}) {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const page = btn.dataset.page;
+            const modal = btn.dataset.modal;
             const action = btn.dataset.action;
-            if (page) window.location.href = page;
+            if (modal && typeof window.openModal === 'function') {
+                window.openModal(modal);
+                closeMenu();
+            } else if (page) window.location.href = page;
             else if (action === 'book-session') container.classList.remove('active');
         });
     });

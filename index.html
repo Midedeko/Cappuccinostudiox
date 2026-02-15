@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Image with Hotspots</title>
+    <link rel="stylesheet" href="ui-kit/kit.css">
     <style>
         @font-face {
             font-family: 'Code Saver';
@@ -719,9 +720,71 @@
                 font-size: 16px;
             }
         }
+
+        /* Modal overlay: background image + red 90% layer, modal centered */
+        .site-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        body.site-modal-open .site-overlay {
+            display: flex;
+        }
+        body.site-modal-open .navigation,
+        body.site-modal-open .image-container {
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .site-overlay-bg {
+            position: absolute;
+            inset: 0;
+            background-image: url("Scenes/Lib/Scene 1 Front Elevation.png");
+            background-size: cover;
+            background-position: center;
+        }
+        .site-overlay-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: #E70017;
+            opacity: 0.9;
+        }
+        .site-overlay-center {
+            position: relative;
+            z-index: 1;
+            max-width: 100%;
+        }
+        .site-modal {
+            display: none;
+        }
+        body.site-modal-open .site-modal.active {
+            display: block;
+        }
+        .site-modal .booking-message,
+        .site-modal .waitlist-message {
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            min-height: 1.2em;
+        }
+        .site-modal .booking-message.error,
+        .site-modal .waitlist-message.error { color: #E70017; }
+        .site-modal .booking-message.success,
+        .site-modal .waitlist-message.success { color: #FFF212; }
     </style>
 </head>
 <body>
+    <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0" aria-hidden="true">
+        <defs>
+            <symbol id="kit-caret" viewBox="0 0 12 12">
+                <path d="M0 3h12L6 9z"/>
+            </symbol>
+        </defs>
+    </svg>
     <div class="navigation">
         <div class="menu-container" id="menuContainer">
             <button class="menu-button" id="menuButton">
@@ -730,7 +793,8 @@
             </button>
             <button class="menu-child-button" id="menuChildButton1" data-page="kitchen.html">KITCHEN</button>
             <button class="menu-child-button" id="menuChildButton2" data-page="project-files.html">PROJECT FILES</button>
-            <button class="menu-child-button" id="menuChildButton3" data-page="booking.html">BOOK A SESSION</button>
+            <button class="menu-child-button" id="menuChildButton3" data-modal="book-session">BOOK A SESSION</button>
+            <button class="menu-child-button" id="menuChildButton4" data-modal="waitlist">WAITLIST</button>
         </div>
         <img src="Studiox Logo.png" alt="Studiox Logo" class="logo">
     </div>
@@ -765,6 +829,124 @@
         </div>
     </div>
 
+    <div id="siteOverlay" class="site-overlay" role="dialog" aria-modal="true" aria-label="Modal">
+        <div class="site-overlay-bg" id="siteOverlayBg"></div>
+        <div class="site-overlay-center">
+            <div id="modalBookSession" class="site-modal" data-modal="book-session">
+                <div class="kit-modal-wrap" data-modal-prefix="booking">
+                    <div class="kit-modal-label">BOOK A SESSION</div>
+                    <div class="kit-modal-row">
+                        <input type="text" id="bookingName" class="kit-modal-input" placeholder="FIRSTNAME LASTNAME" aria-label="Full name" autocomplete="name">
+                    </div>
+                    <div class="kit-modal-row">
+                        <input type="email" id="bookingEmail" class="kit-modal-input" placeholder="emailaddress@email.com" aria-label="Email" autocomplete="email">
+                    </div>
+                    <div class="kit-modal-row">
+                        <input type="tel" id="bookingPhone" class="kit-modal-input" placeholder="PHONE" aria-label="Phone" autocomplete="tel">
+                    </div>
+                    <div class="kit-modal-row">
+                        <div class="kit-modal-dropdown kit-modal-select" data-name="service">
+                            <button type="button" class="kit-modal-dropdown-trigger" aria-expanded="false" aria-haspopup="listbox" aria-label="Choose a service">
+                                <span class="kit-modal-dropdown-label">CHOOSE A SERVICE</span>
+                                <span class="kit-modal-dropdown-arrow" aria-hidden="true"><svg class="kit-caret" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><use href="#kit-caret"/></svg></span>
+                            </button>
+                            <div class="kit-modal-dropdown-list-outer">
+                                <div class="kit-modal-dropdown-list" role="listbox">
+                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="immersive-experiences" data-label="IMMERSIVE EXPERIENCES">IMMERSIVE EXPERIENCES</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="brand-strategy" data-label="BRAND STRATEGY">BRAND STRATEGY</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="product-development" data-label="PRODUCT DEVELOPMENT">PRODUCT DEVELOPMENT</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="set-design" data-label="SET DESIGN">SET DESIGN</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="video-production" data-label="VIDEO PRODUCTION">VIDEO PRODUCTION</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="animation-production" data-label="ANIMATION PRODUCTION">ANIMATION PRODUCTION</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="music-release-content-dev" data-label="MUSIC RELEASE CONTENT DEV">MUSIC RELEASE CONTENT DEV</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="music-production" data-label="MUSIC PRODUCTION">MUSIC PRODUCTION</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="sound-design-and-production" data-label="SOUND DESIGN AND PRODUCTION">SOUND DESIGN AND PRODUCTION</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="content-design-and-dev" data-label="CONTENT DESIGN AND DEV">CONTENT DESIGN AND DEV</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="web-development" data-label="WEB DEVELOPMENT">WEB DEVELOPMENT</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="real-estate-management" data-label="REAL ESTATE MANAGEMENT">REAL ESTATE MANAGEMENT</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="marketing-consult" data-label="MARKETING CONSULT">MARKETING CONSULT</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="creative-direction" data-label="CREATIVE DIRECTION">CREATIVE DIRECTION</button>
+                                </div>
+                                <div class="kit-modal-custom-scrollbar" aria-hidden="true">
+                                    <div class="kit-modal-scrollbar-track"><div class="kit-modal-scrollbar-thumb"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kit-modal-row kit-modal-timeslot">
+                        <div class="kit-modal-dropdown kit-modal-date" data-name="date">
+                            <button type="button" class="kit-modal-dropdown-trigger" aria-expanded="false" aria-haspopup="listbox" aria-label="Date">
+                                <span class="kit-modal-dropdown-label"></span>
+                                <span class="kit-modal-dropdown-arrow" aria-hidden="true"><svg class="kit-caret" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><use href="#kit-caret"/></svg></span>
+                            </button>
+                            <div class="kit-modal-dropdown-list-outer">
+                                <div class="kit-modal-dropdown-list" role="listbox"></div>
+                                <div class="kit-modal-custom-scrollbar" aria-hidden="true">
+                                    <div class="kit-modal-scrollbar-track"><div class="kit-modal-scrollbar-thumb"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kit-modal-dropdown kit-modal-time" data-name="time">
+                            <button type="button" class="kit-modal-dropdown-trigger" aria-expanded="false" aria-haspopup="listbox" aria-label="Time">
+                                <span class="kit-modal-dropdown-label">11:00</span>
+                                <span class="kit-modal-dropdown-arrow" aria-hidden="true"><svg class="kit-caret" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><use href="#kit-caret"/></svg></span>
+                            </button>
+                            <div class="kit-modal-dropdown-list" role="listbox">
+                                <button type="button" class="kit-modal-dropdown-option" role="option" data-value="11:00" data-label="11:00">11:00</button>
+                                <button type="button" class="kit-modal-dropdown-option" role="option" data-value="15:00" data-label="15:00">15:00</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kit-modal-row">
+                        <input type="hidden" id="bookingService" value="">
+                        <input type="hidden" id="bookingDate" value="">
+                        <input type="hidden" id="bookingTime" value="11:00">
+                        <button type="button" id="bookingSubmit" class="kit-modal-submit">
+                            <span>COMPLETE</span>
+                            <span class="kit-modal-submit-icon" aria-hidden="true"><svg class="kit-caret kit-caret-right" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><use href="#kit-caret"/></svg></span>
+                        </button>
+                    </div>
+                    <div id="bookingMessage" class="booking-message"></div>
+                </div>
+            </div>
+            <div id="modalWaitlist" class="site-modal" data-modal="waitlist">
+                <div class="kit-modal-wrap" data-modal-prefix="waitlist">
+                    <div class="kit-modal-label">JOIN WAITLIST</div>
+                    <div class="kit-modal-row">
+                        <input type="text" id="waitlistName" class="kit-modal-input" placeholder="FIRSTNAME LASTNAME" aria-label="Full name" autocomplete="name">
+                    </div>
+                    <div class="kit-modal-row">
+                        <input type="email" id="waitlistEmail" class="kit-modal-input" placeholder="emailaddress@email.com" aria-label="Email" autocomplete="email">
+                    </div>
+                    <div class="kit-modal-row kit-modal-tier-row">
+                        <div class="kit-modal-dropdown kit-modal-tier" data-name="tier">
+                            <button type="button" class="kit-modal-dropdown-trigger" aria-expanded="false" aria-haspopup="listbox" aria-label="Choose tier">
+                                <span class="kit-modal-dropdown-label">REGULAR ACCESS</span>
+                                <span class="kit-modal-dropdown-arrow" aria-hidden="true"><svg class="kit-caret" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><use href="#kit-caret"/></svg></span>
+                            </button>
+                            <div class="kit-modal-dropdown-list" role="listbox">
+                                <button type="button" class="kit-modal-dropdown-option" role="option" data-value="regular" data-label="REGULAR ACCESS" data-price="Free">REGULAR ACCESS</button>
+                                <button type="button" class="kit-modal-dropdown-option" role="option" data-value="priority" data-label="PRIORITY ACCESS" data-price="$ 100">PRIORITY ACCESS</button>
+                            </div>
+                        </div>
+                        <div class="kit-modal-price-block" aria-live="polite">
+                            <span class="kit-modal-price-value">Free</span>
+                        </div>
+                    </div>
+                    <div class="kit-modal-row">
+                        <input type="hidden" id="waitlistTier" value="regular">
+                        <button type="button" id="waitlistSubmit" class="kit-modal-submit">
+                            <span>COMPLETE</span>
+                            <span class="kit-modal-submit-icon" aria-hidden="true"><svg class="kit-caret kit-caret-right" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><use href="#kit-caret"/></svg></span>
+                        </button>
+                    </div>
+                    <div id="waitlistMessage" class="waitlist-message"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/site-modals.js"></script>
     <script type="module" src="js/pages/index.js"></script>
 </body>
 </html>
