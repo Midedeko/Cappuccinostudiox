@@ -55,39 +55,74 @@
         if (timeValueInput) timeValueInput.value = first;
     }
 
-    (function initDateOptions() {
+    function buildFallbackDates() {
+        var dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+        var monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        var today = new Date();
+        var y = today.getFullYear();
+        var m = today.getMonth();
+        var d = today.getDate();
+        var next = new Date(y, m, d + 1);
+        while (next.getDay() === 0 || next.getDay() === 6) {
+            next.setDate(next.getDate() + 1);
+        }
+        var list = [];
+        for (var i = 0; i < 15; i++) {
+            var dateStr = next.getFullYear() + '-' + String(next.getMonth() + 1).padStart(2, '0') + '-' + String(next.getDate()).padStart(2, '0');
+            var label = dayNames[next.getDay()] + ', ' + next.getDate() + ' ' + monthNames[next.getMonth()];
+            list.push({ date: dateStr, label: label, times: ['11:00', '15:00'] });
+            next.setDate(next.getDate() + 1);
+            while (next.getDay() === 0 || next.getDay() === 6) {
+                next.setDate(next.getDate() + 1);
+            }
+        }
+        return list;
+    }
+
+    function applyAvailabilityDates(dates) {
         var dateList = document.querySelector('#modalBookSession .kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-list');
         var dateLabel = document.querySelector('#modalBookSession .kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-label');
         var dateValueInput = document.getElementById('bookingDate');
         if (!dateList || !dateLabel) return;
+        availabilityData.dates = dates;
+        dateList.innerHTML = '';
+        dates.forEach(function (entry) {
+            var btn = document.createElement('button');
+            btn.setAttribute('type', 'button');
+            btn.setAttribute('class', 'kit-modal-dropdown-option');
+            btn.setAttribute('role', 'option');
+            btn.setAttribute('data-value', entry.date);
+            btn.setAttribute('data-label', entry.label);
+            btn.textContent = entry.label;
+            dateList.appendChild(btn);
+        });
+        var first = dates[0];
+        if (first) {
+            dateLabel.textContent = first.label;
+            if (dateValueInput) dateValueInput.value = first.date;
+            setTimeOptionsForDate(first.date);
+        } else {
+            dateLabel.textContent = 'No dates available';
+        }
+    }
+
+    (function initDateOptions() {
+        var dateList = document.querySelector('#modalBookSession .kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-list');
+        var dateLabel = document.querySelector('#modalBookSession .kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-label');
+        if (!dateList || !dateLabel) return;
         dateList.innerHTML = '';
         dateLabel.textContent = 'Loading…';
         fetch('/api/availability')
-            .then(function (res) { return res.json(); })
+            .then(function (res) {
+                if (!res.ok) throw new Error(res.status);
+                return res.json();
+            })
             .then(function (data) {
-                availabilityData.dates = data.dates || [];
-                dateList.innerHTML = '';
-                availabilityData.dates.forEach(function (entry) {
-                    var btn = document.createElement('button');
-                    btn.setAttribute('type', 'button');
-                    btn.setAttribute('class', 'kit-modal-dropdown-option');
-                    btn.setAttribute('role', 'option');
-                    btn.setAttribute('data-value', entry.date);
-                    btn.setAttribute('data-label', entry.label);
-                    btn.textContent = entry.label;
-                    dateList.appendChild(btn);
-                });
-                var first = availabilityData.dates[0];
-                if (first) {
-                    dateLabel.textContent = first.label;
-                    if (dateValueInput) dateValueInput.value = first.date;
-                    setTimeOptionsForDate(first.date);
-                } else {
-                    dateLabel.textContent = 'No dates available';
-                }
+                var dates = data.dates && data.dates.length ? data.dates : buildFallbackDates();
+                applyAvailabilityDates(dates);
             })
             .catch(function () {
-                dateLabel.textContent = 'Unable to load dates';
+                applyAvailabilityDates(buildFallbackDates());
             });
     })();
 
