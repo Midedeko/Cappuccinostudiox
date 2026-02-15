@@ -324,7 +324,6 @@
         submitBtn.addEventListener('click', function () {
             var name = (document.getElementById('bookingName') && document.getElementById('bookingName').value || '').trim();
             var email = (document.getElementById('bookingEmail') && document.getElementById('bookingEmail').value || '').trim();
-            var phone = (document.getElementById('bookingPhone') && document.getElementById('bookingPhone').value || '').trim() || null;
             var service = (document.getElementById('bookingService') && document.getElementById('bookingService').value || '').trim() || null;
             var dateVal = (document.getElementById('bookingDate') && document.getElementById('bookingDate').value || '').trim();
             var timeVal = (document.getElementById('bookingTime') && document.getElementById('bookingTime').value || '').trim();
@@ -345,7 +344,7 @@
             fetch('/api/bookings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ service: service, datetime: datetime, name: name, email: email, phone: phone })
+                body: JSON.stringify({ service: service, datetime: datetime, name: name, email: email })
             })
                 .then(function (res) {
                     if (res.ok) {

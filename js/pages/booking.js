@@ -8,7 +8,6 @@ function formatDateTimeISO(dateStr, timeStr) {
 function init() {
     const nameEl = document.getElementById('bookingName');
     const emailEl = document.getElementById('bookingEmail');
-    const phoneEl = document.getElementById('bookingPhone');
     const serviceEl = document.getElementById('bookingService');
     const dateEl = document.getElementById('bookingDate');
     const timeEl = document.getElementById('bookingTime');
@@ -20,7 +19,6 @@ function init() {
     submitBtn.addEventListener('click', () => {
         const name = (nameEl?.value ?? '').trim();
         const email = (emailEl?.value ?? '').trim();
-        const phone = (phoneEl?.value ?? '').trim() || null;
         const service = (serviceEl?.value ?? '').trim() || null;
         const dateVal = (dateEl?.value ?? '').trim();
         const timeVal = (timeEl?.value ?? '').trim();
@@ -49,8 +47,7 @@ function init() {
                 service: service || null,
                 datetime,
                 name,
-                email,
-                phone
+                email
             })
         })
             .then(res => {
