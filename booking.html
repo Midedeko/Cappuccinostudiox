@@ -125,35 +125,63 @@
         </div>
     </div>
     <script>
+        var availabilityData = { dates: [] };
+        function setTimeOptionsForDate(dateStr) {
+            var timeList = document.querySelector('.kit-modal-dropdown.kit-modal-time .kit-modal-dropdown-list');
+            var timeLabel = document.querySelector('.kit-modal-dropdown.kit-modal-time .kit-modal-dropdown-label');
+            var timeValueInput = document.getElementById('bookingTime');
+            if (!timeList || !timeLabel) return;
+            var entry = availabilityData.dates.find(function (d) { return d.date === dateStr; });
+            var times = entry && entry.times && entry.times.length ? entry.times : ['11:00', '15:00'];
+            timeList.innerHTML = '';
+            times.forEach(function (t) {
+                var btn = document.createElement('button');
+                btn.setAttribute('type', 'button');
+                btn.setAttribute('class', 'kit-modal-dropdown-option');
+                btn.setAttribute('role', 'option');
+                btn.setAttribute('data-value', t);
+                btn.setAttribute('data-label', t);
+                btn.textContent = t;
+                timeList.appendChild(btn);
+            });
+            var first = times[0];
+            timeLabel.textContent = first;
+            if (timeValueInput) timeValueInput.value = first;
+        }
         (function initDateOptions() {
             var dateList = document.querySelector('.kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-list');
             var dateLabel = document.querySelector('.kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-label');
             var dateValueInput = document.getElementById('bookingDate');
             if (!dateList || !dateLabel) return;
-            var days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-            var months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-            function formatDateLabel(d) {
-                return days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()];
-            }
             dateList.innerHTML = '';
-            var today = new Date();
-            today.setHours(0, 0, 0, 0);
-            for (var i = 0; i < 15; i++) {
-                var d = new Date(today);
-                d.setDate(d.getDate() + i);
-                var label = formatDateLabel(d);
-                var value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-                var btn = document.createElement('button');
-                btn.setAttribute('type', 'button');
-                btn.setAttribute('class', 'kit-modal-dropdown-option');
-                btn.setAttribute('role', 'option');
-                btn.setAttribute('data-value', value);
-                btn.setAttribute('data-label', label);
-                btn.textContent = label;
-                dateList.appendChild(btn);
-            }
-            dateLabel.textContent = formatDateLabel(today);
-            if (dateValueInput) dateValueInput.value = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+            dateLabel.textContent = 'Loading…';
+            fetch('/api/availability')
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    availabilityData.dates = data.dates || [];
+                    dateList.innerHTML = '';
+                    availabilityData.dates.forEach(function (entry) {
+                        var btn = document.createElement('button');
+                        btn.setAttribute('type', 'button');
+                        btn.setAttribute('class', 'kit-modal-dropdown-option');
+                        btn.setAttribute('role', 'option');
+                        btn.setAttribute('data-value', entry.date);
+                        btn.setAttribute('data-label', entry.label);
+                        btn.textContent = entry.label;
+                        dateList.appendChild(btn);
+                    });
+                    var first = availabilityData.dates[0];
+                    if (first) {
+                        dateLabel.textContent = first.label;
+                        if (dateValueInput) dateValueInput.value = first.date;
+                        setTimeOptionsForDate(first.date);
+                    } else {
+                        dateLabel.textContent = 'No dates available';
+                    }
+                })
+                .catch(function () {
+                    dateLabel.textContent = 'Unable to load dates';
+                });
         })();
         document.querySelectorAll('.kit-modal-dropdown').forEach(function (dropdown) {
             var wrap = dropdown.closest('.kit-modal-wrap');
@@ -179,7 +207,8 @@
                     row.classList.remove('kit-dropdown-date');
                     row.classList.add('kit-dropdown-time');
                 }
-                options.forEach(function (opt, i) {
+                var opts = list.querySelectorAll('.kit-modal-dropdown-option');
+                opts.forEach(function (opt, i) {
                     opt.style.setProperty('--flash-delay', (i * 0.1) + 's');
                 });
                 dropdown.classList.add('open');
@@ -242,17 +271,20 @@
                 openDropdown();
             });
 
-            options.forEach(function (opt) {
-                opt.addEventListener('click', function () {
-                    var label = this.getAttribute('data-label');
-                    var value = this.getAttribute('data-value');
-                    if (label != null && labelEl) labelEl.textContent = label;
-                    if (hiddenId && value != null) {
-                        var hid = document.getElementById(hiddenId);
-                        if (hid) hid.value = value;
-                    }
-                    closeDropdown();
-                });
+            list.addEventListener('click', function (e) {
+                var opt = e.target && e.target.closest && e.target.closest('.kit-modal-dropdown-option');
+                if (!opt || !list.contains(opt)) return;
+                var label = opt.getAttribute('data-label');
+                var value = opt.getAttribute('data-value');
+                if (label != null && labelEl) labelEl.textContent = label;
+                if (hiddenId && value != null) {
+                    var hid = document.getElementById(hiddenId);
+                    if (hid) hid.value = value;
+                }
+                if (dropdown.classList.contains('kit-modal-date') && value && typeof setTimeOptionsForDate === 'function') {
+                    setTimeOptionsForDate(value);
+                }
+                closeDropdown();
             });
 
             document.addEventListener('click', function (e) {
