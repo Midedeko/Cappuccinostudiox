@@ -13,7 +13,10 @@
         document.body.classList.add('site-modal-open');
         if (modalBook) modalBook.classList.remove('active');
         if (modalWaitlist) modalWaitlist.classList.remove('active');
-        if (id === 'book-session' && modalBook) modalBook.classList.add('active');
+        if (id === 'book-session' && modalBook) {
+            modalBook.classList.add('active');
+            ensureDateOptionsLoaded();
+        }
         if (id === 'waitlist' && modalWaitlist) modalWaitlist.classList.add('active');
     }
 
@@ -33,8 +36,8 @@
     }
 
     function setTimeOptionsForDate(dateStr) {
-        var timeList = document.querySelector('#modalBookSession .kit-modal-dropdown.kit-modal-time .kit-modal-dropdown-list');
-        var timeLabel = document.querySelector('#modalBookSession .kit-modal-dropdown.kit-modal-time .kit-modal-dropdown-label');
+        var timeList = document.querySelector('#modalBookSession .kit-modal-timeslot .kit-modal-time .kit-modal-dropdown-list');
+        var timeLabel = document.querySelector('#modalBookSession .kit-modal-timeslot .kit-modal-time .kit-modal-dropdown-label');
         var timeValueInput = document.getElementById('bookingTime');
         if (!timeList || !timeLabel) return;
         var entry = availabilityData.dates.find(function (d) { return d.date === dateStr; });
@@ -80,8 +83,8 @@
     }
 
     function applyAvailabilityDates(dates) {
-        var dateList = document.querySelector('#modalBookSession .kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-list');
-        var dateLabel = document.querySelector('#modalBookSession .kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-label');
+        var dateList = document.querySelector('#modalBookSession .kit-modal-timeslot .kit-modal-date .kit-modal-dropdown-list-outer .kit-modal-dropdown-list');
+        var dateLabel = document.querySelector('#modalBookSession .kit-modal-timeslot .kit-modal-date .kit-modal-dropdown-label');
         var dateValueInput = document.getElementById('bookingDate');
         if (!dateList || !dateLabel) return;
         availabilityData.dates = dates;
@@ -106,11 +109,14 @@
         }
     }
 
-    (function initDateOptions() {
-        var dateList = document.querySelector('#modalBookSession .kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-list');
-        var dateLabel = document.querySelector('#modalBookSession .kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-label');
+    var dateOptionsLoadStarted = false;
+    function ensureDateOptionsLoaded() {
+        if (availabilityData.dates.length > 0) return;
+        if (dateOptionsLoadStarted) return;
+        var dateList = document.querySelector('#modalBookSession .kit-modal-timeslot .kit-modal-date .kit-modal-dropdown-list-outer .kit-modal-dropdown-list');
+        var dateLabel = document.querySelector('#modalBookSession .kit-modal-timeslot .kit-modal-date .kit-modal-dropdown-label');
         if (!dateList || !dateLabel) return;
-        dateList.innerHTML = '';
+        dateOptionsLoadStarted = true;
         dateLabel.textContent = 'Loading…';
         fetch('/api/availability')
             .then(function (res) {
@@ -124,6 +130,14 @@
             .catch(function () {
                 applyAvailabilityDates(buildFallbackDates());
             });
+    }
+
+    (function initDateOptions() {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', ensureDateOptionsLoaded);
+        } else {
+            ensureDateOptionsLoaded();
+        }
     })();
 
     document.querySelectorAll('.site-overlay .kit-modal-dropdown').forEach(function (dropdown) {
