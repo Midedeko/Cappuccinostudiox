@@ -385,25 +385,27 @@ body {
     transition: opacity 0.15s ease 0.2s;
 }
 /* Date: first 3 options appear in sequence bottom → top (like time’s 2 options) */
-.kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-list-outer .kit-modal-dropdown-list .kit-modal-dropdown-option:nth-child(-n+3) {
+/* All date options: start hidden, then visible when open (first 3 staggered, rest after) */
+.kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-list-outer .kit-modal-dropdown-list .kit-modal-dropdown-option {
     opacity: 0;
     transform: translateY(6px);
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
-.kit-modal-dropdown.kit-modal-date.open .kit-modal-dropdown-list-outer .kit-modal-dropdown-list .kit-modal-dropdown-option:nth-child(3) {
+.kit-modal-dropdown.kit-modal-date.open .kit-modal-dropdown-list-outer .kit-modal-dropdown-list .kit-modal-dropdown-option {
     opacity: 1;
     transform: translateY(0);
+}
+.kit-modal-dropdown.kit-modal-date.open .kit-modal-dropdown-list-outer .kit-modal-dropdown-list .kit-modal-dropdown-option:nth-child(3) {
     transition-delay: 0;
 }
 .kit-modal-dropdown.kit-modal-date.open .kit-modal-dropdown-list-outer .kit-modal-dropdown-list .kit-modal-dropdown-option:nth-child(2) {
-    opacity: 1;
-    transform: translateY(0);
     transition-delay: 0.07s;
 }
 .kit-modal-dropdown.kit-modal-date.open .kit-modal-dropdown-list-outer .kit-modal-dropdown-list .kit-modal-dropdown-option:nth-child(1) {
-    opacity: 1;
-    transform: translateY(0);
     transition-delay: 0.14s;
+}
+.kit-modal-dropdown.kit-modal-date.open .kit-modal-dropdown-list-outer .kit-modal-dropdown-list .kit-modal-dropdown-option:nth-child(n+4) {
+    transition-delay: 0.21s;
 }
 .kit-modal-dropdown.kit-modal-time .kit-modal-dropdown-list,
 .kit-modal-dropdown.kit-modal-tier .kit-modal-dropdown-list {
