@@ -19,16 +19,26 @@ function getProjectSizeBytes(data) {
 
 let items = [];
 
+function formatTrimTime(s) {
+    if (s == null || !isFinite(s)) return '';
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return m + ':' + String(sec).padStart(2, '0');
+}
+
 function renderItem(item, index) {
     const isFirst = index === 0;
     const isLast = index === items.length - 1;
     const preview = item.type === 'video'
         ? '<video class="preview-video" src="' + escapeHtml(item.src) + '" muted preload="metadata"></video>'
         : '<img class="preview" src="' + escapeHtml(item.src) + '" alt="">';
+    const trimLabel = item.type === 'video' && item.trimStart != null && item.trimEnd != null
+        ? '<div class="trim-label">Trim ' + formatTrimTime(item.trimStart) + ' – ' + formatTrimTime(item.trimEnd) + '</div>'
+        : '';
     return '<li data-index="' + index + '">' +
         '<span class="drag-handle" title="Drag to reorder">⋮⋮</span>' +
         preview +
-        '<div class="body"><div class="name">' + escapeHtml(item.name) + '</div>' +
+        '<div class="body"><div class="name">' + escapeHtml(item.name) + '</div>' + trimLabel +
         '<div class="row"><span class="switch-label">Background roster</span>' +
         '<div class="switch ' + (item.backgroundRoster ? 'on' : '') + '" data-index="' + index + '" role="button" tabindex="0"></div></div></div>' +
         '<div class="move-btns">' +
@@ -112,6 +122,115 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
     e.target.value = '';
 });
 
+let videoTrimQueue = [];
+
+function openTrimModal(videoSrc, name, onAdd, onCancel) {
+    const overlay = document.getElementById('trimOverlay');
+    const video = document.getElementById('trimPreviewVideo');
+    const startRange = document.getElementById('trimStartRange');
+    const endRange = document.getElementById('trimEndRange');
+    const startLabel = document.getElementById('trimStartLabel');
+    const endLabel = document.getElementById('trimEndLabel');
+    const durationLabel = document.getElementById('trimDurationLabel');
+    const playPauseBtn = document.getElementById('trimPlayPauseBtn');
+    const addBtn = document.getElementById('trimAddBtn');
+    const cancelBtn = document.getElementById('trimCancelBtn');
+    if (!overlay || !video || !startRange || !endRange) return;
+
+    video.src = videoSrc;
+    video.load();
+    let duration = 0;
+    let trimStart = 0;
+    let trimEnd = 10;
+    let trimTimeupdate = null;
+
+    function formatTime(s) {
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60);
+        return m + ':' + String(sec).padStart(2, '0');
+    }
+
+    function updateLabels() {
+        startLabel.textContent = 'Start: ' + formatTime(trimStart);
+        endLabel.textContent = 'End: ' + formatTime(trimEnd);
+        durationLabel.textContent = 'Duration: ' + formatTime(Math.max(0, trimEnd - trimStart));
+    }
+
+    function applyTrimToInputs() {
+        startRange.value = trimStart;
+        endRange.value = trimEnd;
+        updateLabels();
+    }
+
+    video.addEventListener('loadedmetadata', () => {
+        duration = video.duration;
+        if (!isFinite(duration) || duration <= 0) duration = 60;
+        trimEnd = Math.min(trimEnd, duration);
+        startRange.max = duration;
+        startRange.value = 0;
+        endRange.max = duration;
+        endRange.value = trimEnd;
+        trimStart = 0;
+        applyTrimToInputs();
+    });
+
+    startRange.addEventListener('input', () => {
+        trimStart = parseFloat(startRange.value) || 0;
+        if (trimStart >= trimEnd) trimEnd = Math.min(trimStart + 1, duration);
+        endRange.min = trimStart;
+        endRange.value = trimEnd;
+        video.currentTime = trimStart;
+        updateLabels();
+    });
+    endRange.addEventListener('input', () => {
+        trimEnd = parseFloat(endRange.value) || duration;
+        if (trimEnd <= trimStart) trimStart = Math.max(0, trimEnd - 1);
+        startRange.max = trimEnd;
+        startRange.value = trimStart;
+        updateLabels();
+    });
+
+    trimTimeupdate = () => {
+        if (video.currentTime >= trimEnd) {
+            video.pause();
+            video.currentTime = trimStart;
+            playPauseBtn.textContent = 'Play';
+        }
+    };
+    video.addEventListener('timeupdate', trimTimeupdate);
+
+    playPauseBtn.onclick = () => {
+        if (video.paused) {
+            video.currentTime = Math.max(trimStart, video.currentTime);
+            if (video.currentTime >= trimEnd) video.currentTime = trimStart;
+            video.play();
+            playPauseBtn.textContent = 'Pause';
+        } else {
+            video.pause();
+            playPauseBtn.textContent = 'Play';
+        }
+    };
+
+    addBtn.onclick = () => {
+        video.pause();
+        video.removeEventListener('timeupdate', trimTimeupdate);
+        overlay.classList.remove('visible');
+        video.src = '';
+        onAdd({ trimStart, trimEnd });
+    };
+
+    cancelBtn.onclick = () => {
+        video.pause();
+        video.removeEventListener('timeupdate', trimTimeupdate);
+        overlay.classList.remove('visible');
+        video.src = '';
+        onCancel();
+    };
+
+    overlay.classList.add('visible');
+    updateLabels();
+}
+
 function addFiles(files) {
     if (files.length === 0) return;
     const currentData = { name: getProjectDataSync(projectId).name, items: items.slice() };
@@ -121,18 +240,47 @@ function addFiles(files) {
         alert('Adding these files would exceed the project storage limit of ' + (PROJECT_STORAGE_LIMIT_BYTES / (1024 * 1024)).toFixed(0) + ' MB. Remove some content or add smaller files.');
         return;
     }
-    let pending = files.length;
-    files.forEach(file => {
-        const type = file.type.startsWith('video/') ? 'video' : 'image';
+    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+    const videoFiles = files.filter(f => f.type.startsWith('video/'));
+    imageFiles.forEach(file => {
         const name = file.name || 'Untitled';
         const reader = new FileReader();
         reader.onload = () => {
-            items.push({ type, src: reader.result, name, backgroundRoster: false });
-            if (--pending === 0) render();
+            items.push({ type: 'image', src: reader.result, name, backgroundRoster: false });
+            render();
         };
-        reader.onerror = () => { if (--pending === 0) render(); };
         reader.readAsDataURL(file);
     });
+    if (videoFiles.length === 0) return;
+    videoTrimQueue = videoFiles.slice();
+    function processNextVideo() {
+        if (videoTrimQueue.length === 0) {
+            render();
+            return;
+        }
+        const file = videoTrimQueue.shift();
+        const name = file.name || 'Untitled';
+        const reader = new FileReader();
+        reader.onload = () => {
+            const videoSrc = reader.result;
+            openTrimModal(videoSrc, name, (trim) => {
+                items.push({
+                    type: 'video',
+                    src: videoSrc,
+                    name,
+                    backgroundRoster: false,
+                    trimStart: trim.trimStart,
+                    trimEnd: trim.trimEnd
+                });
+                processNextVideo();
+            }, () => {
+                processNextVideo();
+            });
+        };
+        reader.onerror = () => processNextVideo();
+        reader.readAsDataURL(file);
+    }
+    processNextVideo();
 }
 
 function updateStorageDisplay() {

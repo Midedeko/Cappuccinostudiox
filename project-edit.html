@@ -66,6 +66,7 @@
         .playlist .preview-video { width: 80px; height: 60px; object-fit: cover; flex-shrink: 0; background: #000; }
         .playlist .body { flex: 1; min-width: 0; }
         .playlist .name { font-weight: bold; text-transform: uppercase; margin-bottom: 8px; word-break: break-all; }
+        .playlist .trim-label { font-size: 11px; text-transform: uppercase; opacity: 0.85; margin-bottom: 4px; }
         .playlist .row {
             display: flex;
             align-items: center;
@@ -160,6 +161,88 @@
             margin-top: 24px;
         }
         .save-btn:hover { background: #fff; border-color: #fff; }
+
+        /* Video trim modal */
+        .trim-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .trim-overlay.visible { display: flex; }
+        .trim-modal {
+            background: #E70017;
+            border: 2px solid #FFF212;
+            color: #FFF212;
+            max-width: 90vw;
+            width: 640px;
+            padding: 24px;
+            font-family: 'Code Saver', sans-serif;
+        }
+        .trim-modal h2 {
+            text-transform: uppercase;
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+        .trim-video-wrap {
+            position: relative;
+            background: #000;
+            margin-bottom: 16px;
+            aspect-ratio: 16/9;
+        }
+        .trim-video-wrap video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        .trim-controls {
+            margin-bottom: 16px;
+        }
+        .trim-controls label {
+            display: block;
+            text-transform: uppercase;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .trim-controls input[type="range"] {
+            width: 100%;
+            margin: 8px 0;
+            accent-color: #FFF212;
+        }
+        .trim-times {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .trim-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .trim-actions button {
+            background: #FFF212;
+            color: #E70017;
+            border: 2px solid #FFF212;
+            padding: 10px 20px;
+            font-family: 'Code Saver', sans-serif;
+            font-size: 14px;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        .trim-actions button:hover { background: #fff; border-color: #fff; }
+        .trim-actions button.secondary {
+            background: transparent;
+            color: #FFF212;
+            border-color: #FFF212;
+        }
+        .trim-actions button.secondary:hover { background: #FFF212; color: #E70017; }
     </style>
 </head>
 <body>
@@ -181,6 +264,32 @@
     <ul class="playlist" id="playlist"></ul>
     <p class="storage-usage" id="storageUsage">Storage: 0 / 100 MB</p>
     <button type="button" class="save-btn" id="saveBtn">Save project</button>
+
+    <!-- Video trim modal -->
+    <div class="trim-overlay" id="trimOverlay">
+        <div class="trim-modal">
+            <h2>Trim video – choose the part to show</h2>
+            <div class="trim-video-wrap">
+                <video id="trimPreviewVideo" muted playsInline preload="metadata" controls></video>
+            </div>
+            <div class="trim-controls">
+                <label>Start (seconds)</label>
+                <input type="range" id="trimStartRange" min="0" max="100" value="0" step="0.1">
+                <label>End (seconds)</label>
+                <input type="range" id="trimEndRange" min="0" max="100" value="10" step="0.1">
+            </div>
+            <div class="trim-times">
+                <span id="trimStartLabel">Start: 0:00</span>
+                <span id="trimEndLabel">End: 0:00</span>
+                <span id="trimDurationLabel">Duration: 0:00</span>
+            </div>
+            <div class="trim-actions">
+                <button type="button" id="trimPlayPauseBtn">Play</button>
+                <button type="button" id="trimAddBtn">Add to playlist</button>
+                <button type="button" class="secondary" id="trimCancelBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module" src="js/pages/project-edit.js"></script>
 </body>

@@ -48,6 +48,14 @@ function setActiveItem(index) {
         expandedMedia.loop = true;
         expandedMedia.muted = true;
         expandedMedia.playsInline = true;
+        const trimStart = item.trimStart != null && isFinite(item.trimStart) ? item.trimStart : 0;
+        const trimEnd = item.trimEnd != null && isFinite(item.trimEnd) ? item.trimEnd : null;
+        expandedMedia.addEventListener('loadeddata', () => { expandedMedia.currentTime = trimStart; });
+        if (trimEnd != null) {
+            expandedMedia.addEventListener('timeupdate', () => {
+                if (expandedMedia.currentTime >= trimEnd) expandedMedia.currentTime = trimStart;
+            });
+        }
     } else {
         expandedMedia = document.createElement('img');
         expandedMedia.src = item.src;
@@ -91,7 +99,20 @@ function openContentView(index) {
     const isVideo = item.type === 'video';
     const media = isVideo ? document.createElement('video') : document.createElement('img');
     media.src = item.src;
-    if (isVideo) { media.controls = false; media.muted = false; media.playsInline = true; media.loop = true; } else { media.alt = item.name; }
+    if (isVideo) {
+        media.controls = false;
+        media.muted = false;
+        media.playsInline = true;
+        media.loop = true;
+        const trimStart = item.trimStart != null && isFinite(item.trimStart) ? item.trimStart : 0;
+        const trimEnd = item.trimEnd != null && isFinite(item.trimEnd) ? item.trimEnd : null;
+        media.addEventListener('loadeddata', () => { media.currentTime = trimStart; });
+        if (trimEnd != null) {
+            media.addEventListener('timeupdate', () => {
+                if (media.currentTime >= trimEnd) media.currentTime = trimStart;
+            });
+        }
+    } else { media.alt = item.name; }
     contentViewMedia = media;
     const wrap = document.createElement('div');
     wrap.style.position = 'relative';

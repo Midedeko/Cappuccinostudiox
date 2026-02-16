@@ -28,11 +28,15 @@ export function applyCmsData(data, state, projectId) {
         state.galleryItems = data.items.map(it => ({
             type: it.type || 'image',
             src: it.src || '',
-            name: it.name || 'Untitled'
+            name: it.name || 'Untitled',
+            trimStart: it.trimStart,
+            trimEnd: it.trimEnd
         })).filter(it => it.src);
         if (state.galleryItems.length > 0) {
-            const roster = data.items.filter(it => it.backgroundRoster && (it.type === 'video' || (it.src && (it.src.startsWith('data:video') || it.src.startsWith('http'))))).map(it => it.src);
-            if (roster.length) state.backgroundVideos = roster;
+            state.backgroundVideos = data.items
+                .filter(it => it.backgroundRoster && (it.type === 'video' || (it.src && (it.src.startsWith('data:video') || it.src.startsWith('http')))))
+                .map(it => ({ src: it.src, trimStart: it.trimStart, trimEnd: it.trimEnd }));
+            if (state.backgroundVideos.length === 0) state.backgroundVideos = [];
         }
     }
     if (state.galleryItems.length === 0) state.galleryItems = DEFAULT_GALLERY_ITEMS.slice();
@@ -40,13 +44,19 @@ export function applyCmsData(data, state, projectId) {
 }
 
 /**
- * Init background videos in container. ref: { currentVideoIndex, getActiveItemIndex } (getActiveItemIndex() returns activeItemIndex).
+ * Init background videos in container. backgroundVideos: array of { src, trimStart?, trimEnd? } or legacy string src.
+ * ref: { currentVideoIndex, getActiveItemIndex }.
  */
 export function initBackgroundVideos(containerId, backgroundVideos, ref) {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = '';
-    backgroundVideos.forEach((src, index) => {
+    const list = Array.isArray(backgroundVideos) ? backgroundVideos : [];
+    list.forEach((entry, index) => {
+        const src = typeof entry === 'string' ? entry : (entry && entry.src);
+        const trimStart = typeof entry === 'object' && entry != null ? entry.trimStart : undefined;
+        const trimEnd = typeof entry === 'object' && entry != null ? entry.trimEnd : undefined;
+        if (!src) return;
         const video = document.createElement('video');
         video.src = src;
         video.autoplay = true;
@@ -56,17 +66,33 @@ export function initBackgroundVideos(containerId, backgroundVideos, ref) {
         video.className = 'background-video';
         if (index === 0) video.classList.add('active');
         container.appendChild(video);
-        video.addEventListener('ended', () => {
-            if (ref.getActiveItemIndex && ref.getActiveItemIndex() === null) {
-                video.classList.remove('active');
-                const nextIndex = (index + 1) % backgroundVideos.length;
-                ref.currentVideoIndex = nextIndex;
-                const nextVideo = container.children[nextIndex];
-                if (nextVideo) { nextVideo.classList.add('active'); nextVideo.currentTime = 0; nextVideo.play(); }
+        function clampToTrim() {
+            if (trimStart != null && isFinite(trimStart)) video.currentTime = Math.max(trimStart, video.currentTime);
+            if (trimEnd != null && isFinite(trimEnd) && video.currentTime >= trimEnd) video.currentTime = trimStart != null ? trimStart : 0;
+        }
+        video.addEventListener('timeupdate', () => {
+            if (trimEnd != null && isFinite(trimEnd) && video.currentTime >= trimEnd) {
+                video.currentTime = trimStart != null && isFinite(trimStart) ? trimStart : 0;
             }
         });
         video.addEventListener('loadeddata', () => {
+            if (trimStart != null && isFinite(trimStart)) video.currentTime = trimStart;
             if (video.classList.contains('active') && ref.getActiveItemIndex && ref.getActiveItemIndex() === null) video.play();
+        });
+        video.addEventListener('ended', () => {
+            if (ref.getActiveItemIndex && ref.getActiveItemIndex() === null) {
+                video.classList.remove('active');
+                const nextIndex = (index + 1) % list.length;
+                ref.currentVideoIndex = nextIndex;
+                const nextVideo = container.children[nextIndex];
+                if (nextVideo) {
+                    nextVideo.classList.add('active');
+                    const nextEntry = list[nextIndex];
+                    const nextStart = typeof nextEntry === 'object' && nextEntry && nextEntry.trimStart != null ? nextEntry.trimStart : 0;
+                    nextVideo.currentTime = nextStart;
+                    nextVideo.play();
+                }
+            }
         });
     });
 }
