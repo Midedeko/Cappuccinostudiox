@@ -4,6 +4,7 @@
 import { escapeHtml, init } from '../core.js';
 import { getProjectIdFromURL } from '../projectLoader.js';
 import { getProject, saveProject, getProjectDataSync, getProjectList, saveProjectList } from '../storage.js';
+import { uploadFile, uploadDataUrl } from '../supabaseStorage.js';
 
 const PROJECT_STORAGE_LIMIT_BYTES = 300 * 1024 * 1024;
 
@@ -20,6 +21,66 @@ function getProjectSizeBytes(data) {
 let items = [];
 let assets = [];
 let thumbnailDataUrl = null;
+
+const uploadProgress = {
+    total: 0,
+    done: 0,
+    totalBytes: 0,
+    doneBytes: 0,
+    hideTimeout: null,
+    recordStart(bytes) {
+        this.total += 1;
+        this.totalBytes += bytes || 0;
+        this.show();
+    },
+    recordDone(bytes) {
+        this.done += 1;
+        this.doneBytes += bytes || 0;
+        this.updateText();
+        if (this.done >= this.total) {
+            if (this.hideTimeout) clearTimeout(this.hideTimeout);
+            this.hideTimeout = setTimeout(() => {
+                this.reset();
+                this.hide();
+            }, 1500);
+        }
+    },
+    show() {
+        const el = document.getElementById('uploadProgressOverlay');
+        if (el) el.style.display = 'flex';
+        this.updateText();
+    },
+    hide() {
+        const el = document.getElementById('uploadProgressOverlay');
+        if (el) el.style.display = 'none';
+    },
+    updateText() {
+        const el = document.getElementById('uploadProgressText');
+        if (!el) return;
+        const totalMB = (this.totalBytes / (1024 * 1024)).toFixed(2);
+        const doneMB = (this.doneBytes / (1024 * 1024)).toFixed(2);
+        if (this.total === 0) {
+            el.textContent = '0 of 0 items · 0 MB of 0 MB';
+        } else if (this.done >= this.total) {
+            el.textContent = 'All uploads complete · ' + doneMB + ' MB uploaded';
+        } else {
+            el.textContent = this.done + ' of ' + this.total + ' items · ' + doneMB + ' MB of ' + totalMB + ' MB';
+        }
+    },
+    reset() {
+        this.total = 0;
+        this.done = 0;
+        this.totalBytes = 0;
+        this.doneBytes = 0;
+    }
+};
+
+function uploadProgressCallbacks() {
+    return {
+        onStart: (bytes) => uploadProgress.recordStart(bytes),
+        onDone: (bytes) => uploadProgress.recordDone(bytes)
+    };
+}
 
 function getItemSrc(item) {
     if (item.src) return item.src;
@@ -118,21 +179,24 @@ function render() {
             if (!src) return;
             openTrimModal(src, it.name, null, (trim) => {
                 if (!trim.trimmedDataUrl) return;
-                const data = getProjectDataSync(projectId);
-                data.assets = assets;
-                const nextItems = items.slice();
-                nextItems[idx] = { ...it, src: trim.trimmedDataUrl, trimStart: 0, trimEnd: null };
-                delete nextItems[idx].assetId;
-                data.items = nextItems;
-                if (getProjectSizeBytes(data) > PROJECT_STORAGE_LIMIT_BYTES) {
-                    alert('The trimmed clip would exceed the project storage limit. Choose a shorter segment.');
-                    return;
-                }
-                items[idx].src = trim.trimmedDataUrl;
-                items[idx].trimStart = 0;
-                items[idx].trimEnd = null;
-                delete items[idx].assetId;
-                render();
+                uploadDataUrl(projectId, trim.trimmedDataUrl, 'clip.webm', uploadProgressCallbacks()).then(cloudUrl => {
+                    const finalSrc = cloudUrl || trim.trimmedDataUrl;
+                    const data = getProjectDataSync(projectId);
+                    data.assets = assets;
+                    const nextItems = items.slice();
+                    nextItems[idx] = { ...it, src: finalSrc, trimStart: 0, trimEnd: null };
+                    delete nextItems[idx].assetId;
+                    data.items = nextItems;
+                    if (getProjectSizeBytes(data) > PROJECT_STORAGE_LIMIT_BYTES) {
+                        alert('The trimmed clip would exceed the project storage limit. Choose a shorter segment.');
+                        return;
+                    }
+                    items[idx].src = finalSrc;
+                    items[idx].trimStart = 0;
+                    items[idx].trimEnd = null;
+                    delete items[idx].assetId;
+                    render();
+                });
             }, () => {});
         });
     });
@@ -143,37 +207,47 @@ function render() {
             const item = items[idx];
             const src = getItemSrc(item);
             if (!src) return;
+            function openAddCutModal() {
+                const newIdx = idx + 1;
+                const newItem = {
+                    type: 'video',
+                    assetId: item.assetId,
+                    name: (item.name || 'Untitled') + ' (2)',
+                    trimStart: 0,
+                    trimEnd: null,
+                    storyline: '',
+                    backgroundRoster: false
+                };
+                openTrimModal(getItemSrc(item), newItem.name, null, (trim) => {
+                    if (!trim.trimmedDataUrl) return;
+                    uploadDataUrl(projectId, trim.trimmedDataUrl, 'clip.webm', uploadProgressCallbacks()).then(cloudUrl => {
+                        newItem.src = cloudUrl || trim.trimmedDataUrl;
+                        delete newItem.assetId;
+                        const data = getProjectDataSync(projectId);
+                        data.items = items.slice();
+                        data.items.splice(newIdx, 0, newItem);
+                        data.assets = assets;
+                        if (getProjectSizeBytes(data) > PROJECT_STORAGE_LIMIT_BYTES) {
+                            alert('The trimmed clip would exceed the project storage limit. Choose a shorter segment.');
+                            return;
+                        }
+                        items.splice(newIdx, 0, newItem);
+                        render();
+                    });
+                }, () => {});
+            }
             if (!item.assetId) {
                 const assetId = 'a' + Date.now();
-                assets.push({ id: assetId, type: 'video', src });
-                item.assetId = assetId;
-                delete item.src;
+                uploadDataUrl(projectId, src, 'source.webm', uploadProgressCallbacks()).then(assetUrl => {
+                    const finalAssetSrc = assetUrl || src;
+                    assets.push({ id: assetId, type: 'video', src: finalAssetSrc });
+                    item.assetId = assetId;
+                    delete item.src;
+                    openAddCutModal();
+                });
+            } else {
+                openAddCutModal();
             }
-            const newIdx = idx + 1;
-            const newItem = {
-                type: 'video',
-                assetId: item.assetId,
-                name: (item.name || 'Untitled') + ' (2)',
-                trimStart: 0,
-                trimEnd: null,
-                storyline: '',
-                backgroundRoster: false
-            };
-            openTrimModal(src, newItem.name, null, (trim) => {
-                if (!trim.trimmedDataUrl) return;
-                newItem.src = trim.trimmedDataUrl;
-                delete newItem.assetId;
-                const data = getProjectDataSync(projectId);
-                data.items = items.slice();
-                data.items.splice(newIdx, 0, newItem);
-                data.assets = assets;
-                if (getProjectSizeBytes(data) > PROJECT_STORAGE_LIMIT_BYTES) {
-                    alert('The trimmed clip would exceed the project storage limit. Choose a shorter segment.');
-                    return;
-                }
-                items.splice(newIdx, 0, newItem);
-                render();
-            }, () => {});
         });
     });
     ul.querySelectorAll('.item-name').forEach(el => {
@@ -250,9 +324,26 @@ document.getElementById('replaceFileInput').addEventListener('change', (e) => {
             alert('Please choose an image file.');
             return;
         }
-        const reader = new FileReader();
-        reader.onload = () => {
-            const newSrc = reader.result;
+        uploadFile(projectId, file, uploadProgressCallbacks()).then(url => {
+            const newSrc = url || null;
+            if (!newSrc) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const data = getProjectDataSync(projectId);
+                    data.assets = assets;
+                    const nextItems = items.slice();
+                    nextItems[idx] = { ...item, src: reader.result };
+                    data.items = nextItems;
+                    if (getProjectSizeBytes(data) > PROJECT_STORAGE_LIMIT_BYTES) {
+                        alert('Replacing would exceed the project storage limit. Choose a smaller file or remove some content.');
+                        return;
+                    }
+                    items[idx].src = reader.result;
+                    render();
+                };
+                reader.readAsDataURL(file);
+                return;
+            }
             const data = getProjectDataSync(projectId);
             data.assets = assets;
             const nextItems = items.slice();
@@ -264,8 +355,7 @@ document.getElementById('replaceFileInput').addEventListener('change', (e) => {
             }
             items[idx].src = newSrc;
             render();
-        };
-        reader.readAsDataURL(file);
+        });
     } else {
         if (!file.type.startsWith('video/')) {
             alert('Please choose a video file.');
@@ -277,21 +367,24 @@ document.getElementById('replaceFileInput').addEventListener('change', (e) => {
             openTrimModal(videoSrc, file.name || item.name, file.size, (trim) => {
                 const trimmedDataUrl = trim.trimmedDataUrl;
                 if (!trimmedDataUrl) return;
-                const data = getProjectDataSync(projectId);
-                data.assets = assets;
-                const nextItems = items.slice();
-                nextItems[idx] = { ...item, src: trimmedDataUrl, trimStart: 0, trimEnd: null };
-                delete nextItems[idx].assetId;
-                data.items = nextItems;
-                if (getProjectSizeBytes(data) > PROJECT_STORAGE_LIMIT_BYTES) {
-                    alert('Replacing would exceed the project storage limit. Choose a shorter segment or remove some content.');
-                    return;
-                }
-                items[idx].src = trimmedDataUrl;
-                delete items[idx].assetId;
-                items[idx].trimStart = 0;
-                items[idx].trimEnd = null;
-                render();
+                uploadDataUrl(projectId, trimmedDataUrl, 'clip.webm', uploadProgressCallbacks()).then(cloudUrl => {
+                    const src = cloudUrl || trimmedDataUrl;
+                    const data = getProjectDataSync(projectId);
+                    data.assets = assets;
+                    const nextItems = items.slice();
+                    nextItems[idx] = { ...item, src, trimStart: 0, trimEnd: null };
+                    delete nextItems[idx].assetId;
+                    data.items = nextItems;
+                    if (getProjectSizeBytes(data) > PROJECT_STORAGE_LIMIT_BYTES) {
+                        alert('Replacing would exceed the project storage limit. Choose a shorter segment or remove some content.');
+                        return;
+                    }
+                    items[idx].src = src;
+                    delete items[idx].assetId;
+                    items[idx].trimStart = 0;
+                    items[idx].trimEnd = null;
+                    render();
+                });
             }, () => {});
         };
         reader.readAsDataURL(file);
@@ -530,12 +623,19 @@ function addFiles(files) {
     const videoFiles = files.filter(f => f.type.startsWith('video/'));
     imageFiles.forEach(file => {
         const name = file.name || 'Untitled';
-        const reader = new FileReader();
-        reader.onload = () => {
-            items.push({ type: 'image', src: reader.result, name, backgroundRoster: false });
-            render();
-        };
-        reader.readAsDataURL(file);
+        uploadFile(projectId, file, uploadProgressCallbacks()).then(url => {
+            if (url) {
+                items.push({ type: 'image', src: url, name, backgroundRoster: false });
+                render();
+            } else {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    items.push({ type: 'image', src: reader.result, name, backgroundRoster: false });
+                    render();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
     });
     if (videoFiles.length === 0) return;
     videoTrimQueue = videoFiles.slice();
@@ -552,24 +652,27 @@ function addFiles(files) {
             openTrimModal(videoSrc, name, file.size, (trim) => {
                 const trimmedDataUrl = trim.trimmedDataUrl;
                 if (!trimmedDataUrl) return processNextVideo();
-                const newItem = {
-                    type: 'video',
-                    src: trimmedDataUrl,
-                    name,
-                    backgroundRoster: false,
-                    trimStart: 0,
-                    trimEnd: null
-                };
-                const data = getProjectDataSync(projectId);
-                data.items = items.concat([newItem]);
-                data.assets = assets;
-                if (getProjectSizeBytes(data) > PROJECT_STORAGE_LIMIT_BYTES) {
-                    alert('The trimmed clip would exceed the project storage limit. Remove some content or choose a shorter segment.');
+                uploadDataUrl(projectId, trimmedDataUrl, 'clip.webm', uploadProgressCallbacks()).then(cloudUrl => {
+                    const src = cloudUrl || trimmedDataUrl;
+                    const newItem = {
+                        type: 'video',
+                        src,
+                        name,
+                        backgroundRoster: false,
+                        trimStart: 0,
+                        trimEnd: null
+                    };
+                    const data = getProjectDataSync(projectId);
+                    data.items = items.concat([newItem]);
+                    data.assets = assets;
+                    if (getProjectSizeBytes(data) > PROJECT_STORAGE_LIMIT_BYTES) {
+                        alert('The trimmed clip would exceed the project storage limit. Remove some content or choose a shorter segment.');
+                        processNextVideo();
+                        return;
+                    }
+                    items.push(newItem);
                     processNextVideo();
-                    return;
-                }
-                items.push(newItem);
-                processNextVideo();
+                });
             }, () => {
                 processNextVideo();
             });
@@ -602,13 +705,20 @@ document.getElementById('thumbnailChooseBtn').addEventListener('click', () => do
 document.getElementById('thumbnailInput').addEventListener('change', (e) => {
     const file = (e.target.files || [])[0];
     if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-        thumbnailDataUrl = reader.result;
-        updateThumbnailPreview(thumbnailDataUrl);
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
+    uploadFile(projectId, file, uploadProgressCallbacks()).then(url => {
+        if (url) {
+            thumbnailDataUrl = url;
+            updateThumbnailPreview(thumbnailDataUrl);
+        } else {
+            const reader = new FileReader();
+            reader.onload = () => {
+                thumbnailDataUrl = reader.result;
+                updateThumbnailPreview(thumbnailDataUrl);
+            };
+            reader.readAsDataURL(file);
+        }
+        e.target.value = '';
+    });
 });
 document.getElementById('thumbnailClearBtn').addEventListener('click', () => {
     thumbnailDataUrl = null;
@@ -643,9 +753,11 @@ document.getElementById('saveBtn').addEventListener('click', () => {
         btn.textContent = 'Saved';
         setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 1500);
     }).catch((e) => {
-        btn.textContent = e.name === 'QuotaExceededError' ? 'Storage full' : 'Error';
         btn.disabled = false;
-        setTimeout(() => { btn.textContent = originalText; }, 2000);
+        const msg = e && e.message ? e.message : (e.name === 'QuotaExceededError' ? 'Storage full' : 'Error');
+        btn.textContent = msg.indexOf('too large') !== -1 ? 'Saved locally only' : 'Sync failed';
+        alert('Saved on this device only. Cloud sync failed: ' + msg);
+        setTimeout(() => { btn.textContent = originalText; }, 3000);
     });
 });
 

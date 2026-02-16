@@ -137,6 +137,26 @@
             text-transform: uppercase;
         }
         .playlist .replace-item-btn:hover, .playlist .retrim-item-btn:hover, .playlist .addcut-item-btn:hover { background: #FFF212; color: #E70017; }
+        .upload-progress-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .upload-progress-box {
+            background: #E70017;
+            border: 2px solid #FFF212;
+            color: #FFF212;
+            padding: 24px 32px;
+            text-align: center;
+            font-family: 'Code Saver', sans-serif;
+            min-width: 280px;
+        }
+        .upload-progress-title { font-size: 16px; text-transform: uppercase; margin-bottom: 12px; }
+        .upload-progress-text { font-size: 14px; opacity: 0.95; }
         .project-name-input {
             width: 100%;
             max-width: 400px;
@@ -300,6 +320,14 @@
     <ul class="playlist" id="playlist"></ul>
     <p class="storage-usage" id="storageUsage">Storage: 0 / 100 MB</p>
     <button type="button" class="save-btn" id="saveBtn">Save project</button>
+
+    <!-- Upload progress -->
+    <div id="uploadProgressOverlay" class="upload-progress-overlay" style="display: none;">
+        <div class="upload-progress-box">
+            <p class="upload-progress-title">Uploading to cloud…</p>
+            <p id="uploadProgressText" class="upload-progress-text">0 of 0 items · 0 MB of 0 MB</p>
+        </div>
+    </div>
 
     <!-- Video trim modal -->
     <div class="trim-overlay" id="trimOverlay">

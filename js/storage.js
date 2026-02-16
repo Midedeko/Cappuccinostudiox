@@ -84,10 +84,18 @@ export function saveProject(project) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
     })
-        .then(res => { if (!res.ok) throw new Error(res.statusText || 'save failed'); })
-        .catch(() => setProjectInIDB(id, payload).then(() => {
-            try { localStorage.setItem(CMS_PROJECT_PREFIX + id, JSON.stringify(payload)); } catch (e) {}
-        }));
+        .then(async (res) => {
+            if (res.ok) return;
+            const msg = res.status === 413
+                ? 'Project too large to sync (over 4.5 MB). Save works on this device only.'
+                : (await res.text()) || res.statusText || 'Save failed';
+            throw new Error(msg);
+        })
+        .catch((err) => {
+            return setProjectInIDB(id, payload).then(() => {
+                try { localStorage.setItem(CMS_PROJECT_PREFIX + id, JSON.stringify(payload)); } catch (e) {}
+            }).then(() => { throw err; });
+        });
 }
 
 export function deleteProjectFromIDB(id) {
