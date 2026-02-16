@@ -49,8 +49,8 @@
         .booking-success-card .booking-success-btn {
             display: inline-block;
             padding: 0.5rem 1rem;
-            background: #FFF212;
-            color: #0a0a0a;
+            background: transparent;
+            color: #FFF212;
             border: 2px solid #FFF212;
             text-align: center;
             text-decoration: none;
@@ -61,7 +61,10 @@
             box-sizing: border-box;
         }
         .booking-success-card a:hover,
-        .booking-success-card .booking-success-btn:hover { background: transparent; color: #FFF212; }
+        .booking-success-card .booking-success-btn:hover { background: #FFF212; color: #0a0a0a; }
+        .kit-modal-wrap.booking-done .kit-modal-label,
+        .kit-modal-wrap.booking-done .kit-modal-row { display: none !important; }
+        .kit-modal-wrap.booking-done .booking-message { margin-top: 0; }
     </style>
 </head>
 <body>

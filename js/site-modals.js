@@ -457,6 +457,8 @@
                         var serviceLabel = (serviceLabelEl && serviceLabelEl.textContent) ? serviceLabelEl.textContent.trim() : service;
                         var dateLabel = (dateLabelEl && dateLabelEl.textContent) ? dateLabelEl.textContent.trim() : dateVal;
                         messageEl.className = 'booking-message success';
+                        var wrap = messageEl.closest('.kit-modal-wrap');
+                        if (wrap) wrap.classList.add('booking-done');
                         messageEl.innerHTML = '<div class="booking-success-card">' +
                             '<div class="booking-success-title">Booking successful</div>' +
                             '<div class="booking-success-details">' + (serviceLabel ? 'Service: ' + serviceLabel + '<br>' : '') + 'Date: ' + dateLabel + '<br>Time: ' + timeVal + '</div>' +

@@ -62,6 +62,8 @@ function init() {
                     const serviceLabel = serviceLabelEl?.textContent?.trim() || service;
                     const dateLabel = dateLabelEl?.textContent?.trim() || dateVal;
                     messageEl.className = 'booking-message success';
+                    const wrap = messageEl.closest('.kit-modal-wrap');
+                    if (wrap) wrap.classList.add('booking-done');
                     messageEl.innerHTML = '<div class="booking-success-card">' +
                         '<div class="booking-success-title">Booking successful</div>' +
                         '<div class="booking-success-details">' + (serviceLabel ? 'Service: ' + serviceLabel + '<br>' : '') + 'Date: ' + dateLabel + '<br>Time: ' + timeVal + '</div>' +
