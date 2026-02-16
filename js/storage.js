@@ -29,7 +29,7 @@ function setProjectInIDB(id, data) {
     return openDB().then(db => new Promise((resolve, reject) => {
         const tx = db.transaction(IDB_STORE, 'readwrite');
         const store = tx.objectStore(IDB_STORE);
-        store.put({ id: id, name: data.name, items: data.items || [], storyline: data.storyline || '' });
+        store.put({ id: id, name: data.name, items: data.items || [], storyline: data.storyline || '', thumbnail: data.thumbnail || null });
         tx.onerror = () => reject(tx.error);
         tx.oncomplete = () => resolve();
     }));
@@ -51,10 +51,11 @@ export function getProject(id) {
             id: data.id != null ? data.id : idStr,
             name: data.name ?? `Project ${idStr}`,
             items: Array.isArray(data.items) ? data.items : [],
-            storyline: data.storyline ?? ''
+            storyline: data.storyline ?? '',
+            thumbnail: data.thumbnail ?? null
         }))
         .catch(() => getProjectFromIDB(idStr)
-            .then(record => record ? { id: record.id, name: record.name, items: record.items || [], storyline: record.storyline || '' } : null)
+            .then(record => record ? { id: record.id, name: record.name, items: record.items || [], storyline: record.storyline || '', thumbnail: record.thumbnail || null } : null)
             .catch(() => null))
         .then(data => {
             if (data) return data;
@@ -62,7 +63,7 @@ export function getProject(id) {
                 const raw = localStorage.getItem(CMS_PROJECT_PREFIX + idStr);
                 if (raw) {
                     const parsed = JSON.parse(raw);
-                    return { id: idStr, name: parsed.name, items: parsed.items || [], storyline: parsed.storyline || '' };
+                    return { id: idStr, name: parsed.name, items: parsed.items || [], storyline: parsed.storyline || '', thumbnail: parsed.thumbnail || null };
                 }
             } catch (e) {}
             return null;
@@ -76,7 +77,7 @@ export function getProject(id) {
  */
 export function saveProject(project) {
     const id = project.id != null ? String(project.id) : '';
-    const payload = { id, name: project.name ?? `Project ${id}`, items: project.items || [], storyline: project.storyline ?? '' };
+    const payload = { id, name: project.name ?? `Project ${id}`, items: project.items || [], storyline: project.storyline ?? '', thumbnail: project.thumbnail ?? null };
     return fetch('/api/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -101,7 +102,7 @@ export function deleteProjectFromIDB(id) {
 export function getProjectDataSync(projectId) {
     try {
         const raw = localStorage.getItem(CMS_PROJECT_PREFIX + projectId);
-        const def = { name: `Project ${projectId}`, items: [], storyline: '' };
+        const def = { name: `Project ${projectId}`, items: [], storyline: '', thumbnail: null };
         return raw ? Object.assign(def, JSON.parse(raw)) : def;
     } catch (e) {
         return { name: `Project ${projectId}`, items: [], storyline: '' };
@@ -111,17 +112,9 @@ export function getProjectDataSync(projectId) {
 export function getProjectList() {
     try {
         const raw = localStorage.getItem(CMS_LIST_KEY);
-        return raw ? JSON.parse(raw) : [
-            { id: 1, name: 'Project 1' },
-            { id: 2, name: 'Project 2' },
-            { id: 3, name: 'Project 3' }
-        ];
+        return raw ? JSON.parse(raw) : [];
     } catch (e) {
-        return [
-            { id: 1, name: 'Project 1' },
-            { id: 2, name: 'Project 2' },
-            { id: 3, name: 'Project 3' }
-        ];
+        return [];
     }
 }
 

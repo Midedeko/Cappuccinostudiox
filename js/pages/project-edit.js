@@ -3,7 +3,7 @@
  */
 import { escapeHtml, init } from '../core.js';
 import { getProjectIdFromURL } from '../projectLoader.js';
-import { getProject, saveProject, getProjectDataSync } from '../storage.js';
+import { getProject, saveProject, getProjectDataSync, getProjectList, saveProjectList } from '../storage.js';
 
 const PROJECT_STORAGE_LIMIT_BYTES = 100 * 1024 * 1024;
 
@@ -18,6 +18,7 @@ function getProjectSizeBytes(data) {
 }
 
 let items = [];
+let thumbnailDataUrl = null;
 
 function formatTrimTime(s) {
     if (s == null || !isFinite(s)) return '';
@@ -291,6 +292,32 @@ function updateStorageDisplay() {
     if (el) el.textContent = 'Storage: ' + (bytes / (1024 * 1024)).toFixed(1) + ' / ' + (PROJECT_STORAGE_LIMIT_BYTES / (1024 * 1024)).toFixed(0) + ' MB';
 }
 
+function updateThumbnailPreview(src) {
+    const preview = document.getElementById('thumbnailPreview');
+    const placeholder = document.getElementById('thumbnailPlaceholder');
+    const clearBtn = document.getElementById('thumbnailClearBtn');
+    if (preview) { preview.src = src || ''; preview.style.display = src ? 'block' : 'none'; }
+    if (placeholder) placeholder.style.display = src ? 'none' : 'block';
+    if (clearBtn) clearBtn.style.display = src ? 'inline-block' : 'none';
+}
+
+document.getElementById('thumbnailChooseBtn').addEventListener('click', () => document.getElementById('thumbnailInput').click());
+document.getElementById('thumbnailInput').addEventListener('change', (e) => {
+    const file = (e.target.files || [])[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        thumbnailDataUrl = reader.result;
+        updateThumbnailPreview(thumbnailDataUrl);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+});
+document.getElementById('thumbnailClearBtn').addEventListener('click', () => {
+    thumbnailDataUrl = null;
+    updateThumbnailPreview(null);
+});
+
 document.getElementById('saveBtn').addEventListener('click', () => {
     const btn = document.getElementById('saveBtn');
     const originalText = btn.textContent;
@@ -298,13 +325,23 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     data.items = items;
     data.name = (document.getElementById('projectNameInput') || {}).value || data.name || ('Project ' + projectId);
     data.storyline = (document.getElementById('projectStoryline') || {}).value || '';
+    data.thumbnail = thumbnailDataUrl;
     if (getProjectSizeBytes(data) > PROJECT_STORAGE_LIMIT_BYTES) {
         alert('Project size exceeds the 100 MB limit. Remove some content to save.');
         return;
     }
     btn.textContent = 'Saving…';
     btn.disabled = true;
-    saveProject({ id: projectId, name: data.name, items: data.items, storyline: data.storyline }).then(() => {
+    saveProject({ id: projectId, name: data.name, items: data.items, storyline: data.storyline, thumbnail: data.thumbnail }).then(() => {
+        const list = getProjectList();
+        const idx = list.findIndex(p => String(p.id) === String(projectId));
+        const entry = { id: projectId, name: data.name, thumbnail: data.thumbnail || null };
+        if (idx >= 0) {
+            list[idx] = Object.assign(list[idx], entry);
+        } else {
+            list.push(entry);
+        }
+        saveProjectList(list);
         btn.textContent = 'Saved';
         setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 1500);
     }).catch((e) => {
@@ -325,6 +362,7 @@ document.getElementById('pageTitle').textContent = 'Edit Project ' + projectId;
             if (nameEl && record.name != null) nameEl.value = record.name || '';
             const storyEl = document.getElementById('projectStoryline');
             if (storyEl && record.storyline != null) storyEl.value = record.storyline || '';
+            if (record.thumbnail) { thumbnailDataUrl = record.thumbnail; updateThumbnailPreview(thumbnailDataUrl); }
         } else {
             const fallback = getProjectDataSync(projectId);
             items = (fallback.items || []).slice();
@@ -332,6 +370,7 @@ document.getElementById('pageTitle').textContent = 'Edit Project ' + projectId;
             if (nameEl && fallback.name != null) nameEl.value = fallback.name || '';
             const storyEl = document.getElementById('projectStoryline');
             if (storyEl && fallback.storyline != null) storyEl.value = fallback.storyline || '';
+            if (fallback.thumbnail) { thumbnailDataUrl = fallback.thumbnail; updateThumbnailPreview(thumbnailDataUrl); }
         }
         render();
     }).catch(() => {
@@ -341,6 +380,7 @@ document.getElementById('pageTitle').textContent = 'Edit Project ' + projectId;
         if (nameEl && fallback.name != null) nameEl.value = fallback.name || '';
         const storyEl = document.getElementById('projectStoryline');
         if (storyEl && fallback.storyline != null) storyEl.value = fallback.storyline || '';
+        if (fallback.thumbnail) { thumbnailDataUrl = fallback.thumbnail; updateThumbnailPreview(thumbnailDataUrl); }
         render();
     });
 })();

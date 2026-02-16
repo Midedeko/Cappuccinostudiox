@@ -9,7 +9,7 @@ function getSupabase() {
 
 /**
  * POST /api/projects — upsert a project into Supabase.
- * Body: { id, name, items, storyline }
+ * Body: { id, name, items, storyline, thumbnail }
  */
 export async function POST(request) {
     if (request.headers.get('Content-Type')?.toLowerCase().includes('application/json') !== true) {
@@ -38,7 +38,8 @@ export async function POST(request) {
         id,
         name: body.name ?? `Project ${id}`,
         items: Array.isArray(body.items) ? body.items : [],
-        storyline: body.storyline ?? ''
+        storyline: body.storyline ?? '',
+        thumbnail: body.thumbnail ?? null
     };
     try {
         const supabase = getSupabase();

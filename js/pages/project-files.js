@@ -7,7 +7,8 @@ import { getProjectList } from '../storage.js';
 
 window.addEventListener('DOMContentLoaded', () => {
     init();
-    const projectIds = getProjectList().map(p => String(p.id));
+    const projectList = getProjectList();
+    const projectIds = projectList.map(p => String(p.id));
     const boxContainer = document.getElementById('boxContainer');
     const frontFace = boxContainer.querySelector('.front');
     const backFace = boxContainer.querySelector('.back');
@@ -122,8 +123,9 @@ window.addEventListener('DOMContentLoaded', () => {
                 newCard.setAttribute('data-duplicate', (i + 1).toString());
                 newCard.setAttribute('data-project-id', projectIds.length ? projectIds[i % projectIds.length] : '');
                 const img = document.createElement('img');
-                img.src = imagePaths[i % imagePaths.length];
-                img.alt = `Thumbnail ${(i % imagePaths.length) + 1}`;
+                const proj = projectList[i % projectList.length];
+                img.src = (proj && proj.thumbnail) ? proj.thumbnail : imagePaths[i % imagePaths.length];
+                img.alt = proj && proj.name ? proj.name : `Thumbnail ${(i % imagePaths.length) + 1}`;
                 newCard.appendChild(img);
                 boxContainer.insertBefore(newCard, backFace);
                 newCard.addEventListener('wheel', handleWheelScroll, { passive: false });
@@ -139,8 +141,9 @@ window.addEventListener('DOMContentLoaded', () => {
         allCards.forEach((card, index) => {
             card.innerHTML = '';
             const img = document.createElement('img');
-            img.src = imagePaths[index % imagePaths.length];
-            img.alt = `Thumbnail ${(index % imagePaths.length) + 1}`;
+            const proj = projectList[index % projectList.length];
+            img.src = (proj && proj.thumbnail) ? proj.thumbnail : imagePaths[index % imagePaths.length];
+            img.alt = proj && proj.name ? proj.name : `Thumbnail ${(index % imagePaths.length) + 1}`;
             card.appendChild(img);
             card.setAttribute('data-project-id', projectIds.length ? projectIds[index % projectIds.length] : '');
         });
