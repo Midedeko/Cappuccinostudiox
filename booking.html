@@ -32,8 +32,36 @@
             font-size: 0.8rem;
             min-height: 1.2em;
         }
-        .booking-message.error { color: #E70017; }
+        .booking-message,
+        .booking-message.error,
         .booking-message.success { color: #FFF212; }
+        .booking-success-card {
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 2px solid #FFF212;
+            color: #FFF212;
+            font-size: 0.8rem;
+        }
+        .booking-success-card .booking-success-title { font-weight: bold; margin-bottom: 0.5rem; text-transform: uppercase; }
+        .booking-success-card .booking-success-details { margin-bottom: 1rem; line-height: 1.4; }
+        .booking-success-card .booking-success-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+        .booking-success-card a,
+        .booking-success-card .booking-success-btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #FFF212;
+            color: #0a0a0a;
+            border: 2px solid #FFF212;
+            text-align: center;
+            text-decoration: none;
+            font-family: inherit;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+        .booking-success-card a:hover,
+        .booking-success-card .booking-success-btn:hover { background: transparent; color: #FFF212; }
     </style>
 </head>
 <body>

@@ -451,15 +451,46 @@
             })
                 .then(function (res) {
                     if (res.ok) {
-                        messageEl.textContent = 'Booking confirmed.';
-                        messageEl.classList.add('success');
+                        var bookModal = document.getElementById('modalBookSession');
+                        var serviceLabelEl = bookModal && bookModal.querySelector('.kit-modal-select .kit-modal-dropdown-label');
+                        var dateLabelEl = bookModal && bookModal.querySelector('.kit-modal-date .kit-modal-dropdown-label');
+                        var serviceLabel = (serviceLabelEl && serviceLabelEl.textContent) ? serviceLabelEl.textContent.trim() : service;
+                        var dateLabel = (dateLabelEl && dateLabelEl.textContent) ? dateLabelEl.textContent.trim() : dateVal;
+                        messageEl.className = 'booking-message success';
+                        messageEl.innerHTML = '<div class="booking-success-card">' +
+                            '<div class="booking-success-title">Booking successful</div>' +
+                            '<div class="booking-success-details">' + (serviceLabel ? 'Service: ' + serviceLabel + '<br>' : '') + 'Date: ' + dateLabel + '<br>Time: ' + timeVal + '</div>' +
+                            '<div class="booking-success-actions">' +
+                            '<a href="kitchen.html">Continue to kitchen</a>' +
+                            '<button type="button" class="booking-success-btn" data-date="' + dateVal + '" data-time="' + timeVal + '" data-summary="' + (serviceLabel || 'Session').replace(/"/g, '&quot;') + '">Add to calendar</button>' +
+                            '</div></div>';
+                        var addBtn = messageEl.querySelector('.booking-success-btn');
+                        if (addBtn) {
+                            addBtn.addEventListener('click', function () {
+                                var d = addBtn.getAttribute('data-date');
+                                var t = addBtn.getAttribute('data-time');
+                                var summary = (addBtn.getAttribute('data-summary') || 'Session').replace(/&quot;/g, '"');
+                                if (!d || !t) return;
+                                var icsStart = d.replace(/-/g, '') + 'T' + t.replace(':', '') + '0000Z';
+                                var endHour = parseInt(t.slice(0, 2), 10) + 1;
+                                var icsEnd = d.replace(/-/g, '') + 'T' + (endHour < 10 ? '0' : '') + endHour + '000000Z';
+                                var ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nDTSTART:' + icsStart + '\r\nDTEND:' + icsEnd + '\r\nSUMMARY:' + summary + '\r\nEND:VEVENT\r\nEND:VCALENDAR';
+                                var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+                                var url = URL.createObjectURL(blob);
+                                var a = document.createElement('a');
+                                a.href = url;
+                                a.download = 'booking.ics';
+                                a.click();
+                                URL.revokeObjectURL(url);
+                            });
+                        }
                     } else {
                         return res.json().then(function (j) { throw new Error(j && j.error || res.statusText); });
                     }
                 })
                 .catch(function (err) {
                     messageEl.textContent = err.message || 'Request failed.';
-                    messageEl.classList.add('error');
+                    messageEl.className = 'booking-message error';
                 })
                 .finally(function () { submitBtn.disabled = false; });
         });

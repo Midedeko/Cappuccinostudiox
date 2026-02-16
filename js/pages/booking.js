@@ -57,15 +57,45 @@ function init() {
         })
             .then(res => {
                 if (res.ok) {
-                    messageEl.textContent = 'Booking confirmed.';
-                    messageEl.classList.add('success');
+                    const serviceLabelEl = document.querySelector('.kit-modal-select .kit-modal-dropdown-label');
+                    const dateLabelEl = document.querySelector('.kit-modal-date .kit-modal-dropdown-label');
+                    const serviceLabel = serviceLabelEl?.textContent?.trim() || service;
+                    const dateLabel = dateLabelEl?.textContent?.trim() || dateVal;
+                    messageEl.className = 'booking-message success';
+                    messageEl.innerHTML = '<div class="booking-success-card">' +
+                        '<div class="booking-success-title">Booking successful</div>' +
+                        '<div class="booking-success-details">' + (serviceLabel ? 'Service: ' + serviceLabel + '<br>' : '') + 'Date: ' + dateLabel + '<br>Time: ' + timeVal + '</div>' +
+                        '<div class="booking-success-actions">' +
+                        '<a href="kitchen.html">Continue to kitchen</a>' +
+                        '<button type="button" class="booking-success-btn" data-date="' + dateVal + '" data-time="' + timeVal + '" data-summary="' + (serviceLabel || 'Session').replace(/"/g, '&quot;') + '">Add to calendar</button>' +
+                        '</div></div>';
+                    const addBtn = messageEl.querySelector('.booking-success-btn');
+                    if (addBtn) {
+                        addBtn.addEventListener('click', () => {
+                            const d = addBtn.getAttribute('data-date');
+                            const t = addBtn.getAttribute('data-time');
+                            let summary = (addBtn.getAttribute('data-summary') || 'Session').replace(/&quot;/g, '"');
+                            if (!d || !t) return;
+                            const icsStart = d.replace(/-/g, '') + 'T' + t.replace(':', '') + '0000Z';
+                            const endHour = parseInt(t.slice(0, 2), 10) + 1;
+                            const icsEnd = d.replace(/-/g, '') + 'T' + (endHour < 10 ? '0' : '') + endHour + '000000Z';
+                            const ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nDTSTART:' + icsStart + '\r\nDTEND:' + icsEnd + '\r\nSUMMARY:' + summary + '\r\nEND:VEVENT\r\nEND:VCALENDAR';
+                            const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'booking.ics';
+                            a.click();
+                            URL.revokeObjectURL(url);
+                        });
+                    }
                 } else {
                     return res.json().then(j => { throw new Error(j?.error || res.statusText); });
                 }
             })
             .catch(err => {
                 messageEl.textContent = err.message || 'Booking failed.';
-                messageEl.classList.add('error');
+                messageEl.className = 'booking-message error';
             })
             .finally(() => { submitBtn.disabled = false; });
     });
