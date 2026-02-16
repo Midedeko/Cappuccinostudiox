@@ -28,6 +28,7 @@
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
+            touch-action: none;
         }
 
         .navigation {
@@ -284,6 +285,8 @@
             cursor: pointer;
             transition: transform 0.3s ease, background-color 0.3s ease;
             pointer-events: auto;
+            touch-action: none;
+            -webkit-touch-callout: none;
             background-color: rgba(255, 242, 18, 0.2);
             z-index: 10;
             backface-visibility: visible;
@@ -302,6 +305,7 @@
             height: 100%;
             object-fit: cover;
             display: block;
+            pointer-events: none;
         }
 
         .text-carousel {
