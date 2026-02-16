@@ -12,11 +12,11 @@ So that project media (images, videos, thumbnails) are stored in Supabase instea
 
 ## 2. Allow uploads (RLS policies)
 
-The frontend uses the **anon** key to upload. You need a policy that allows inserts (uploads) into this bucket.
+The frontend uses the **anon** key to upload. You need **two** policies on `storage.objects`: one for **upload (insert)** and one for **read (select)**.
 
-1. In **Storage**, open the **project-media** bucket.
-2. Go to **Policies** (or **Configuration** → Policies).
-3. Add a policy to allow uploads. In the SQL editor you can run:
+**In the UI (Policies):** Create two policies. For the first choose **Allowed operation: INSERT** and **Target roles: public** (or **anon**), with check `bucket_id = 'project-media'`. For the second choose **Allowed operation: SELECT** and **Target roles: public** (or **anon**), with using `bucket_id = 'project-media'`. If you already have one policy with `bucket_id = 'project-media'`, add the other for the missing operation (you need both INSERT and SELECT); you are not replacing the existing code.
+
+**Or run in SQL Editor:**
 
 **Option A – Policy for “Anyone can upload and read” (simple for a portfolio):**
 

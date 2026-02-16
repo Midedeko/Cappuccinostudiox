@@ -755,8 +755,13 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     }).catch((e) => {
         btn.disabled = false;
         const msg = e && e.message ? e.message : (e.name === 'QuotaExceededError' ? 'Storage full' : 'Error');
-        btn.textContent = msg.indexOf('too large') !== -1 ? 'Saved locally only' : 'Sync failed';
-        alert('Saved on this device only. Cloud sync failed: ' + msg);
+        const isTooLarge = msg.indexOf('too large') !== -1;
+        btn.textContent = isTooLarge ? 'Saved locally only' : 'Sync failed';
+        const dataSizeMB = (getProjectSizeBytes({ name: data.name, items: data.items, storyline: data.storyline, thumbnail: data.thumbnail, assets: data.assets }) / (1024 * 1024)).toFixed(1);
+        const hint = isTooLarge
+            ? 'Your project is about ' + dataSizeMB + ' MB (cloud limit 4.5 MB). Set up Supabase Storage so media is stored in the cloud and only links are saved here, or remove some content.'
+            : 'Check your connection and try again.';
+        alert('Saved on this device only.\n\nCloud sync failed: ' + msg + '\n\n' + hint);
         setTimeout(() => { btn.textContent = originalText; }, 3000);
     });
 });
