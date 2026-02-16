@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kitchen - Portfolio</title>
-    <link rel="stylesheet" href="ui-kit/kit.css">
+    <link rel="stylesheet" href="ui-kit/kit.css?v=420">
     <style>
         @font-face {
             font-family: 'Code Saver';
@@ -757,6 +757,10 @@
         }
         body.site-modal-open .site-modal.active {
             display: block;
+        }
+        /* Must match ui-kit/kit.css .kit-modal-wrap so site and kit are identical */
+        .site-overlay .site-modal .kit-modal-wrap {
+            max-width: 420px;
         }
         .site-modal .booking-message {
             margin-top: 1rem;
