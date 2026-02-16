@@ -43,6 +43,7 @@ window.addEventListener('DOMContentLoaded', () => {
     ];
 
     let lastMouseX = 0, lastMouseY = 0, mouseMoved = false, touchMoved = false;
+    let previewedCard = null; // mobile: card that has been tapped once (preview); second tap opens
 
     function attachIsoCardHoverHandlers() {
         const frontDuplicates = boxContainer.querySelectorAll('.front-duplicate');
@@ -78,7 +79,23 @@ window.addEventListener('DOMContentLoaded', () => {
             newCard.addEventListener('touchend', (e) => {
                 if (!touchMoved && !scrollGestureUsed && e.changedTouches.length === 1) {
                     const projectId = newCard.getAttribute('data-project-id');
-                    if (projectId) { e.preventDefault(); window.location.href = `project.html?id=${projectId}`; }
+                    if (previewedCard === newCard) {
+                        // Second tap: open project (card was already previewed)
+                        if (projectId) { e.preventDefault(); window.location.href = `project.html?id=${projectId}`; }
+                        previewedCard = null;
+                    } else {
+                        // First tap: card preview interaction (pop up like hover)
+                        if (previewedCard) {
+                            const prevOffset = parseFloat(previewedCard.dataset.baseOffset || '0');
+                            previewedCard.style.transform = `translate(-50%, -50%) rotateY(0deg) translateZ(${prevOffset}px) translateY(0px)`;
+                        }
+                        const baseOffset = parseFloat(newCard.dataset.baseOffset || '0');
+                        const popUpAmount = boxHeight * 0.3;
+                        const centerTransform = 'translate(-50%, -50%)';
+                        newCard.style.transform = `${centerTransform} rotateY(0deg) translateZ(${baseOffset}px) translateY(${-popUpAmount}px)`;
+                        previewedCard = newCard;
+                        e.preventDefault();
+                    }
                 }
                 touchMoved = false;
             });
@@ -236,6 +253,15 @@ window.addEventListener('DOMContentLoaded', () => {
             touchStartY = e.touches[0].clientY;
             touchStartX = e.touches[0].clientX;
             isTouching = true;
+            // Tap outside cards: clear card preview (mobile)
+            var t = e.target;
+            if (!t || !t.closest || !t.closest('.front-duplicate')) {
+                if (previewedCard) {
+                    var prevOffset = parseFloat(previewedCard.dataset.baseOffset || '0');
+                    previewedCard.style.transform = 'translate(-50%, -50%) rotateY(0deg) translateZ(' + prevOffset + 'px) translateY(0px)';
+                    previewedCard = null;
+                }
+            }
         }
     }
 
@@ -247,8 +273,8 @@ window.addEventListener('DOMContentLoaded', () => {
             const touchX = e.touches[0].clientX;
             const deltaY = touchStartY - touchY; // up = positive
             const deltaX = touchStartX - touchX;  // left-to-right = positive
-            // Map both axes: left-to-right same as down-to-up, right-to-left same as up-to-down
-            const effectiveDelta = deltaY + deltaX;
+            // Map both axes: left-to-right same as up-to-down, right-to-left same as down-to-up (inverted horizontal)
+            const effectiveDelta = deltaY - deltaX;
             targetScrollPosition -= effectiveDelta * touchSensitivity;
             scrollGestureUsed = true;
             touchStartY = touchY;
