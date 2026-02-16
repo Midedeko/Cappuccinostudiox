@@ -33,7 +33,10 @@
 
     if (overlay) {
         overlay.addEventListener('click', function (e) {
-            if (e.target === overlay || e.target === overlayBg) closeModal();
+            if (e.target !== overlay && e.target !== overlayBg) return;
+            var dropdownOpen = overlay.querySelector('.kit-modal-dropdown.open');
+            if (dropdownOpen) return;
+            closeModal();
         });
     }
 

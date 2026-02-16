@@ -240,15 +240,29 @@ container.addEventListener('touchend', () => { isTouching = false; });
 container.addEventListener('touchcancel', () => { isTouching = false; });
 container.addEventListener('wheel', (e) => { e.preventDefault(); }, { passive: false });
 
+function closeActiveHotspot() {
+    document.querySelectorAll('.hotspot').forEach(hotspot => {
+        hotspot.classList.remove('active');
+        const box = hotspot.querySelector('.dialogue-box');
+        if (box) box.classList.remove('active');
+        const b = hotspot.querySelector('.project-button');
+        if (b) b.classList.remove('active');
+    });
+}
+
 let pressedButton = null;
 document.querySelectorAll('.project-button').forEach(button => {
     const id = button.dataset.id;
+    const modal = button.dataset.modal;
+    const page = button.dataset.page;
     button.addEventListener('mousedown', (e) => { e.stopPropagation(); pressedButton = { button, id }; });
     button.addEventListener('mouseup', (e) => {
         e.stopPropagation();
         if (pressedButton && pressedButton.button === button) {
-            const page = button.dataset.page;
-            if (page) window.location.href = page;
+            if (modal && typeof window.openModal === 'function') {
+                window.openModal(modal);
+                closeActiveHotspot();
+            } else if (page) window.location.href = page;
             else alert('Project button ' + id + ' clicked! Navigate to next page.');
             pressedButton = null;
         }
@@ -264,8 +278,11 @@ document.querySelectorAll('.project-button').forEach(button => {
         e.stopPropagation();
         button.classList.remove('touch-active');
         if (pressedButton && pressedButton.button === button) {
-            const page = button.dataset.page;
-            if (page) { e.preventDefault(); window.location.href = page; }
+            if (modal && typeof window.openModal === 'function') {
+                e.preventDefault();
+                window.openModal(modal);
+                closeActiveHotspot();
+            } else if (page) { e.preventDefault(); window.location.href = page; }
             else { e.preventDefault(); alert('Project button ' + id + ' clicked! Navigate to next page.'); }
             pressedButton = null;
         }
@@ -273,8 +290,10 @@ document.querySelectorAll('.project-button').forEach(button => {
     button.addEventListener('touchcancel', () => { button.classList.remove('touch-active'); pressedButton = null; });
     button.addEventListener('click', (e) => {
         e.stopPropagation();
-        const page = button.dataset.page;
-        if (page) window.location.href = page;
+        if (modal && typeof window.openModal === 'function') {
+            window.openModal(modal);
+            closeActiveHotspot();
+        } else if (page) window.location.href = page;
         else alert('Project button ' + id + ' clicked! Navigate to next page.');
     });
 });
