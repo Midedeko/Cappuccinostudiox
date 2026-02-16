@@ -786,9 +786,25 @@
             display: inline-block;
             border: 1px solid #FFF212;
         }
+        .staging-badge {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 9999;
+            font-family: 'Code Saver', monospace;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #FFF212;
+            background: #E70017;
+            padding: 6px 12px;
+            border: 2px solid #FFF212;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
+    <div class="staging-badge" aria-hidden="true">Staging v6</div>
     <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0" aria-hidden="true">
         <defs>
             <symbol id="kit-caret" viewBox="0 0 12 12">
@@ -845,7 +861,7 @@
         <div class="site-overlay-center">
             <div id="modalBookSession" class="site-modal" data-modal="book-session">
                 <div class="kit-modal-wrap" data-modal-prefix="booking">
-                    <div class="booking-version" aria-hidden="true">Staging · v5</div>
+                    <div class="booking-version" aria-hidden="true">Staging · v6</div>
                     <div class="kit-modal-label">BOOK A SESSION</div>
                     <div class="kit-modal-row">
                         <input type="text" id="bookingName" class="kit-modal-input" placeholder="FIRSTNAME LASTNAME" aria-label="Full name" autocomplete="name">
