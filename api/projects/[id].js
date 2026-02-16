@@ -24,7 +24,7 @@ export async function GET(request) {
         const supabase = getSupabase();
         const { data, error } = await supabase
             .from('projects')
-            .select('id, name, items, storyline, thumbnail')
+            .select('id, name, items, storyline, thumbnail, assets')
             .eq('id', id)
             .maybeSingle();
         if (error) {
@@ -34,14 +34,25 @@ export async function GET(request) {
             });
         }
         if (!data) {
-            return new Response(null, { status: 404 });
+            return new Response(JSON.stringify({
+                id: id,
+                name: `Project ${id}`,
+                items: [],
+                storyline: '',
+                thumbnail: null,
+                assets: []
+            }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+            });
         }
         return new Response(JSON.stringify({
             id: data.id,
             name: data.name ?? `Project ${data.id}`,
             items: Array.isArray(data.items) ? data.items : [],
             storyline: data.storyline ?? '',
-            thumbnail: data.thumbnail ?? null
+            thumbnail: data.thumbnail ?? null,
+            assets: Array.isArray(data.assets) ? data.assets : []
         }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
