@@ -172,7 +172,7 @@
             return list;
         }
         function applyAvailabilityDates(dates) {
-            var dateList = document.querySelector('.kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-list');
+            var dateList = document.querySelector('.kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-list-outer .kit-modal-dropdown-list');
             var dateLabel = document.querySelector('.kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-label');
             var dateValueInput = document.getElementById('bookingDate');
             if (!dateList || !dateLabel) return;
@@ -198,23 +198,19 @@
             }
         }
         (function initDateOptions() {
-            var dateList = document.querySelector('.kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-list');
+            var dateList = document.querySelector('.kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-list-outer .kit-modal-dropdown-list');
             var dateLabel = document.querySelector('.kit-modal-dropdown.kit-modal-date .kit-modal-dropdown-label');
             if (!dateList || !dateLabel) return;
-            dateList.innerHTML = '';
-            dateLabel.textContent = 'Loading…';
+            applyAvailabilityDates(buildFallbackDates());
             fetch('/api/availability')
                 .then(function (res) {
                     if (!res.ok) throw new Error(res.status);
                     return res.json();
                 })
                 .then(function (data) {
-                    var dates = data.dates && data.dates.length ? data.dates : buildFallbackDates();
-                    applyAvailabilityDates(dates);
+                    if (data.dates && data.dates.length) applyAvailabilityDates(data.dates);
                 })
-                .catch(function () {
-                    applyAvailabilityDates(buildFallbackDates());
-                });
+                .catch(function () {});
         })();
         document.querySelectorAll('.kit-modal-dropdown').forEach(function (dropdown) {
             var wrap = dropdown.closest('.kit-modal-wrap');
@@ -464,6 +460,8 @@
                     list.scrollTop = Math.max(0, Math.min(maxScroll, target));
                 });
             });
+            window.setListOuterHeightForThreeOptions = setListOuterHeightForThreeOptions;
+            window.updateCustomScrollbar = updateCustomScrollbar;
         })();
     </script>
     <script type="module" src="js/pages/booking.js"></script>
