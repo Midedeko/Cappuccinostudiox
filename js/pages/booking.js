@@ -2,7 +2,7 @@
  * Booking form: single-screen UI (Book A Session kit). POST /api/bookings.
  */
 function formatDateTimeISO(dateStr, timeStr) {
-    return dateStr + 'T' + timeStr + ':00:00.000Z';
+    return dateStr + 'T' + timeStr + ':00.000Z';
 }
 
 function init() {

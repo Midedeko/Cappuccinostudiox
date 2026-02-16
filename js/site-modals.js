@@ -438,7 +438,7 @@
                 return;
             }
             submitBtn.disabled = true;
-            var datetime = dateVal + 'T' + timeVal + ':00:00.000Z';
+            var datetime = dateVal + 'T' + timeVal + ':00.000Z';
             fetch('/api/bookings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

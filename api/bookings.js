@@ -31,8 +31,14 @@ export async function POST(request) {
     let datetime = body.datetime != null ? String(body.datetime).trim() : null;
     if (datetime) {
         const d = new Date(datetime);
-        if (!Number.isNaN(d.getTime())) datetime = d.toISOString().replace('T', ' ').replace('Z', '+00');
+        if (!Number.isNaN(d.getTime())) datetime = d.toISOString();
         else datetime = null;
+    }
+    if (!datetime) {
+        return new Response(JSON.stringify({ error: 'Valid date and time required' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
     const name = body.name != null ? String(body.name) : '';
     const email = body.email != null ? String(body.email) : '';
