@@ -126,6 +126,17 @@
             font-size: 14px;
         }
         .playlist .delete-item-btn:hover { background: #FFF212; color: #E70017; }
+        .playlist .replace-item-btn, .playlist .retrim-item-btn, .playlist .addcut-item-btn {
+            background: rgba(255,242,18,0.2);
+            color: #FFF212;
+            border: 1px solid #FFF212;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-family: 'Code Saver', sans-serif;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        .playlist .replace-item-btn:hover, .playlist .retrim-item-btn:hover, .playlist .addcut-item-btn:hover { background: #FFF212; color: #E70017; }
         .project-name-input {
             width: 100%;
             max-width: 400px;
@@ -283,6 +294,7 @@
     </div>
     <div class="upload-zone" id="uploadZone">
         <input type="file" id="fileInput" accept="image/*,video/*" multiple>
+        <input type="file" id="replaceFileInput" style="display:none">
         <span>Click or drop files here to add content (images and videos)</span>
     </div>
     <ul class="playlist" id="playlist"></ul>
@@ -306,6 +318,7 @@
                 <span id="trimStartLabel">Start: 0:00</span>
                 <span id="trimEndLabel">End: 0:00</span>
                 <span id="trimDurationLabel">Duration: 0:00</span>
+                <span id="trimSizeLabel">Size: —</span>
             </div>
             <div class="trim-actions">
                 <button type="button" id="trimPlayPauseBtn">Play</button>

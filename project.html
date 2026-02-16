@@ -401,6 +401,24 @@
             font-size: 18px;
         }
         .content-view-btn:hover { background: rgba(255,255,255,0.35); }
+
+        /* Mobile open-media: fit width + name/storyline below */
+        .content-view-mobile-wrap { width: 100%; text-align: center; }
+        .content-view-mobile-info {
+            width: calc(100% - 1rem);
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 1rem 0.5rem 2rem;
+            text-align: left;
+            color: #fff;
+        }
+        .content-view-mobile-name { margin: 0 0 0.5rem; font-size: 1.1rem; font-weight: 600; }
+        .content-view-mobile-storyline { margin: 0; font-size: 0.95rem; line-height: 1.5; opacity: 0.9; }
+        @media (max-width: 768px) {
+            .content-view-inner { flex-direction: column; max-height: none; overflow-y: auto; align-items: stretch; }
+            .content-view-inner .content-view-mobile-wrap img,
+            .content-view-inner .content-view-mobile-wrap video { max-height: 70vh; }
+        }
     </style>
 </head>
 <body>

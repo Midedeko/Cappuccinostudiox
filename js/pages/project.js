@@ -38,6 +38,7 @@ function setActiveItem(index) {
     const item = state.galleryItems[index];
     const expandedBg = document.getElementById('expandedBackground');
     const allItems = document.querySelectorAll('.gallery-item');
+    const storylineEl = document.getElementById('storylineOverlay');
     document.querySelectorAll('.background-video').forEach(v => { v.classList.remove('active'); v.pause(); });
     expandedBg.innerHTML = '';
     let expandedMedia;
@@ -64,6 +65,12 @@ function setActiveItem(index) {
     expandedBg.appendChild(expandedMedia);
     expandedBg.classList.add('active');
     allItems.forEach((el, i) => { el.classList.toggle('hidden', i !== index); });
+    if (storylineEl) {
+        storylineEl.classList.add('visible');
+        var text = (item.storyline != null && String(item.storyline).trim() !== '') ? String(item.storyline).trim() : (state.projectStoryline || '');
+        storylineController.run(storylineEl, text.toUpperCase());
+        storylineController.setupHoverReveal(storylineEl);
+    }
 }
 
 function resetToBackground() {
@@ -85,10 +92,10 @@ function resetToBackground() {
     expandedBg.classList.remove('active');
     allItems.forEach(item => item.classList.remove('hidden'));
     const storylineEl = document.getElementById('storylineOverlay');
-    if (storylineEl) {
-        storylineController.stop();
-        storylineEl.innerHTML = '';
-        storylineEl.classList.remove('visible');
+    if (storylineEl && state.projectStoryline) {
+        storylineEl.classList.add('visible');
+        storylineController.run(storylineEl, (state.projectStoryline || '').toUpperCase());
+        storylineController.setupHoverReveal(storylineEl);
     }
 }
 
@@ -97,6 +104,7 @@ function openContentView(index) {
     if (!item) return;
     contentViewInner.innerHTML = '';
     const isVideo = item.type === 'video';
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
     const media = isVideo ? document.createElement('video') : document.createElement('img');
     media.src = item.src;
     if (isVideo) {
@@ -116,6 +124,13 @@ function openContentView(index) {
     contentViewMedia = media;
     const wrap = document.createElement('div');
     wrap.style.position = 'relative';
+    if (isMobile) {
+        wrap.className = 'content-view-mobile-wrap';
+        media.style.maxWidth = '100%';
+        media.style.width = 'calc(100% - 1rem)';
+        media.style.margin = '0 auto';
+        media.style.display = 'block';
+    }
     wrap.appendChild(media);
     const actions = document.createElement('div');
     actions.className = 'content-view-actions';
@@ -152,6 +167,25 @@ function openContentView(index) {
     }
     wrap.appendChild(actions);
     contentViewInner.appendChild(wrap);
+    var hasStoryline = item.storyline != null && String(item.storyline).trim() !== '';
+    var hasName = item.name != null && String(item.name).trim() !== '';
+    if (isMobile && (hasStoryline || hasName)) {
+        const info = document.createElement('div');
+        info.className = 'content-view-mobile-info';
+        if (hasName) {
+            const nameEl = document.createElement('h3');
+            nameEl.className = 'content-view-mobile-name';
+            nameEl.textContent = item.name;
+            info.appendChild(nameEl);
+        }
+        if (hasStoryline) {
+            const body = document.createElement('p');
+            body.className = 'content-view-mobile-storyline';
+            body.textContent = item.storyline;
+            info.appendChild(body);
+        }
+        contentViewInner.appendChild(info);
+    }
     contentViewOverlay.classList.add('active');
 }
 
@@ -203,7 +237,11 @@ function runInits() {
     });
 
     contentViewOverlay.addEventListener('click', (e) => { if (e.target === contentViewOverlay) closeContentView(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && contentViewOverlay.classList.contains('active')) closeContentView(); });
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape' || !contentViewOverlay.classList.contains('active')) return;
+        if (document.fullscreenElement) document.exitFullscreen();
+        else closeContentView();
+    });
 
     setupMenuSimple('projectMenuContainer', 'projectMenuButton');
 }

@@ -24,18 +24,16 @@ export const DEFAULT_BACKGROUND_VIDEOS = [
 export function applyCmsData(data, state, projectId) {
     if (data.storyline != null) state.projectStoryline = data.storyline || '';
     if (data.name != null) state.projectName = data.name || ('Project ' + projectId);
+    const resolveSrc = (it) => it.src || (data.assets && (data.assets.find(a => a.id === it.assetId) || {}).src) || '';
     if (data.items != null && Array.isArray(data.items)) {
-        state.galleryItems = data.items.map(it => ({
-            type: it.type || 'image',
-            src: it.src || '',
-            name: it.name || 'Untitled',
-            trimStart: it.trimStart,
-            trimEnd: it.trimEnd
-        })).filter(it => it.src);
+        state.galleryItems = data.items.map(it => {
+            const src = resolveSrc(it);
+            return { type: it.type || 'image', src, name: it.name || 'Untitled', trimStart: it.trimStart, trimEnd: it.trimEnd, storyline: it.storyline };
+        }).filter(it => it.src);
         if (state.galleryItems.length > 0) {
             state.backgroundVideos = data.items
-                .filter(it => it.backgroundRoster && (it.type === 'video' || (it.src && (it.src.startsWith('data:video') || it.src.startsWith('http')))))
-                .map(it => ({ src: it.src, trimStart: it.trimStart, trimEnd: it.trimEnd }));
+                .filter(it => it.backgroundRoster && (it.type === 'video' || (resolveSrc(it) && (resolveSrc(it).startsWith('data:video') || resolveSrc(it).startsWith('http')))))
+                .map(it => ({ src: resolveSrc(it), trimStart: it.trimStart, trimEnd: it.trimEnd }));
             if (state.backgroundVideos.length === 0) state.backgroundVideos = [];
         }
     }
