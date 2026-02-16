@@ -15,7 +15,9 @@
         if (modalWaitlist) modalWaitlist.classList.remove('active');
         if (id === 'book-session' && modalBook) {
             modalBook.classList.add('active');
-            ensureDateOptionsLoaded();
+            requestAnimationFrame(function () {
+                ensureDateOptionsLoaded();
+            });
         }
         if (id === 'waitlist' && modalWaitlist) modalWaitlist.classList.add('active');
     }
@@ -36,8 +38,12 @@
     }
 
     function setTimeOptionsForDate(dateStr) {
-        var timeList = document.querySelector('#modalBookSession .kit-modal-timeslot .kit-modal-time .kit-modal-dropdown-list');
-        var timeLabel = document.querySelector('#modalBookSession .kit-modal-timeslot .kit-modal-time .kit-modal-dropdown-label');
+        var bookModal = document.getElementById('modalBookSession');
+        if (!bookModal) return;
+        var timeBlock = bookModal.querySelector('.kit-modal-time');
+        if (!timeBlock) return;
+        var timeList = timeBlock.querySelector('.kit-modal-dropdown-list');
+        var timeLabel = timeBlock.querySelector('.kit-modal-dropdown-label');
         var timeValueInput = document.getElementById('bookingTime');
         if (!timeList || !timeLabel) return;
         var entry = availabilityData.dates.find(function (d) { return d.date === dateStr; });
@@ -83,8 +89,12 @@
     }
 
     function applyAvailabilityDates(dates) {
-        var dateList = document.querySelector('#modalBookSession .kit-modal-timeslot .kit-modal-date .kit-modal-dropdown-list-outer .kit-modal-dropdown-list');
-        var dateLabel = document.querySelector('#modalBookSession .kit-modal-timeslot .kit-modal-date .kit-modal-dropdown-label');
+        var bookModal = document.getElementById('modalBookSession');
+        if (!bookModal) return;
+        var dateBlock = bookModal.querySelector('.kit-modal-date');
+        if (!dateBlock) return;
+        var dateList = dateBlock.querySelector('.kit-modal-dropdown-list-outer .kit-modal-dropdown-list');
+        var dateLabel = dateBlock.querySelector('.kit-modal-dropdown-label');
         var dateValueInput = document.getElementById('bookingDate');
         if (!dateList || !dateLabel) return;
         availabilityData.dates = dates;
@@ -109,32 +119,35 @@
         }
     }
 
-    var dateOptionsLoadStarted = false;
+    var dateOptionsFetchDone = false;
     function ensureDateOptionsLoaded() {
-        if (availabilityData.dates.length > 0) return;
-        if (dateOptionsLoadStarted) return;
-        var dateList = document.querySelector('#modalBookSession .kit-modal-timeslot .kit-modal-date .kit-modal-dropdown-list-outer .kit-modal-dropdown-list');
-        var dateLabel = document.querySelector('#modalBookSession .kit-modal-timeslot .kit-modal-date .kit-modal-dropdown-label');
+        var bookModal = document.getElementById('modalBookSession');
+        if (!bookModal) return;
+        var dateBlock = bookModal.querySelector('.kit-modal-date');
+        if (!dateBlock) return;
+        var dateList = dateBlock.querySelector('.kit-modal-dropdown-list-outer .kit-modal-dropdown-list');
+        var dateLabel = dateBlock.querySelector('.kit-modal-dropdown-label');
         if (!dateList || !dateLabel) return;
-        dateOptionsLoadStarted = true;
-        dateLabel.textContent = 'Loading…';
+        if (availabilityData.dates.length > 0) return;
+        applyAvailabilityDates(buildFallbackDates());
+        if (dateOptionsFetchDone) return;
+        dateOptionsFetchDone = true;
         fetch('/api/availability')
             .then(function (res) {
                 if (!res.ok) throw new Error(res.status);
                 return res.json();
             })
             .then(function (data) {
-                var dates = data.dates && data.dates.length ? data.dates : buildFallbackDates();
-                applyAvailabilityDates(dates);
+                if (data.dates && data.dates.length > 0) applyAvailabilityDates(data.dates);
             })
-            .catch(function () {
-                applyAvailabilityDates(buildFallbackDates());
-            });
+            .catch(function () {});
     }
 
     (function initDateOptions() {
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', ensureDateOptionsLoaded);
+            document.addEventListener('DOMContentLoaded', function () {
+                ensureDateOptionsLoaded();
+            });
         } else {
             ensureDateOptionsLoaded();
         }
