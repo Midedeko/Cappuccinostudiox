@@ -43,7 +43,7 @@ export async function GET(request) {
                 assets: []
             }), {
                 status: 200,
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store, no-cache, must-revalidate' }
             });
         }
         return new Response(JSON.stringify({
@@ -55,7 +55,7 @@ export async function GET(request) {
             assets: Array.isArray(data.assets) ? data.assets : []
         }), {
             status: 200,
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store, no-cache, must-revalidate' }
         });
     } catch (e) {
         return new Response(JSON.stringify({ error: String(e.message) }), {

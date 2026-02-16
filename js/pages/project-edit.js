@@ -178,25 +178,9 @@ function render() {
             const src = getItemSrc(it);
             if (!src) return;
             openTrimModal(src, it.name, null, (trim) => {
-                if (!trim.trimmedDataUrl) return;
-                uploadDataUrl(projectId, trim.trimmedDataUrl, 'clip.webm', uploadProgressCallbacks()).then(cloudUrl => {
-                    const finalSrc = cloudUrl || trim.trimmedDataUrl;
-                    const data = getProjectDataSync(projectId);
-                    data.assets = assets;
-                    const nextItems = items.slice();
-                    nextItems[idx] = { ...it, src: finalSrc, trimStart: 0, trimEnd: null };
-                    delete nextItems[idx].assetId;
-                    data.items = nextItems;
-                    if (getProjectSizeBytes(data) > PROJECT_STORAGE_LIMIT_BYTES) {
-                        alert('The trimmed clip would exceed the project storage limit. Choose a shorter segment.');
-                        return;
-                    }
-                    items[idx].src = finalSrc;
-                    items[idx].trimStart = 0;
-                    items[idx].trimEnd = null;
-                    delete items[idx].assetId;
-                    render();
-                });
+                items[idx].trimStart = trim.trimStart;
+                items[idx].trimEnd = trim.trimEnd;
+                render();
             }, () => {});
         });
     });
@@ -219,21 +203,10 @@ function render() {
                     backgroundRoster: false
                 };
                 openTrimModal(getItemSrc(item), newItem.name, null, (trim) => {
-                    if (!trim.trimmedDataUrl) return;
-                    uploadDataUrl(projectId, trim.trimmedDataUrl, 'clip.webm', uploadProgressCallbacks()).then(cloudUrl => {
-                        newItem.src = cloudUrl || trim.trimmedDataUrl;
-                        delete newItem.assetId;
-                        const data = getProjectDataSync(projectId);
-                        data.items = items.slice();
-                        data.items.splice(newIdx, 0, newItem);
-                        data.assets = assets;
-                        if (getProjectSizeBytes(data) > PROJECT_STORAGE_LIMIT_BYTES) {
-                            alert('The trimmed clip would exceed the project storage limit. Choose a shorter segment.');
-                            return;
-                        }
-                        items.splice(newIdx, 0, newItem);
-                        render();
-                    });
+                    newItem.trimStart = trim.trimStart;
+                    newItem.trimEnd = trim.trimEnd;
+                    items.splice(newIdx, 0, newItem);
+                    render();
                 }, () => {});
             }
             if (!item.assetId) {
@@ -365,14 +338,12 @@ document.getElementById('replaceFileInput').addEventListener('change', (e) => {
         reader.onload = () => {
             const videoSrc = reader.result;
             openTrimModal(videoSrc, file.name || item.name, file.size, (trim) => {
-                const trimmedDataUrl = trim.trimmedDataUrl;
-                if (!trimmedDataUrl) return;
-                uploadDataUrl(projectId, trimmedDataUrl, 'clip.webm', uploadProgressCallbacks()).then(cloudUrl => {
-                    const src = cloudUrl || trimmedDataUrl;
+                uploadFile(projectId, file, uploadProgressCallbacks()).then(url => {
+                    const src = url || videoSrc;
                     const data = getProjectDataSync(projectId);
                     data.assets = assets;
                     const nextItems = items.slice();
-                    nextItems[idx] = { ...item, src, trimStart: 0, trimEnd: null };
+                    nextItems[idx] = { ...item, src, trimStart: trim.trimStart, trimEnd: trim.trimEnd };
                     delete nextItems[idx].assetId;
                     data.items = nextItems;
                     if (getProjectSizeBytes(data) > PROJECT_STORAGE_LIMIT_BYTES) {
@@ -381,8 +352,8 @@ document.getElementById('replaceFileInput').addEventListener('change', (e) => {
                     }
                     items[idx].src = src;
                     delete items[idx].assetId;
-                    items[idx].trimStart = 0;
-                    items[idx].trimEnd = null;
+                    items[idx].trimStart = trim.trimStart;
+                    items[idx].trimEnd = trim.trimEnd;
                     render();
                 });
             }, () => {});
@@ -393,85 +364,6 @@ document.getElementById('replaceFileInput').addEventListener('change', (e) => {
 
 let videoTrimQueue = [];
 let replaceIndex = null;
-
-/**
- * Export the segment [trimStart, trimEnd] from a video source to a new WebM blob (actual trim).
- * Returns a Promise that resolves with the segment as a data URL, or rejects on error.
- */
-function exportVideoSegment(videoSrc, trimStart, trimEnd) {
-    return new Promise((resolve, reject) => {
-        if (!window.MediaRecorder || typeof document.createElement('video').captureStream !== 'function') {
-            reject(new Error('Your browser does not support recording the trimmed clip. Try Chrome or Edge.'));
-            return;
-        }
-        const segDuration = Math.max(0.1, (trimEnd - trimStart));
-        const video = document.createElement('video');
-        video.muted = true;
-        video.playsInline = true;
-        video.preload = 'auto';
-        video.crossOrigin = 'anonymous';
-        video.src = videoSrc;
-
-        const onError = (e) => {
-            cleanup();
-            reject(e && e.message ? new Error(e.message) : new Error('Failed to export clip'));
-        };
-
-        function cleanup() {
-            video.removeEventListener('error', onError);
-            video.removeEventListener('loadedmetadata', onMeta);
-            video.removeEventListener('seeked', onSeeked);
-            video.src = '';
-            video.load();
-        }
-
-        function onMeta() {
-            video.currentTime = trimStart;
-        }
-
-        function onSeeked() {
-            video.removeEventListener('seeked', onSeeked);
-            let stream;
-            try {
-                stream = video.captureStream ? video.captureStream(0) : video.mozCaptureStream ? video.mozCaptureStream() : null;
-            } catch (err) {
-                onError(err);
-                return;
-            }
-            if (!stream) {
-                onError(new Error('Could not capture video stream'));
-                return;
-            }
-            const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
-            const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2500000 });
-            const chunks = [];
-            recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
-            recorder.onstop = () => {
-                cleanup();
-                const blob = new Blob(chunks, { type: mimeType });
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = () => reject(new Error('Failed to read exported clip'));
-                reader.readAsDataURL(blob);
-            };
-            recorder.onerror = () => {
-                cleanup();
-                reject(new Error('Recording failed'));
-            };
-            recorder.start(100);
-            video.play().catch(onError);
-            setTimeout(() => {
-                video.pause();
-                if (recorder.state === 'recording') recorder.stop();
-            }, segDuration * 1000 + 200);
-        }
-
-        video.addEventListener('error', onError);
-        video.addEventListener('loadedmetadata', onMeta);
-        video.addEventListener('seeked', onSeeked);
-        video.load();
-    });
-}
 
 function openTrimModal(videoSrc, name, fileSizeBytes, onAdd, onCancel) {
     const overlay = document.getElementById('trimOverlay');
@@ -581,21 +473,10 @@ function openTrimModal(videoSrc, name, fileSizeBytes, onAdd, onCancel) {
 
     addBtn.onclick = () => {
         video.pause();
-        const origLabel = addBtn.textContent;
-        addBtn.textContent = 'Preparing clip…';
-        addBtn.disabled = true;
-        exportVideoSegment(videoSrc, trimStart, trimEnd)
-            .then((trimmedDataUrl) => {
-                video.removeEventListener('timeupdate', trimTimeupdate);
-                overlay.classList.remove('visible');
-                video.src = '';
-                onAdd({ trimmedDataUrl });
-            })
-            .catch((err) => {
-                addBtn.textContent = origLabel;
-                addBtn.disabled = false;
-                alert(err && err.message ? err.message : 'Could not create trimmed clip. Try a shorter segment or another browser.');
-            });
+        video.removeEventListener('timeupdate', trimTimeupdate);
+        overlay.classList.remove('visible');
+        video.src = '';
+        onAdd({ trimStart, trimEnd });
     };
 
     cancelBtn.onclick = () => {
@@ -650,17 +531,15 @@ function addFiles(files) {
         reader.onload = () => {
             const videoSrc = reader.result;
             openTrimModal(videoSrc, name, file.size, (trim) => {
-                const trimmedDataUrl = trim.trimmedDataUrl;
-                if (!trimmedDataUrl) return processNextVideo();
-                uploadDataUrl(projectId, trimmedDataUrl, 'clip.webm', uploadProgressCallbacks()).then(cloudUrl => {
-                    const src = cloudUrl || trimmedDataUrl;
+                uploadFile(projectId, file, uploadProgressCallbacks()).then(url => {
+                    const src = url || videoSrc;
                     const newItem = {
                         type: 'video',
                         src,
                         name,
                         backgroundRoster: false,
-                        trimStart: 0,
-                        trimEnd: null
+                        trimStart: trim.trimStart,
+                        trimEnd: trim.trimEnd
                     };
                     const data = getProjectDataSync(projectId);
                     data.items = items.concat([newItem]);
