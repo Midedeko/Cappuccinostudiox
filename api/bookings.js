@@ -49,6 +49,12 @@ export async function POST(request) {
             headers: { 'Content-Type': 'application/json' }
         });
     }
+    if (!service.trim()) {
+        return new Response(JSON.stringify({ error: 'Service required' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
     const row = {
         service: service || null,
         datetime: datetime || null,

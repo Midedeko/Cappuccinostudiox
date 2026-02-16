@@ -36,6 +36,11 @@ function init() {
             messageEl.classList.add('error');
             return;
         }
+        if (!service) {
+            messageEl.textContent = 'Please choose a service.';
+            messageEl.classList.add('error');
+            return;
+        }
 
         submitBtn.disabled = true;
         const datetime = formatDateTimeISO(dateVal, timeVal);

@@ -437,6 +437,11 @@
                 messageEl.classList.add('error');
                 return;
             }
+            if (!service) {
+                messageEl.textContent = 'Please choose a service.';
+                messageEl.classList.add('error');
+                return;
+            }
             submitBtn.disabled = true;
             var datetime = dateVal + 'T' + timeVal + ':00.000Z';
             fetch('/api/bookings', {
