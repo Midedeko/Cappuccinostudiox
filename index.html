@@ -844,6 +844,58 @@
         .site-modal .kit-modal-wrap.booking-done .booking-message {
             margin-top: 0;
         }
+        .kit-modal-option-disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+        .waitlist-success-card {
+            display: none;
+            margin-top: 0;
+            padding: 1rem;
+            border: 2px solid #FFF212;
+            color: #FFF212;
+            font-size: 0.8rem;
+        }
+        .waitlist-success-card .waitlist-success-details {
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+        .waitlist-success-card .waitlist-success-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .waitlist-success-card .waitlist-success-btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #FFF212;
+            color: #E70017;
+            border: 2px solid #FFF212;
+            text-align: center;
+            font-family: inherit;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+        .waitlist-success-card .waitlist-success-btn:hover {
+            background: #E70017;
+            color: #FFF212;
+            border-color: #FFF212;
+        }
+        .waitlist-success-card .waitlist-success-btn:active {
+            background: #FFFFFF;
+            color: #E70017;
+            border-color: #FFFFFF;
+        }
+        .site-modal .kit-modal-wrap.waitlist-done .kit-modal-label,
+        .site-modal .kit-modal-wrap.waitlist-done .kit-modal-row,
+        .site-modal .kit-modal-wrap.waitlist-done .waitlist-message {
+            display: none !important;
+        }
+        .site-modal .kit-modal-wrap.waitlist-done .waitlist-success-card {
+            display: block !important;
+        }
         .booking-version {
             font-family: 'Code Saver', monospace;
             font-size: 0.7rem;
@@ -1020,7 +1072,7 @@
                             </button>
                             <div class="kit-modal-dropdown-list" role="listbox">
                                 <button type="button" class="kit-modal-dropdown-option" role="option" data-value="regular" data-label="REGULAR ACCESS" data-price="Free">REGULAR ACCESS</button>
-                                <button type="button" class="kit-modal-dropdown-option" role="option" data-value="priority" data-label="PRIORITY ACCESS" data-price="$ 100">PRIORITY ACCESS</button>
+                                <button type="button" class="kit-modal-dropdown-option kit-modal-option-disabled" role="option" data-value="priority" data-label="PRIORITY ACCESS (COMING SOON)" data-price="$ 100" data-disabled="true">PRIORITY ACCESS (COMING SOON)</button>
                             </div>
                         </div>
                         <div class="kit-modal-price-block" aria-live="polite">
@@ -1035,6 +1087,12 @@
                         </button>
                     </div>
                     <div id="waitlistMessage" class="waitlist-message"></div>
+                    <div id="waitlistSuccessCard" class="waitlist-success-card" style="display: none;">
+                        <div class="waitlist-success-details">You have been added to the waitlist, you will be notified when the Enter the Jungle pieces are live.</div>
+                        <div class="waitlist-success-actions">
+                            <button type="button" class="waitlist-success-btn" id="waitlistContinueBtn">Continue</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

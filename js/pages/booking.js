@@ -95,8 +95,8 @@ function init() {
                     return res.json().then(j => { throw new Error(j?.error || res.statusText); });
                 }
             })
-            .catch(err => {
-                messageEl.textContent = err.message || 'Booking failed.';
+            .catch(() => {
+                messageEl.textContent = 'Something went wrong. Please try again.';
                 messageEl.className = 'booking-message error';
             })
             .finally(() => { submitBtn.disabled = false; });

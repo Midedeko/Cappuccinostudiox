@@ -19,7 +19,11 @@
                 ensureDateOptionsLoaded();
             });
         }
-        if (id === 'waitlist' && modalWaitlist) modalWaitlist.classList.add('active');
+        if (id === 'waitlist' && modalWaitlist) {
+            modalWaitlist.classList.add('active');
+            var wrap = modalWaitlist.querySelector('.kit-modal-wrap');
+            if (wrap) wrap.classList.remove('waitlist-done');
+        }
     }
 
     function closeModal() {
@@ -251,6 +255,7 @@
         list.addEventListener('click', function (e) {
             var opt = e.target && e.target.closest && e.target.closest('.kit-modal-dropdown-option');
             if (!opt || !list.contains(opt)) return;
+            if (opt.getAttribute('data-disabled') === 'true') return;
             var label = opt.getAttribute('data-label');
             var value = opt.getAttribute('data-value');
             var price = opt.getAttribute('data-price');
@@ -490,8 +495,8 @@
                         return res.json().then(function (j) { throw new Error(j && j.error || res.statusText); });
                     }
                 })
-                .catch(function (err) {
-                    messageEl.textContent = err.message || 'Request failed.';
+                .catch(function () {
+                    messageEl.textContent = 'Something went wrong. Please try again.';
                     messageEl.className = 'booking-message error';
                 })
                 .finally(function () { submitBtn.disabled = false; });
@@ -521,14 +526,19 @@
             })
                 .then(function (res) {
                     if (res.ok) {
-                        messageEl.textContent = 'You\'re on the list.';
-                        messageEl.classList.add('success');
+                        var wrap = document.getElementById('modalWaitlist') && document.getElementById('modalWaitlist').querySelector('.kit-modal-wrap');
+                        if (wrap) wrap.classList.add('waitlist-done');
+                        var continueBtn = document.getElementById('waitlistContinueBtn');
+                        if (continueBtn && !continueBtn._waitlistContinueBound) {
+                            continueBtn._waitlistContinueBound = true;
+                            continueBtn.addEventListener('click', function () { if (typeof closeModal === 'function') closeModal(); });
+                        }
                     } else {
                         return res.json().then(function (j) { throw new Error(j && j.error || res.statusText); });
                     }
                 })
-                .catch(function (err) {
-                    messageEl.textContent = err.message || 'Request failed.';
+                .catch(function () {
+                    messageEl.textContent = 'Something went wrong. Please try again.';
                     messageEl.classList.add('error');
                 })
                 .finally(function () { submitBtn.disabled = false; });
