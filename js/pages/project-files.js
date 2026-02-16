@@ -115,7 +115,6 @@ window.addEventListener('DOMContentLoaded', () => {
     function manageIsoCards() {
         const currentCards = boxContainer.querySelectorAll('.front-duplicate');
         const currentCount = currentCards.length;
-        const cardCountChanged = currentCount !== isoCardCount;
         if (currentCount < isoCardCount) {
             for (let i = currentCount; i < isoCardCount; i++) {
                 const newCard = document.createElement('div');
@@ -145,18 +144,14 @@ window.addEventListener('DOMContentLoaded', () => {
             card.appendChild(img);
             card.setAttribute('data-project-id', projectIds.length ? projectIds[index % projectIds.length] : '');
         });
-        // Only replace cards with clones when the count changed; avoids wiping hover/preview during scroll
-        if (cardCountChanged) {
-            attachIsoCardHoverHandlers();
-            const cardsAfter = boxContainer.querySelectorAll('.front-duplicate');
-            cardsAfter.forEach(card => {
-                card.addEventListener('wheel', handleWheelScroll, { passive: false });
-                card.addEventListener('touchstart', handleTouchStart, { passive: true });
-                card.addEventListener('touchmove', handleTouchMove, { passive: false });
-                card.addEventListener('touchend', handleTouchEnd, { passive: true });
-                card.addEventListener('touchcancel', handleTouchEnd, { passive: true });
-            });
-        }
+        attachIsoCardHoverHandlers();
+        allCards.forEach(card => {
+            card.addEventListener('wheel', handleWheelScroll, { passive: false });
+            card.addEventListener('touchstart', handleTouchStart, { passive: true });
+            card.addEventListener('touchmove', handleTouchMove, { passive: false });
+            card.addEventListener('touchend', handleTouchEnd, { passive: true });
+            card.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+        });
     }
 
     const centerTransform = 'translate(-50%, -50%)';
@@ -325,8 +320,9 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     function animateScroll() {
-        if (Math.abs(targetScrollPosition - scrollPosition) > 0.01) {
-            scrollPosition += (targetScrollPosition - scrollPosition) * 0.1;
+        // Faster settle (0.25): smooth scroll finishes in less time; reduces frames of heavy DOM work
+        if (Math.abs(targetScrollPosition - scrollPosition) > 0.015) {
+            scrollPosition += (targetScrollPosition - scrollPosition) * 0.25;
             updateBox();
         }
         requestAnimationFrame(animateScroll);
