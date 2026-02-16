@@ -757,7 +757,14 @@
         .site-overlay-center {
             position: relative;
             z-index: 1;
+            min-width: 420px;
             max-width: 100%;
+        }
+        @media (max-width: 480px) {
+            .site-overlay-center {
+                min-width: 0;
+                width: 100%;
+            }
         }
         .site-modal {
             display: none;
