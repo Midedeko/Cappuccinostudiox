@@ -76,7 +76,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 if (e.touches.length === 1 && (Math.abs(e.touches[0].clientX - lastMouseX) > 5 || Math.abs(e.touches[0].clientY - lastMouseY) > 5)) touchMoved = true;
             });
             newCard.addEventListener('touchend', (e) => {
-                if (!touchMoved && e.changedTouches.length === 1) {
+                if (!touchMoved && !scrollGestureUsed && e.changedTouches.length === 1) {
                     const projectId = newCard.getAttribute('data-project-id');
                     if (projectId) { e.preventDefault(); window.location.href = `project.html?id=${projectId}`; }
                 }
@@ -228,6 +228,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     let touchStartY = 0, touchStartX = 0, isTouching = false;
+    let scrollGestureUsed = false; // so card tap doesn't navigate after a scroll
     const touchSensitivity = 0.02;
 
     function handleTouchStart(e) {
@@ -244,45 +245,51 @@ window.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             const touchY = e.touches[0].clientY;
             const touchX = e.touches[0].clientX;
-            const deltaY = touchStartY - touchY;
-            const deltaX = touchStartX - touchX;
-            if (Math.abs(deltaY) > Math.abs(deltaX) || Math.abs(deltaX) < 10) {
-                targetScrollPosition -= deltaY * touchSensitivity;
-                touchStartY = touchY;
-                touchStartX = touchX;
-            }
+            const deltaY = touchStartY - touchY; // up = positive
+            const deltaX = touchStartX - touchX;  // left-to-right = positive
+            // Map both axes: left-to-right same as down-to-up, right-to-left same as up-to-down
+            const effectiveDelta = deltaY + deltaX;
+            targetScrollPosition -= effectiveDelta * touchSensitivity;
+            scrollGestureUsed = true;
+            touchStartY = touchY;
+            touchStartX = touchX;
         }
     }
 
     function handleTouchEnd() {
         isTouching = false;
+        setTimeout(function () { scrollGestureUsed = false; }, 0);
     }
 
     const scene3d = document.querySelector('.scene-3d');
+    const touchCapture = { passive: false };
+    const touchStartOpt = { passive: true, capture: true };
+    const touchMoveOpt = { passive: false, capture: true };
+    const touchEndOpt = { passive: true, capture: true };
     window.addEventListener('wheel', handleWheelScroll, { passive: false });
     if (scene3d) scene3d.addEventListener('wheel', handleWheelScroll, { passive: false });
     boxContainer.addEventListener('wheel', handleWheelScroll, { passive: false });
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchmove', handleTouchMove, touchCapture);
     window.addEventListener('touchend', handleTouchEnd, { passive: true });
     window.addEventListener('touchcancel', handleTouchEnd, { passive: true });
     if (scene3d) {
-        scene3d.addEventListener('touchstart', handleTouchStart, { passive: true });
-        scene3d.addEventListener('touchmove', handleTouchMove, { passive: false });
-        scene3d.addEventListener('touchend', handleTouchEnd, { passive: true });
-        scene3d.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+        scene3d.addEventListener('touchstart', handleTouchStart, touchStartOpt);
+        scene3d.addEventListener('touchmove', handleTouchMove, touchMoveOpt);
+        scene3d.addEventListener('touchend', handleTouchEnd, touchEndOpt);
+        scene3d.addEventListener('touchcancel', handleTouchEnd, touchEndOpt);
     }
-    boxContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
-    boxContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
-    boxContainer.addEventListener('touchend', handleTouchEnd, { passive: true });
-    boxContainer.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+    boxContainer.addEventListener('touchstart', handleTouchStart, touchStartOpt);
+    boxContainer.addEventListener('touchmove', handleTouchMove, touchMoveOpt);
+    boxContainer.addEventListener('touchend', handleTouchEnd, touchEndOpt);
+    boxContainer.addEventListener('touchcancel', handleTouchEnd, touchEndOpt);
     [frontFace, backFace, rightFace, leftFace, topFace, bottomFace].forEach(face => {
         if (face) {
             face.addEventListener('wheel', handleWheelScroll, { passive: false });
-            face.addEventListener('touchstart', handleTouchStart, { passive: true });
-            face.addEventListener('touchmove', handleTouchMove, { passive: false });
-            face.addEventListener('touchend', handleTouchEnd, { passive: true });
-            face.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+            face.addEventListener('touchstart', handleTouchStart, touchStartOpt);
+            face.addEventListener('touchmove', handleTouchMove, touchMoveOpt);
+            face.addEventListener('touchend', handleTouchEnd, touchEndOpt);
+            face.addEventListener('touchcancel', handleTouchEnd, touchEndOpt);
         }
     });
 
