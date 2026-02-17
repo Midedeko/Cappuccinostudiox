@@ -230,18 +230,16 @@ function openContentView(index) {
         iframe.title = item.name || 'PDF';
         iframe.className = 'content-view-pdf-iframe';
         wrap.appendChild(iframe);
-        const actions = document.createElement('div');
-        actions.className = 'content-view-actions';
+        contentViewInner.appendChild(wrap);
         const closeBtn = document.createElement('button');
-        closeBtn.className = 'content-view-btn';
+        closeBtn.className = 'content-view-close-fixed';
         closeBtn.type = 'button';
         closeBtn.title = 'Close';
         closeBtn.textContent = 'Close';
         closeBtn.addEventListener('click', closeContentView);
-        actions.appendChild(closeBtn);
-        wrap.appendChild(actions);
-        contentViewInner.appendChild(wrap);
+        contentViewOverlay.appendChild(closeBtn);
         contentViewOverlay.classList.add('active');
+        contentViewOverlay.classList.add('content-view-pdf-active');
         return;
     }
 
@@ -315,6 +313,8 @@ function closeContentView() {
     if (contentViewMedia && contentViewMedia.pause) contentViewMedia.pause();
     contentViewMedia = null;
     contentViewOverlay.classList.remove('active');
+    contentViewOverlay.classList.remove('content-view-pdf-active');
+    contentViewOverlay.querySelectorAll('.content-view-close-fixed').forEach(el => el.remove());
     if (document.fullscreenElement) document.exitFullscreen();
 }
 
