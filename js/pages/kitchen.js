@@ -2,6 +2,7 @@
  * Kitchen page: interactive image, hotspots; init() handles menu and carousel.
  */
 import { init } from '../core.js';
+import { navigateTo } from '../pageTransition.js';
 import { showLoadingScreenIfFirstVisit, markPageVisited, hideLoadingScreen } from '../loadingScreen.js';
 
 const container = document.getElementById('imageContainer');
@@ -263,7 +264,7 @@ document.querySelectorAll('.project-button').forEach(button => {
             if (modal && typeof window.openModal === 'function') {
                 window.openModal(modal);
                 closeActiveHotspot();
-            } else if (page) window.location.href = page;
+            } else if (page) navigateTo(page);
             else alert('Project button ' + id + ' clicked! Navigate to next page.');
             pressedButton = null;
         }
@@ -283,7 +284,7 @@ document.querySelectorAll('.project-button').forEach(button => {
                 e.preventDefault();
                 window.openModal(modal);
                 closeActiveHotspot();
-            } else if (page) { e.preventDefault(); window.location.href = page; }
+            } else if (page) { e.preventDefault(); navigateTo(page); }
             else { e.preventDefault(); alert('Project button ' + id + ' clicked! Navigate to next page.'); }
             pressedButton = null;
         }
@@ -294,7 +295,7 @@ document.querySelectorAll('.project-button').forEach(button => {
         if (modal && typeof window.openModal === 'function') {
             window.openModal(modal);
             closeActiveHotspot();
-        } else if (page) window.location.href = page;
+        } else if (page) navigateTo(page);
         else alert('Project button ' + id + ' clicked! Navigate to next page.');
     });
 });

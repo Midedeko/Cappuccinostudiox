@@ -143,7 +143,7 @@
 
         .gallery-item-media {
             display: block;
-            margin-top: 3.75em; /* caption zone (3em) + gap (0.75em) */
+            margin-top: 3.375em; /* caption zone (3em) + gap (0.375em), half of previous gap */
         }
 
         .gallery-item.hidden .gallery-item-media img,
@@ -183,12 +183,6 @@
             word-wrap: break-word;
         }
 
-        .gallery-caption-number::after {
-            content: '';
-            display: inline-block;
-            width: 3ch; /* 3 character widths between number and name */
-        }
-
         .gallery-item.hidden .gallery-caption {
             opacity: 0.4; /* caption at 40% when not interacted with (20% more visible than before) */
         }
@@ -209,7 +203,7 @@
             }
 
             .gallery-item-media {
-                margin-top: 3.25em; /* caption zone (2.5em) + gap (0.75em) */
+                margin-top: 2.875em; /* caption zone (2.5em) + gap (0.375em), half of previous gap */
             }
 
             .gallery-caption {
@@ -423,7 +417,7 @@
         }
     </style>
 </head>
-<body class="loading-active">
+<body class="loading-active page-entering">
     <style id="loading-screen-critical">body.loading-active>*:not(#loadingScreenOverlay){visibility:hidden}#loadingScreenOverlay .loading-screen-wipe{height:calc((100 - var(--loading-progress,0))*1%);background:#E70017;transition:height .35s linear}@keyframes loadingCarouselScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}</style>
     <div id="loadingScreenOverlay" class="loading-screen-overlay" style="position:fixed;top:0;left:0;width:100vw;height:100vh;min-width:100vw;min-height:100vh;overflow:hidden;background:#E70017;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Code Saver',sans-serif" aria-live="polite" aria-label="Loading">
         <div class="loading-screen-logo-wrap" style="position:relative;height:167px"><img src="Studiox Logo.svg" alt="Cappuccino Studio" style="display:block;height:167px;width:auto"><div class="loading-screen-wipe" style="position:absolute;left:0;right:0;bottom:0;pointer-events:none"></div></div>

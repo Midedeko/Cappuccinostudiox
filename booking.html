@@ -70,7 +70,7 @@
         .kit-modal-wrap.booking-done .booking-message { margin-top: 0; }
     </style>
 </head>
-<body>
+<body class="page-entering">
     <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0" aria-hidden="true">
         <defs>
             <symbol id="kit-caret" viewBox="0 0 12 12">
@@ -498,6 +498,7 @@
             window.updateCustomScrollbar = updateCustomScrollbar;
         })();
     </script>
+    <script type="module" src="js/pageTransition.js"></script>
     <script type="module" src="js/pages/booking.js"></script>
 </body>
 </html>

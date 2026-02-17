@@ -1,6 +1,8 @@
 /**
  * Shared constants, helpers, and global init.
  */
+import './pageTransition.js';
+
 export const IDB_NAME = 'PortfolioCMS';
 export const IDB_STORE = 'projects';
 export const CMS_PROJECT_PREFIX = 'cms_project_';

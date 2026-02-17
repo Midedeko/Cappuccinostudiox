@@ -4,6 +4,7 @@
  */
 import { init } from '../core.js';
 import { getProjectList, fetchProjectList, saveProjectList } from '../storage.js';
+import { navigateTo } from '../pageTransition.js';
 import { showLoadingScreenIfFirstVisit, markPageVisited, hideLoadingScreen } from '../loadingScreen.js';
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -65,7 +66,7 @@ window.addEventListener('DOMContentLoaded', () => {
             newCard.addEventListener('click', (e) => {
                 if (!mouseMoved && !touchMoved) {
                     const projectId = newCard.getAttribute('data-project-id');
-                    if (projectId) window.location.href = `project.html?id=${projectId}`;
+                    if (projectId) navigateTo(`project.html?id=${projectId}`);
                 }
                 mouseMoved = false;
                 touchMoved = false;
@@ -85,7 +86,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     const projectId = newCard.getAttribute('data-project-id');
                     if (previewedCard === newCard) {
                         // Second tap: open project (card was already previewed)
-                        if (projectId) { e.preventDefault(); window.location.href = `project.html?id=${projectId}`; }
+                        if (projectId) { e.preventDefault(); navigateTo(`project.html?id=${projectId}`); }
                         previewedCard = null;
                     } else {
                         // First tap: card preview interaction (pop up like hover)

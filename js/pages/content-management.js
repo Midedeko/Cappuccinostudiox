@@ -2,6 +2,7 @@
  * Content management page: project list, add/delete, storage.
  */
 import { escapeHtml, CMS_PROJECT_PREFIX, init } from '../core.js';
+import { navigateTo } from '../pageTransition.js';
 import { getProjectList, saveProjectList, fetchProjectList, deleteProjectFromIDB } from '../storage.js';
 import { showLoadingScreen, hideLoadingScreen } from '../loadingScreen.js';
 
@@ -45,7 +46,7 @@ document.getElementById('addProjectBtn').addEventListener('click', () => {
     const nextId = list.length ? Math.max(...list.map(p => p.id)) + 1 : 1;
     list.push({ id: nextId, name: `Project ${nextId}` });
     saveProjectList(list);
-    window.location.href = `project-edit.html?id=${nextId}`;
+    navigateTo(`project-edit.html?id=${nextId}`);
 });
 
 initList();

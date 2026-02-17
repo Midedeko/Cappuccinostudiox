@@ -2,6 +2,7 @@
  * Index page: interactive image, hotspots, admin access; init() handles menu and carousel.
  */
 import { init } from '../core.js';
+import { navigateTo } from '../pageTransition.js';
 import { showLoadingScreenIfFirstVisit, markPageVisited, hideLoadingScreen } from '../loadingScreen.js';
 
 const container = document.getElementById('imageContainer');
@@ -20,7 +21,7 @@ document.addEventListener('click', function adminCheck(e) {
         nonInteractiveClickCount = 0;
         const entered = prompt('Enter password to access Admin:');
         if (entered === ADMIN_PASSWORD) {
-            window.location.href = 'admin.html';
+            navigateTo('admin.html');
         }
     }
 });
@@ -300,7 +301,7 @@ document.querySelectorAll('.project-button').forEach(button => {
         button.classList.remove('touch-active');
         if (pressedButton && pressedButton.button === button) {
             const page = button.dataset.page;
-            if (page) { e.preventDefault(); window.location.href = page; }
+            if (page) { e.preventDefault(); navigateTo(page); }
             else { e.preventDefault(); alert('Project button ' + id + ' clicked! Navigate to next page.'); }
             pressedButton = null;
         }
@@ -309,7 +310,7 @@ document.querySelectorAll('.project-button').forEach(button => {
     button.addEventListener('click', (e) => {
         e.stopPropagation();
         const page = button.dataset.page;
-        if (page) window.location.href = page;
+        if (page) navigateTo(page);
         else alert('Project button ' + id + ' clicked! Navigate to next page.');
     });
 });

@@ -214,7 +214,7 @@ export function showLoadingScreen(pageOrProjectName) {
 
 /**
  * Dismiss the loading screen without animation (e.g. on revisit when we skip showing it).
- * Removes loading-active from body and hides the overlay.
+ * Removes loading-active from body and hides the overlay; reveals page (fade-in) via page transition.
  */
 export function dismissLoadingScreen() {
     currentLoadingLabel = null;
@@ -222,6 +222,7 @@ export function dismissLoadingScreen() {
     document.body.classList.remove('loading-with-page-carousel');
     const el = overlay || document.getElementById('loadingScreenOverlay');
     if (el) el.style.display = 'none';
+    import('./pageTransition.js').then(m => { if (m.revealPage) m.revealPage(); });
 }
 
 /**
@@ -311,6 +312,7 @@ export function hideLoadingScreen(opts = {}) {
             document.body.classList.remove(LOADING_ACTIVE_CLASS);
             el.style.display = 'none';
             el.style.opacity = '1';
+            import('./pageTransition.js').then(m => { if (m.revealPage) m.revealPage(); });
         }, { once: true });
     };
 

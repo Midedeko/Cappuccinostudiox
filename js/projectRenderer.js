@@ -177,14 +177,9 @@ export function initGallery(trackId, containerId, galleryItems, callbacks) {
         caption.className = 'gallery-caption';
         const inner = document.createElement('div');
         inner.className = 'gallery-caption-inner';
-        const number = String(index + 1).padStart(2, '0');
-        const numberSpan = document.createElement('span');
-        numberSpan.className = 'gallery-caption-number';
-        numberSpan.textContent = number;
         const captionText = document.createElement('span');
         captionText.className = 'gallery-caption-text';
         captionText.textContent = item.name;
-        inner.appendChild(numberSpan);
         inner.appendChild(captionText);
         caption.appendChild(inner);
         galleryItem.appendChild(caption);

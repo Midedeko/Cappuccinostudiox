@@ -2,6 +2,7 @@
  * Admin page: 3D box controls, config, apply to Project Files; init() handles menu and carousel.
  */
 import { init } from '../core.js';
+import { navigateTo } from '../pageTransition.js';
 import { showLoadingScreenIfFirstVisit, markPageVisited, hideLoadingScreen } from '../loadingScreen.js';
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -16,7 +17,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (contentManagementPanelBtn) {
         contentManagementPanelBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            window.location.href = 'content-management.html';
+            navigateTo('content-management.html');
         });
     }
 
@@ -25,7 +26,7 @@ window.addEventListener('DOMContentLoaded', () => {
         cmsMenuBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            window.location.href = 'content-management.html';
+            navigateTo('content-management.html');
         });
     }
 

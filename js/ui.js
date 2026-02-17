@@ -2,6 +2,7 @@
  * Menus and carousel UI.
  */
 import { getPageName } from './core.js';
+import { navigateTo } from './pageTransition.js';
 import { getRandomChar, scrambleText } from './animations.js';
 
 const CAROUSEL_REPETITIONS = 10;
@@ -109,7 +110,7 @@ export function setupMenuAnimated(containerId, buttonId, options = {}) {
             if (modal && typeof window.openModal === 'function') {
                 window.openModal(modal);
                 closeMenu();
-            } else if (page) window.location.href = page;
+            } else if (page) navigateTo(page);
             else if (action === 'book-session') container.classList.remove('active');
         });
     });

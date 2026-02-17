@@ -228,7 +228,7 @@ function runInits() {
     }
     document.addEventListener('wheel', (e) => {
         const gallery = document.getElementById('galleryContainer');
-        if (!gallery) return;
+        if (!gallery || !gallery.contains(e.target)) return;
         const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
         gallery.scrollLeft += delta;
         e.preventDefault();
