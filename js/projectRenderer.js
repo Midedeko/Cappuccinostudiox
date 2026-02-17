@@ -12,12 +12,6 @@ export const DEFAULT_GALLERY_ITEMS = [
     { type: 'image', src: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=1200&fit=crop', name: 'TALL PORTRAIT.PNG', storyline: '' }
 ];
 
-export const DEFAULT_BACKGROUND_VIDEOS = [
-    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
-];
-
 /**
  * Mutate state with CMS data. state: { galleryItems, backgroundVideos, projectStoryline, projectStorylineTitle, projectName }
  */
@@ -52,7 +46,6 @@ export function applyCmsData(data, state, projectId) {
         }
     }
     if (state.galleryItems.length === 0) state.galleryItems = DEFAULT_GALLERY_ITEMS.slice();
-    if (state.backgroundVideos.length === 0) state.backgroundVideos = DEFAULT_BACKGROUND_VIDEOS.slice();
 }
 
 const STACK_IMAGE_DURATION_MS = 5000;
@@ -68,6 +61,7 @@ export function initBackgroundVideos(containerId, backgroundVideos, ref) {
     if (!container) return { restartCycle: () => {} };
     container.innerHTML = '';
     const list = Array.isArray(backgroundVideos) ? backgroundVideos : [];
+    if (list.length === 0) return { restartCycle: () => {} };
     let imageAdvanceTimer = null;
 
     function showNext(index) {

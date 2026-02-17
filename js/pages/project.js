@@ -6,7 +6,7 @@ import { getProjectIdFromURL } from '../projectLoader.js';
 import { createStorylineController } from '../animations.js';
 import { setupMenuSimple } from '../ui.js';
 import { showLoadingScreen, hideLoadingScreen } from '../loadingScreen.js';
-import { initBackgroundVideos as rendererInitBg, initGallery as rendererInitGallery, DEFAULT_GALLERY_ITEMS, DEFAULT_BACKGROUND_VIDEOS } from '../projectRenderer.js';
+import { initBackgroundVideos as rendererInitBg, initGallery as rendererInitGallery, DEFAULT_GALLERY_ITEMS } from '../projectRenderer.js';
 
 const projectId = getProjectIdFromURL();
 if (!projectId) {
@@ -16,7 +16,7 @@ if (!projectId) {
 
 const state = {
     galleryItems: DEFAULT_GALLERY_ITEMS.slice(),
-    backgroundVideos: DEFAULT_BACKGROUND_VIDEOS.slice(),
+    backgroundVideos: [],
     projectStoryline: '',
     projectStorylineTitle: '',
     projectName: 'Project ' + projectId
@@ -420,9 +420,10 @@ function openContentView(index) {
             if (contentViewOverlay._pdfToolbarHideTimeout) clearTimeout(contentViewOverlay._pdfToolbarHideTimeout);
             contentViewOverlay._pdfToolbarHideTimeout = setTimeout(() => toolbar.classList.add('content-view-pdf-toolbar-hidden'), 5000);
         }
-        ['mousemove', 'touchmove', 'scroll', 'click'].forEach(ev => {
-            contentViewOverlay.addEventListener(ev, showToolbar, { passive: true });
-        });
+        const pdfActivityEvents = ['mousemove', 'touchmove', 'scroll', 'click'];
+        pdfActivityEvents.forEach(ev => contentViewOverlay.addEventListener(ev, showToolbar, { passive: true }));
+        contentViewOverlay._pdfToolbarShowToolbar = showToolbar;
+        contentViewOverlay._pdfToolbarActivityEvents = pdfActivityEvents;
 
         loadAndRenderPdfWithPdfJs(pdfUrl, container, loadingBarInner).then(({ baseViewport, renderAtScale }) => {
             loadingWrap.remove();
@@ -529,6 +530,13 @@ function closeContentView() {
     if (contentViewOverlay._pdfToolbarHideTimeout) {
         clearTimeout(contentViewOverlay._pdfToolbarHideTimeout);
         contentViewOverlay._pdfToolbarHideTimeout = null;
+    }
+    const showToolbarFn = contentViewOverlay._pdfToolbarShowToolbar;
+    const activityEvents = contentViewOverlay._pdfToolbarActivityEvents;
+    if (showToolbarFn && activityEvents) {
+        activityEvents.forEach(ev => contentViewOverlay.removeEventListener(ev, showToolbarFn));
+        contentViewOverlay._pdfToolbarShowToolbar = null;
+        contentViewOverlay._pdfToolbarActivityEvents = null;
     }
     contentViewOverlay.querySelector('.content-view-pdf-loading-wrap')?.remove();
     contentViewOverlay.classList.remove('active');
