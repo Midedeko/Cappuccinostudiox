@@ -27,6 +27,7 @@ const storylineController = createStorylineController();
 const contentViewOverlay = document.getElementById('contentViewOverlay');
 const contentViewInner = document.getElementById('contentViewInner');
 let contentViewMedia = null;
+let backgroundController = { restartCycle: () => {} };
 
 const ref = {
     get currentVideoIndex() { return currentVideoIndex; },
@@ -40,7 +41,7 @@ function setActiveItem(index) {
     const expandedBg = document.getElementById('expandedBackground');
     const allItems = document.querySelectorAll('.gallery-item');
     const storylineEl = document.getElementById('storylineOverlay');
-    document.querySelectorAll('.background-video').forEach(v => { v.classList.remove('active'); v.pause(); });
+    document.querySelectorAll('.background-video').forEach(v => { v.classList.remove('active'); if (v.pause) v.pause(); });
     expandedBg.innerHTML = '';
     let expandedMedia;
     if (item.type === 'video') {
@@ -81,17 +82,18 @@ function resetToBackground() {
     const allItems = document.querySelectorAll('.gallery-item');
     const videos = document.querySelectorAll('.background-video');
     let foundActive = false;
-    videos.forEach((video, index) => {
-        if (video.classList.contains('active')) { foundActive = true; currentVideoIndex = index; video.play(); }
+    videos.forEach((el, index) => {
+        if (el.classList.contains('active')) { foundActive = true; currentVideoIndex = index; if (el.play) el.play(); }
     });
     if (!foundActive && videos.length > 0) {
         currentVideoIndex = 0;
         videos[0].classList.add('active');
-        videos[0].currentTime = 0;
-        videos[0].play();
+        if (videos[0].currentTime !== undefined) videos[0].currentTime = 0;
+        if (videos[0].play) videos[0].play();
     }
     expandedBg.classList.remove('active');
     allItems.forEach(item => item.classList.remove('hidden'));
+    backgroundController.restartCycle();
     const storylineEl = document.getElementById('storylineOverlay');
     if (storylineEl && state.projectStoryline) {
         storylineEl.classList.add('visible');
@@ -199,7 +201,8 @@ function closeContentView() {
 
 function runInits() {
     try {
-        rendererInitBg('backgroundVideos', state.backgroundVideos, ref);
+        const out = rendererInitBg('backgroundVideos', state.backgroundVideos, ref);
+        if (out && out.restartCycle) backgroundController = out;
     } catch (e) { console.error('initBackgroundVideos', e); }
     try {
         rendererInitGallery('galleryTrack', 'galleryContainer', state.galleryItems, {

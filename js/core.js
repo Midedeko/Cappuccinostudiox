@@ -53,7 +53,7 @@ export function init(options = {}) {
             const { setupMenuAnimated, initCarousel, carouselSets, pageCarouselSets } = ui;
             setupMenuAnimated('menuContainer', 'menuButton');
             const label = loadingScreen.getCurrentLoadingLabel();
-            const firstSetText = label ? ('LOADING (' + (label || '').toUpperCase() + ')') : null;
+            const firstSetText = label ? ('LOADING ' + (label || '').toUpperCase()) : null;
             initCarousel('carouselTrack', { carouselSets, pageCarouselSets, firstSetText });
             if (typeof options.onReady === 'function') options.onReady();
         });

@@ -34,27 +34,91 @@ export function applyCmsData(data, state, projectId) {
             state.backgroundVideos = data.items
                 .filter(it => it.backgroundRoster && (it.type === 'video' || (resolveSrc(it) && (resolveSrc(it).startsWith('data:video') || resolveSrc(it).startsWith('http')))))
                 .map(it => ({ src: resolveSrc(it), trimStart: it.trimStart, trimEnd: it.trimEnd }));
-            if (state.backgroundVideos.length === 0) state.backgroundVideos = [];
+            if (state.backgroundVideos.length === 0) {
+                // No designated background: use stack media as background; images last 5s.
+                state.backgroundVideos = state.galleryItems.map(it => ({
+                    type: it.type,
+                    src: it.src,
+                    duration: it.type === 'image' ? 5000 : undefined,
+                    trimStart: it.trimStart,
+                    trimEnd: it.trimEnd
+                }));
+            }
         }
     }
     if (state.galleryItems.length === 0) state.galleryItems = DEFAULT_GALLERY_ITEMS.slice();
     if (state.backgroundVideos.length === 0) state.backgroundVideos = DEFAULT_BACKGROUND_VIDEOS.slice();
 }
 
+const STACK_IMAGE_DURATION_MS = 5000;
+
 /**
- * Init background videos in container. backgroundVideos: array of { src, trimStart?, trimEnd? } or legacy string src.
+ * Init background media in container. backgroundVideos: array of { src, trimStart?, trimEnd?, type?: 'video'|'image', duration?: number } or legacy string src.
+ * Images (type === 'image' or entry.duration) are shown in a loop, each for duration ms (default 5s).
  * ref: { currentVideoIndex, getActiveItemIndex }.
+ * @returns {{ restartCycle: () => void }} - call restartCycle() when returning to background (e.g. from expanded view) to restart image timer.
  */
 export function initBackgroundVideos(containerId, backgroundVideos, ref) {
     const container = document.getElementById(containerId);
-    if (!container) return;
+    if (!container) return { restartCycle: () => {} };
     container.innerHTML = '';
     const list = Array.isArray(backgroundVideos) ? backgroundVideos : [];
+    let imageAdvanceTimer = null;
+
+    function showNext(index) {
+        if (ref.getActiveItemIndex && ref.getActiveItemIndex() !== null) return;
+        const nextIndex = (index + 1) % list.length;
+        ref.currentVideoIndex = nextIndex;
+        const children = container.children;
+        for (let i = 0; i < children.length; i++) children[i].classList.toggle('active', i === nextIndex);
+        const nextEl = children[nextIndex];
+        const nextEntry = list[nextIndex];
+        if (nextEl && nextEntry) {
+            if (nextEl.tagName === 'VIDEO') {
+                const nextStart = typeof nextEntry === 'object' && nextEntry && nextEntry.trimStart != null ? nextEntry.trimStart : 0;
+                nextEl.currentTime = nextStart;
+                nextEl.play();
+            } else {
+                scheduleImageAdvance(nextIndex);
+            }
+        }
+    }
+
+    function scheduleImageAdvance(index) {
+        if (imageAdvanceTimer) clearTimeout(imageAdvanceTimer);
+        const entry = list[index];
+        const duration = (typeof entry === 'object' && entry != null && entry.duration) ? entry.duration : STACK_IMAGE_DURATION_MS;
+        imageAdvanceTimer = setTimeout(() => showNext(index), duration);
+    }
+
+    function restartCycle() {
+        if (ref.getActiveItemIndex && ref.getActiveItemIndex() !== null) return;
+        const idx = ref.currentVideoIndex != null ? ref.currentVideoIndex : 0;
+        const el = container.children[idx];
+        const entry = list[idx];
+        if (el && entry && el.tagName !== 'VIDEO') scheduleImageAdvance(idx);
+    }
+
     list.forEach((entry, index) => {
         const src = typeof entry === 'string' ? entry : (entry && entry.src);
         const trimStart = typeof entry === 'object' && entry != null ? entry.trimStart : undefined;
         const trimEnd = typeof entry === 'object' && entry != null ? entry.trimEnd : undefined;
+        const isImage = (typeof entry === 'object' && entry != null && entry.type === 'image') || (typeof entry === 'object' && entry != null && entry.duration != null);
         if (!src) return;
+
+        if (isImage) {
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = '';
+            img.className = 'background-video background-image';
+            if (index === 0) {
+                img.classList.add('active');
+                scheduleImageAdvance(0);
+            }
+            container.appendChild(img);
+            return;
+        }
+
         const video = document.createElement('video');
         video.src = src;
         video.autoplay = true;
@@ -64,10 +128,6 @@ export function initBackgroundVideos(containerId, backgroundVideos, ref) {
         video.className = 'background-video';
         if (index === 0) video.classList.add('active');
         container.appendChild(video);
-        function clampToTrim() {
-            if (trimStart != null && isFinite(trimStart)) video.currentTime = Math.max(trimStart, video.currentTime);
-            if (trimEnd != null && isFinite(trimEnd) && video.currentTime >= trimEnd) video.currentTime = trimStart != null ? trimStart : 0;
-        }
         video.addEventListener('timeupdate', () => {
             if (trimEnd != null && isFinite(trimEnd) && video.currentTime >= trimEnd) {
                 video.currentTime = trimStart != null && isFinite(trimStart) ? trimStart : 0;
@@ -80,19 +140,11 @@ export function initBackgroundVideos(containerId, backgroundVideos, ref) {
         video.addEventListener('ended', () => {
             if (ref.getActiveItemIndex && ref.getActiveItemIndex() === null) {
                 video.classList.remove('active');
-                const nextIndex = (index + 1) % list.length;
-                ref.currentVideoIndex = nextIndex;
-                const nextVideo = container.children[nextIndex];
-                if (nextVideo) {
-                    nextVideo.classList.add('active');
-                    const nextEntry = list[nextIndex];
-                    const nextStart = typeof nextEntry === 'object' && nextEntry && nextEntry.trimStart != null ? nextEntry.trimStart : 0;
-                    nextVideo.currentTime = nextStart;
-                    nextVideo.play();
-                }
+                showNext(index);
             }
         });
     });
+    return { restartCycle };
 }
 
 /**
