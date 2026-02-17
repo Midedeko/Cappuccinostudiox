@@ -92,6 +92,12 @@ function getItemSrc(item) {
     return '';
 }
 
+/** For gallery/preview: PDF uses thumbnail image; image/video use src. */
+function getItemPreviewSrc(item) {
+    if (item.type === 'pdf' && item.thumbnail) return item.thumbnail;
+    return getItemSrc(item);
+}
+
 function formatTrimTime(s) {
     if (s == null || !isFinite(s)) return '';
     const m = Math.floor(s / 60);
@@ -103,11 +109,22 @@ function renderItem(item, index) {
     const isFirst = index === 0;
     const isLast = index === items.length - 1;
     const src = getItemSrc(item);
-    const preview = item.type === 'video'
-        ? '<video class="preview-video" src="' + escapeHtml(src) + '" muted preload="metadata"></video>'
-        : '<img class="preview" src="' + escapeHtml(src) + '" alt="">';
+    const previewSrc = getItemPreviewSrc(item);
+    let preview;
+    if (item.type === 'video') {
+        preview = '<video class="preview-video" src="' + escapeHtml(src) + '" muted preload="metadata"></video>';
+    } else if (item.type === 'pdf') {
+        preview = previewSrc
+            ? '<img class="preview" src="' + escapeHtml(previewSrc) + '" alt="">'
+            : '<div class="preview preview-pdf-placeholder" title="Set thumbnail">PDF</div>';
+    } else {
+        preview = '<img class="preview" src="' + escapeHtml(previewSrc) + '" alt="">';
+    }
     const trimLabel = item.type === 'video' && item.trimStart != null && item.trimEnd != null
         ? '<div class="trim-label">Trim ' + formatTrimTime(item.trimStart) + ' – ' + formatTrimTime(item.trimEnd) + '</div>'
+        : '';
+    const pdfThumbBtn = item.type === 'pdf'
+        ? '<button type="button" class="set-pdf-thumb-btn" data-index="' + index + '" title="Set thumbnail">' + (item.thumbnail ? 'Change thumbnail' : 'Set thumbnail') + '</button>'
         : '';
     return '<li data-index="' + index + '">' +
         '<span class="drag-handle" title="Drag to reorder">⋮⋮</span>' +
@@ -116,9 +133,12 @@ function renderItem(item, index) {
         (item.storyline != null && item.storyline !== '' ? '<div class="item-storyline-preview" title="Content storyline">' + escapeHtml(String(item.storyline).slice(0, 60)) + (item.storyline.length > 60 ? '…' : '') + '</div>' : '') +
         '<div class="row"><span class="switch-label">Background roster</span>' +
         '<div class="switch ' + (item.backgroundRoster ? 'on' : '') + '" data-index="' + index + '" role="button" tabindex="0"></div></div>' +
+        '<div class="row storyline-row"><label class="switch-label">Storyline title (gallery caption)</label></div>' +
+        '<input type="text" class="item-storyline-title" data-index="' + index + '" placeholder="Shown as caption under the image" value="' + escapeHtml((item.storylineTitle != null ? item.storylineTitle : '')) + '">' +
         '<div class="row storyline-row"><label class="switch-label">Storyline (on preview)</label></div>' +
         '<textarea class="item-storyline" data-index="' + index + '" placeholder="Text shown in storyline when this content is previewed">' + escapeHtml((item.storyline != null ? item.storyline : '')) + '</textarea></div>' +
         '<div class="move-btns">' +
+        (item.type === 'pdf' ? pdfThumbBtn : '') +
         '<button type="button" class="replace-item-btn" data-index="' + index + '" title="Replace media">Replace</button>' +
         (item.type === 'video' ? '<button type="button" class="retrim-item-btn" data-index="' + index + '" title="Change trim">Re-trim</button>' : '') +
         (item.type === 'video' ? '<button type="button" class="addcut-item-btn" data-index="' + index + '" title="Add another cut from this video (same file, new trim)">Add cut</button>' : '') +
@@ -165,10 +185,20 @@ function render() {
             replaceIndex = idx;
             const input = document.getElementById('replaceFileInput');
             if (input) {
-                input.accept = items[idx].type === 'image' ? 'image/*' : 'video/*';
+                const it = items[idx];
+                if (it.type === 'pdf') input.accept = 'application/pdf';
+                else if (it.type === 'image') input.accept = 'image/*';
+                else input.accept = 'video/*';
                 input.value = '';
                 input.click();
             }
+        });
+    });
+    ul.querySelectorAll('.set-pdf-thumb-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const idx = parseInt(btn.dataset.index, 10);
+            if (isNaN(idx) || !items[idx] || items[idx].type !== 'pdf') return;
+            openPdfThumbnailModal(idx);
         });
     });
     ul.querySelectorAll('.retrim-item-btn').forEach(btn => {
@@ -201,6 +231,7 @@ function render() {
                     trimStart: 0,
                     trimEnd: null,
                     storyline: '',
+                    storylineTitle: '',
                     backgroundRoster: false
                 };
                 openTrimModal(getItemSrc(item), newItem.name, null, (trim) => {
@@ -234,6 +265,13 @@ function render() {
         el.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
         });
+    });
+    ul.querySelectorAll('.item-storyline-title').forEach(el => {
+        const idx = parseInt(el.dataset.index, 10);
+        if (isNaN(idx) || !items[idx]) return;
+        items[idx].storylineTitle = (el.value || '').trim();
+        el.addEventListener('input', () => { items[idx].storylineTitle = (el.value || '').trim(); });
+        el.addEventListener('change', () => { items[idx].storylineTitle = (el.value || '').trim(); });
     });
     ul.querySelectorAll('.item-storyline').forEach(el => {
         const idx = parseInt(el.dataset.index, 10);
@@ -279,7 +317,7 @@ document.getElementById('uploadZone').addEventListener('dragover', (e) => { e.pr
 document.getElementById('uploadZone').addEventListener('drop', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    addFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/')));
+    addFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/') || f.type === 'application/pdf'));
 });
 document.getElementById('fileInput').addEventListener('change', (e) => {
     addFiles(Array.from(e.target.files || []));
@@ -330,6 +368,28 @@ document.getElementById('replaceFileInput').addEventListener('change', (e) => {
             items[idx].src = newSrc;
             render();
         });
+    } else if (item.type === 'pdf') {
+        if (file.type !== 'application/pdf') {
+            alert('Please choose a PDF file.');
+            return;
+        }
+        uploadFile(projectId, file, uploadProgressCallbacks()).then(url => {
+            if (url) {
+                items[idx].src = url;
+                items[idx].name = file.name || item.name;
+                render();
+                openPdfThumbnailModal(idx);
+            } else {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    items[idx].src = reader.result;
+                    items[idx].name = file.name || item.name;
+                    render();
+                    openPdfThumbnailModal(idx);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
     } else {
         if (!file.type.startsWith('video/')) {
             alert('Please choose a video file.');
@@ -365,6 +425,101 @@ document.getElementById('replaceFileInput').addEventListener('change', (e) => {
 
 let videoTrimQueue = [];
 let replaceIndex = null;
+
+/** State for PDF thumbnail modal: { pdfUrl, name } when adding new PDF, or { index } when setting thumbnail for existing. */
+let pdfThumbnailPending = null;
+/** Queue of { pdfUrl, name } after uploading PDFs in addFiles; process one at a time. */
+let pdfThumbnailQueue = [];
+
+function openPdfThumbnailModal(indexOrNewPdf) {
+    const overlay = document.getElementById('pdfThumbnailOverlay');
+    const titleEl = document.getElementById('pdfThumbnailTitle');
+    if (!overlay || !titleEl) return;
+    pdfThumbnailPending = indexOrNewPdf;
+    if (typeof indexOrNewPdf === 'number') {
+        const item = items[indexOrNewPdf];
+        titleEl.textContent = item && item.name ? 'Change thumbnail: ' + item.name : 'Set thumbnail for PDF';
+    } else {
+        titleEl.textContent = indexOrNewPdf.name ? 'Set thumbnail for: ' + indexOrNewPdf.name : 'Set thumbnail for PDF';
+    }
+    overlay.classList.add('visible');
+}
+
+function processNextPdfInQueue() {
+    if (pdfThumbnailQueue.length === 0) return;
+    const next = pdfThumbnailQueue.shift();
+    openPdfThumbnailModal(next);
+}
+
+function closePdfThumbnailModal() {
+    const overlay = document.getElementById('pdfThumbnailOverlay');
+    if (overlay) overlay.classList.remove('visible');
+    pdfThumbnailPending = null;
+}
+
+function onPdfThumbnailChosen(thumbUrl) {
+    if (pdfThumbnailPending == null) return;
+    if (typeof pdfThumbnailPending === 'number') {
+        const idx = pdfThumbnailPending;
+        if (items[idx] && items[idx].type === 'pdf') {
+            items[idx].thumbnail = thumbUrl;
+            render();
+        }
+    } else {
+        items.push({
+            type: 'pdf',
+            src: pdfThumbnailPending.pdfUrl,
+            thumbnail: thumbUrl,
+            name: pdfThumbnailPending.name || 'PDF',
+            storyline: '',
+            storylineTitle: '',
+            backgroundRoster: false
+        });
+        render();
+    }
+    closePdfThumbnailModal();
+    pdfThumbnailPending = null;
+    processNextPdfInQueue();
+}
+
+function onPdfThumbnailSkipped() {
+    if (pdfThumbnailPending == null) return;
+    if (typeof pdfThumbnailPending === 'number') {
+        closePdfThumbnailModal();
+        pdfThumbnailPending = null;
+        processNextPdfInQueue();
+        return;
+    }
+    items.push({
+        type: 'pdf',
+        src: pdfThumbnailPending.pdfUrl,
+        thumbnail: null,
+        name: pdfThumbnailPending.name || 'PDF',
+        storyline: '',
+        storylineTitle: '',
+        backgroundRoster: false
+    });
+    render();
+    closePdfThumbnailModal();
+    pdfThumbnailPending = null;
+    processNextPdfInQueue();
+}
+
+document.getElementById('pdfThumbnailChooseBtn').addEventListener('click', () => document.getElementById('pdfThumbnailInput').click());
+document.getElementById('pdfThumbnailSkipBtn').addEventListener('click', onPdfThumbnailSkipped);
+document.getElementById('pdfThumbnailInput').addEventListener('change', (e) => {
+    const file = (e.target.files || [])[0];
+    e.target.value = '';
+    if (!file || !file.type.startsWith('image/') || !pdfThumbnailPending) return;
+    uploadFile(projectId, file, uploadProgressCallbacks()).then(url => {
+        if (url) onPdfThumbnailChosen(url);
+        else {
+            const reader = new FileReader();
+            reader.onload = () => onPdfThumbnailChosen(reader.result);
+            reader.readAsDataURL(file);
+        }
+    });
+});
 
 function openTrimModal(videoSrc, name, fileSizeBytes, onAdd, onCancel) {
     const overlay = document.getElementById('trimOverlay');
@@ -503,23 +658,40 @@ function addFiles(files) {
     }
     const imageFiles = files.filter(f => f.type.startsWith('image/'));
     const videoFiles = files.filter(f => f.type.startsWith('video/'));
+    const pdfFiles = files.filter(f => f.type === 'application/pdf');
     imageFiles.forEach(file => {
         const name = file.name || 'Untitled';
         uploadFile(projectId, file, uploadProgressCallbacks()).then(url => {
             if (url) {
-                items.push({ type: 'image', src: url, name, backgroundRoster: false });
+                items.push({ type: 'image', src: url, name, storylineTitle: '', backgroundRoster: false });
                 render();
             } else {
                 const reader = new FileReader();
                 reader.onload = () => {
-                    items.push({ type: 'image', src: reader.result, name, backgroundRoster: false });
+                    items.push({ type: 'image', src: reader.result, name, storylineTitle: '', backgroundRoster: false });
                     render();
                 };
                 reader.readAsDataURL(file);
             }
         });
     });
-    if (videoFiles.length === 0) return;
+    pdfFiles.forEach(file => {
+        const name = file.name || 'PDF';
+        uploadFile(projectId, file, uploadProgressCallbacks()).then(url => {
+            if (url) {
+                pdfThumbnailQueue.push({ pdfUrl: url, name });
+                if (pdfThumbnailQueue.length === 1 && !document.getElementById('pdfThumbnailOverlay').classList.contains('visible')) processNextPdfInQueue();
+            } else {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    pdfThumbnailQueue.push({ pdfUrl: reader.result, name });
+                    if (pdfThumbnailQueue.length === 1 && !document.getElementById('pdfThumbnailOverlay').classList.contains('visible')) processNextPdfInQueue();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+    if (videoFiles.length === 0 && pdfFiles.length === 0) return;
     videoTrimQueue = videoFiles.slice();
     function processNextVideo() {
         if (videoTrimQueue.length === 0) {
@@ -538,6 +710,7 @@ function addFiles(files) {
                         type: 'video',
                         src,
                         name,
+                        storylineTitle: '',
                         backgroundRoster: false,
                         trimStart: trim.trimStart,
                         trimEnd: trim.trimEnd

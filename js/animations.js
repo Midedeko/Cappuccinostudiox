@@ -1,8 +1,7 @@
 /**
  * Scramble animation and storyline typewriter.
  */
-const STORYLINE_WPM = 360;
-const MS_PER_WORD = (60 * 1000) / STORYLINE_WPM;
+const STORYLINE_TOTAL_MS = 3000; /* entire storyline text types out in 3 seconds */
 const STORYLINE_COMPLETE_WAIT_MS = 60 * 1000;
 
 export function getRandomChar(seed, index) {
@@ -98,7 +97,8 @@ export function createStorylineController() {
             if (i < lines.length - 1) words.push('\n');
         });
         const fullText = text;
-        state = { words, wordIndex: 0, charIndex: 0, fullText, container, scrollWrap, el };
+        const delayMs = Math.max(2, STORYLINE_TOTAL_MS / fullText.length);
+        state = { words, wordIndex: 0, charIndex: 0, fullText, container, scrollWrap, el, delayMs };
 
         function scrollToBottom() {
             if (paused) return;
@@ -115,7 +115,7 @@ export function createStorylineController() {
             if (word === '\n') {
                 container.appendChild(document.createElement('br'));
                 state.wordIndex++;
-                typewriterId = setTimeout(typeNext, 50);
+                typewriterId = setTimeout(typeNext, state.delayMs);
                 scrollToBottom();
                 return;
             }
@@ -124,13 +124,13 @@ export function createStorylineController() {
                 span.textContent = word[state.charIndex];
                 container.appendChild(span);
                 state.charIndex++;
-                typewriterId = setTimeout(typeNext, Math.max(20, MS_PER_WORD / word.length));
+                typewriterId = setTimeout(typeNext, state.delayMs);
             } else {
                 if (state.wordIndex < state.words.length - 1 && state.words[state.wordIndex + 1] !== '\n')
                     container.appendChild(document.createTextNode(' '));
                 state.wordIndex++;
                 state.charIndex = 0;
-                typewriterId = setTimeout(typeNext, 30);
+                typewriterId = setTimeout(typeNext, state.delayMs);
             }
             scrollToBottom();
         }
@@ -217,7 +217,7 @@ export function createStorylineController() {
                         if (word === '\n') {
                             container.appendChild(document.createElement('br'));
                             s.wordIndex++;
-                            typewriterId = setTimeout(typeNext, 50);
+                            typewriterId = setTimeout(typeNext, s.delayMs);
                             scrollToBottom();
                             return;
                         }
@@ -226,13 +226,13 @@ export function createStorylineController() {
                             span.textContent = word[s.charIndex];
                             container.appendChild(span);
                             s.charIndex++;
-                            typewriterId = setTimeout(typeNext, Math.max(20, MS_PER_WORD / word.length));
+                            typewriterId = setTimeout(typeNext, s.delayMs);
                         } else {
                             if (s.wordIndex < words.length - 1 && words[s.wordIndex + 1] !== '\n')
                                 container.appendChild(document.createTextNode(' '));
                             s.wordIndex++;
                             s.charIndex = 0;
-                            typewriterId = setTimeout(typeNext, 30);
+                            typewriterId = setTimeout(typeNext, s.delayMs);
                         }
                         scrollToBottom();
                     }
@@ -255,7 +255,7 @@ export function createStorylineController() {
                     if (word === '\n') {
                         container.appendChild(document.createElement('br'));
                         s.wordIndex++;
-                        typewriterId = setTimeout(typeNext, 50);
+                        typewriterId = setTimeout(typeNext, s.delayMs);
                         scrollToBottom();
                         return;
                     }
@@ -264,13 +264,13 @@ export function createStorylineController() {
                         span.textContent = word[s.charIndex];
                         container.appendChild(span);
                         s.charIndex++;
-                        typewriterId = setTimeout(typeNext, Math.max(20, MS_PER_WORD / word.length));
+                        typewriterId = setTimeout(typeNext, s.delayMs);
                     } else {
                         if (s.wordIndex < words.length - 1 && words[s.wordIndex + 1] !== '\n')
                             container.appendChild(document.createTextNode(' '));
                         s.wordIndex++;
                         s.charIndex = 0;
-                        typewriterId = setTimeout(typeNext, 30);
+                        typewriterId = setTimeout(typeNext, s.delayMs);
                     }
                     scrollToBottom();
                 }

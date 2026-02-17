@@ -29,21 +29,25 @@ export function applyCmsData(data, state, projectId) {
     if (data.items != null && Array.isArray(data.items)) {
         state.galleryItems = data.items.map(it => {
             const src = resolveSrc(it);
-            return { type: it.type || 'image', src, name: it.name || 'Untitled', trimStart: it.trimStart, trimEnd: it.trimEnd, storyline: it.storyline };
+            const type = it.type || 'image';
+            const base = { type, src, name: it.name || 'Untitled', trimStart: it.trimStart, trimEnd: it.trimEnd, storyline: it.storyline, storylineTitle: it.storylineTitle ?? '', backgroundRoster: !!it.backgroundRoster };
+            if (type === 'pdf') base.thumbnail = it.thumbnail || null;
+            return base;
         }).filter(it => it.src);
         if (state.galleryItems.length > 0) {
             state.backgroundVideos = data.items
-                .filter(it => it.backgroundRoster && (it.type === 'video' || (resolveSrc(it) && (resolveSrc(it).startsWith('data:video') || resolveSrc(it).startsWith('http')))))
+                .filter(it => it.type !== 'pdf' && it.backgroundRoster && (it.type === 'video' || (resolveSrc(it) && (resolveSrc(it).startsWith('data:video') || resolveSrc(it).startsWith('http')))))
                 .map(it => ({ src: resolveSrc(it), trimStart: it.trimStart, trimEnd: it.trimEnd }));
             if (state.backgroundVideos.length === 0) {
-                // No designated background: use stack media as background; images last 5s.
-                state.backgroundVideos = state.galleryItems.map(it => ({
+                // No designated background: use only roster items as background; images last 5s.
+                const rosterItems = state.galleryItems.filter(it => it.backgroundRoster);
+                state.backgroundVideos = rosterItems.length > 0 ? rosterItems.map(it => ({
                     type: it.type,
                     src: it.src,
                     duration: it.type === 'image' ? 5000 : undefined,
                     trimStart: it.trimStart,
                     trimEnd: it.trimEnd
-                }));
+                })) : state.backgroundVideos;
             }
         }
     }
@@ -163,12 +167,17 @@ export function initGallery(trackId, containerId, galleryItems, callbacks) {
         const galleryItem = document.createElement('div');
         galleryItem.className = 'gallery-item';
         galleryItem.dataset.index = index;
+        if (item.type === 'pdf') galleryItem.dataset.type = 'pdf';
         let mediaElement;
         if (item.type === 'video') {
             mediaElement = document.createElement('video');
             mediaElement.src = item.src;
             mediaElement.muted = true;
             mediaElement.playsInline = true;
+        } else if (item.type === 'pdf') {
+            mediaElement = document.createElement('img');
+            mediaElement.src = item.thumbnail || item.src || '';
+            mediaElement.alt = item.name;
         } else {
             mediaElement = document.createElement('img');
             mediaElement.src = item.src;
@@ -180,7 +189,7 @@ export function initGallery(trackId, containerId, galleryItems, callbacks) {
         inner.className = 'gallery-caption-inner';
         const captionText = document.createElement('span');
         captionText.className = 'gallery-caption-text';
-        captionText.textContent = item.name;
+        captionText.textContent = (item.storylineTitle != null && String(item.storylineTitle).trim() !== '') ? String(item.storylineTitle).trim() : (item.name || '');
         inner.appendChild(captionText);
         caption.appendChild(inner);
         galleryItem.appendChild(caption);

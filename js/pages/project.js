@@ -51,6 +51,10 @@ function buildExpandedMedia(item) {
         if (trimEnd != null) {
             el.addEventListener('timeupdate', () => { if (el.currentTime >= trimEnd) el.currentTime = trimStart; });
         }
+    } else if (item.type === 'pdf') {
+        el = document.createElement('img');
+        el.src = item.thumbnail || item.src || '';
+        el.alt = item.name;
     } else {
         el = document.createElement('img');
         el.src = item.src;
@@ -59,7 +63,29 @@ function buildExpandedMedia(item) {
     return el;
 }
 
-/** Desktop only: show item in expanded background. Other items: media 0 opacity, captions 0.4. No-op when in preview mode. */
+/** Caption text = storyline title (fallback item name). For PDF in preview we show TAP/CLICK TO OPEN PDF. */
+function getCaptionText(item, usePdfCta) {
+    if (!item) return '';
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    if (usePdfCta && item.type === 'pdf') return isMobile ? 'TAP TO OPEN PDF' : 'CLICK TO OPEN PDF';
+    return (item.storylineTitle != null && String(item.storylineTitle).trim() !== '') ? String(item.storylineTitle).trim() : (item.name || '');
+}
+/** Set caption for one gallery item. */
+function setGalleryCaptionForIndex(index, usePdfCta) {
+    const el = document.querySelector('.gallery-item[data-index="' + index + '"]');
+    const item = state.galleryItems[index];
+    const cap = el && el.querySelector('.gallery-caption-text');
+    if (!cap || !item) return;
+    cap.textContent = getCaptionText(item, usePdfCta);
+}
+/** Restore all gallery captions to storyline title / name. */
+function restoreGalleryCaptions() {
+    state.galleryItems.forEach((item, i) => setGalleryCaptionForIndex(i, false));
+}
+
+const DEFAULT_RED_BG = '#E70017';
+
+/** Desktop only: show item in expanded background (or red if item not on background roster). No-op when in preview mode. */
 function setHoverPreview(index) {
     if (window.matchMedia('(max-width: 768px)').matches) return;
     if (activeItemIndex !== null) return; /* don't hijack preview mode */
@@ -69,21 +95,29 @@ function setHoverPreview(index) {
     if (!expandedBg) return;
     document.querySelectorAll('.background-video').forEach(v => { v.classList.remove('active'); if (v.pause) v.pause(); });
     expandedBg.innerHTML = '';
-    expandedBg.appendChild(buildExpandedMedia(item));
+    expandedBg.style.backgroundColor = '';
+    if (item.backgroundRoster) {
+        expandedBg.appendChild(buildExpandedMedia(item));
+    } else {
+        expandedBg.style.backgroundColor = DEFAULT_RED_BG;
+    }
     expandedBg.classList.add('active');
     document.querySelectorAll('.gallery-item').forEach(el => {
         if (String(el.dataset.index) !== String(index)) el.classList.add('gallery-item-hover-hidden');
         else el.classList.remove('gallery-item-hover-hidden');
     });
+    state.galleryItems.forEach((_, i) => setGalleryCaptionForIndex(i, i === index));
 }
 
 /** Clear hover preview when leaving gallery; no-op if in full preview mode. */
 function clearHoverPreview() {
     if (activeItemIndex !== null) return;
+    restoreGalleryCaptions();
     document.querySelectorAll('.gallery-item').forEach(el => el.classList.remove('gallery-item-hover-hidden'));
     const expandedBg = document.getElementById('expandedBackground');
     if (!expandedBg) return;
     expandedBg.innerHTML = '';
+    expandedBg.style.backgroundColor = '';
     expandedBg.classList.remove('active');
     const videos = document.querySelectorAll('.background-video');
     let foundActive = false;
@@ -118,9 +152,15 @@ function setActiveItem(index) {
     const storylineEl = document.getElementById('storylineOverlay');
     document.querySelectorAll('.background-video').forEach(v => { v.classList.remove('active'); if (v.pause) v.pause(); });
     expandedBg.innerHTML = '';
-    expandedBg.appendChild(buildExpandedMedia(item));
+    expandedBg.style.backgroundColor = '';
+    if (item.backgroundRoster) {
+        expandedBg.appendChild(buildExpandedMedia(item));
+    } else {
+        expandedBg.style.backgroundColor = DEFAULT_RED_BG;
+    }
     expandedBg.classList.add('active');
     allItems.forEach((el, i) => { el.classList.toggle('hidden', i !== index); });
+    state.galleryItems.forEach((_, i) => setGalleryCaptionForIndex(i, i === index));
     if (storylineEl) {
         storylineEl.classList.add('visible');
         const itemStory = (item.storyline != null && String(item.storyline).trim() !== '') ? String(item.storyline).trim() : '';
@@ -153,7 +193,9 @@ function resetToBackground() {
         if (videos[0].play) videos[0].play();
     }
     expandedBg.classList.remove('active');
+    expandedBg.style.backgroundColor = '';
     allItems.forEach(item => item.classList.remove('hidden'));
+    restoreGalleryCaptions();
     backgroundController.restartCycle();
     const storylineEl = document.getElementById('storylineOverlay');
     if (storylineEl && (state.projectStorylineTitle || state.projectStoryline)) {
@@ -167,8 +209,32 @@ function openContentView(index) {
     const item = state.galleryItems[index];
     if (!item) return;
     contentViewInner.innerHTML = '';
-    const isVideo = item.type === 'video';
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+    if (item.type === 'pdf') {
+        const wrap = document.createElement('div');
+        wrap.className = 'content-view-pdf-wrap';
+        const iframe = document.createElement('iframe');
+        iframe.src = item.src;
+        iframe.title = item.name || 'PDF';
+        iframe.className = 'content-view-pdf-iframe';
+        wrap.appendChild(iframe);
+        const actions = document.createElement('div');
+        actions.className = 'content-view-actions';
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'content-view-btn';
+        closeBtn.type = 'button';
+        closeBtn.title = 'Close';
+        closeBtn.textContent = 'Close';
+        closeBtn.addEventListener('click', closeContentView);
+        actions.appendChild(closeBtn);
+        wrap.appendChild(actions);
+        contentViewInner.appendChild(wrap);
+        contentViewOverlay.classList.add('active');
+        return;
+    }
+
+    const isVideo = item.type === 'video';
     const media = isVideo ? document.createElement('video') : document.createElement('img');
     media.src = item.src;
     if (isVideo) {
