@@ -9,7 +9,7 @@ const RED_BG = '#E70017';
 const YELLOW = '#FFF212';
 const SESSION_VISITED_KEY = 'loadingScreen_visited';
 const LOADING_ACTIVE_CLASS = 'loading-active';
-const DEFAULT_MIN_DISPLAY_MS = 2000;
+const DEFAULT_MIN_DISPLAY_MS = 6000;
 
 let overlay = null;
 let wipeEl = null;
@@ -17,6 +17,7 @@ let textEl = null;
 let currentProgress = 0;
 let showTime = 0;
 let minDisplayMs = DEFAULT_MIN_DISPLAY_MS;
+let currentLoadingLabel = null;
 
 const styles = `
 .loading-screen-overlay {
@@ -81,6 +82,8 @@ const styles = `
 @media (max-width: 768px) {
     .loading-screen-carousel-strip .carousel-inner { font-size: 16px; }
 }
+body.loading-active .text-carousel { z-index: 100000; }
+body.loading-with-page-carousel #loadingScreenOverlay .loading-screen-carousel-strip { display: none; }
 `;
 
 function ensureOverlay() {
@@ -105,7 +108,7 @@ function ensureOverlay() {
     const logoWrap = document.createElement('div');
     logoWrap.className = 'loading-screen-logo-wrap';
     const img = document.createElement('img');
-    img.src = 'Studiox Logo.png';
+    img.src = 'Studiox Logo.svg';
     img.alt = 'Cappuccino Studio';
     img.setAttribute('width', String(LOGO_HEIGHT_LOADING * 2));
     img.setAttribute('height', String(LOGO_HEIGHT_LOADING));
@@ -138,11 +141,20 @@ function setCarouselContent(label) {
  * @param {string} pageOrProjectName - Display name for "Loading (Page Name)".
  * @param {object} [options] - Optional: { minDisplayMs } e.g. 3000 for project-files so loader shows at least 3s.
  */
+/**
+ * Returns the current loading label (e.g. 'Project Files') while the loader is showing, so the page carousel can use it as the first set. Null when not loading.
+ */
+export function getCurrentLoadingLabel() {
+    return currentLoadingLabel;
+}
+
 export function showLoadingScreen(pageOrProjectName, options = {}) {
     ensureOverlay();
     currentProgress = 0;
     showTime = Date.now();
     minDisplayMs = options.minDisplayMs != null ? options.minDisplayMs : DEFAULT_MIN_DISPLAY_MS;
+    currentLoadingLabel = pageOrProjectName || null;
+    if (document.getElementById('carouselTrack')) document.body.classList.add('loading-with-page-carousel');
     if (wipeEl) wipeEl.style.setProperty('--loading-progress', '0');
     setCarouselContent(pageOrProjectName || '…');
     overlay.style.display = 'flex';
@@ -154,7 +166,9 @@ export function showLoadingScreen(pageOrProjectName, options = {}) {
  * Removes loading-active from body and hides the overlay.
  */
 export function dismissLoadingScreen() {
+    currentLoadingLabel = null;
     document.body.classList.remove(LOADING_ACTIVE_CLASS);
+    document.body.classList.remove('loading-with-page-carousel');
     const el = overlay || document.getElementById('loadingScreenOverlay');
     if (el) el.style.display = 'none';
 }
@@ -237,6 +251,8 @@ export function hideLoadingScreen(opts = {}) {
     setLoadingProgress(100);
     const effectiveMin = opts.minDisplayMs != null ? opts.minDisplayMs : minDisplayMs;
     const doFlashAndHide = () => {
+        currentLoadingLabel = null;
+        document.body.classList.remove('loading-with-page-carousel');
         const flash = document.createElement('div');
         flash.setAttribute('aria-hidden', 'true');
         flash.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:100000;pointer-events:none;opacity:0;transition:opacity 0.15s ease;';

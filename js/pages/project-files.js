@@ -7,7 +7,7 @@ import { getProjectList, fetchProjectList, saveProjectList } from '../storage.js
 import { showLoadingScreenIfFirstVisit, markPageVisited, hideLoadingScreen } from '../loadingScreen.js';
 
 window.addEventListener('DOMContentLoaded', () => {
-    const showedLoader = showLoadingScreenIfFirstVisit('project-files.html', 'Project Files', { minDisplayMs: 3000 });
+    const showedLoader = showLoadingScreenIfFirstVisit('project-files.html', 'Project Files', { minDisplayMs: 6000 });
     init();
     fetchProjectList().then(list => { if (list && list.length) saveProjectList(list); }).then(() => {
     const projectList = getProjectList();

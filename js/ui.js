@@ -121,19 +121,21 @@ export function setupMenuAnimated(containerId, buttonId, options = {}) {
 
 /**
  * Init text carousel with scramble animation.
- * options: { carouselSets, pageCarouselSets?, defaultPage?, intervalMs? }
+ * options: { carouselSets, pageCarouselSets?, defaultPage?, intervalMs?, firstSetText? }
+ * firstSetText: when loading screen is active, use this as the first set (e.g. 'LOADING (PROJECT FILES)') then cycle normal sets.
  */
 export function initCarousel(trackId, options) {
     const track = document.getElementById(trackId);
     if (!track) return;
-    const { carouselSets, pageCarouselSets = {}, defaultPage = 'index.html', intervalMs = CAROUSEL_INTERVAL_MS } = options;
+    const { carouselSets, pageCarouselSets = {}, defaultPage = 'index.html', intervalMs = CAROUSEL_INTERVAL_MS, firstSetText = null } = options;
     const pageName = getPageName();
-    const sets = pageCarouselSets[pageName] || pageCarouselSets[defaultPage] || pageCarouselSets['index.html'] || [2, 1, 6];
+    const normalSets = pageCarouselSets[pageName] || pageCarouselSets[defaultPage] || pageCarouselSets['index.html'] || [2, 1, 6];
+    const sets = firstSetText ? [firstSetText, ...normalSets] : normalSets;
     let currentSetText = '';
     let scrambleSeed = 0;
 
-    function createContent(setNumber, textOverride = null) {
-        const text = textOverride || carouselSets[setNumber];
+    function createContent(setNumberOrText, textOverride = null) {
+        const text = textOverride || (typeof setNumberOrText === 'string' ? setNumberOrText : carouselSets[setNumberOrText]);
         let html = '<span class="carousel-separator"></span>';
         for (let i = 0; i < CAROUSEL_REPETITIONS; i++) {
             html += `<span class="carousel-item">${text}</span>`;
@@ -142,8 +144,8 @@ export function initCarousel(trackId, options) {
         return html;
     }
 
-    function updateCarousel(setNumber) {
-        const targetText = carouselSets[setNumber];
+    function updateCarousel(setNumberOrText) {
+        const targetText = typeof setNumberOrText === 'string' ? setNumberOrText : carouselSets[setNumberOrText];
         scrambleSeed = Math.floor(Math.random() * 1000000);
         let phase = 0, frame = 0;
         let lastTime = performance.now();
@@ -165,16 +167,16 @@ export function initCarousel(trackId, options) {
             }
             const items = track.querySelectorAll('.carousel-item');
             if (items.length > 0) items.forEach(item => { item.textContent = displayText; });
-            else track.innerHTML = createContent(setNumber, displayText) + createContent(setNumber, displayText);
+            else track.innerHTML = createContent(setNumberOrText, displayText) + createContent(setNumberOrText, displayText);
             if (phase === 0 || frame < CAROUSEL_PHASE2) { frame++; requestAnimationFrame(animate); }
             else currentSetText = targetText;
         }
         requestAnimationFrame(animate);
     }
 
-    const firstSet = sets[0];
-    currentSetText = carouselSets[firstSet];
-    track.innerHTML = createContent(firstSet) + createContent(firstSet);
+    const first = sets[0];
+    currentSetText = typeof first === 'string' ? first : carouselSets[first];
+    track.innerHTML = createContent(first) + createContent(first);
     let currentIndex = 0;
     setInterval(() => {
         currentIndex = (currentIndex + 1) % sets.length;
