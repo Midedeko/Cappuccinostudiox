@@ -41,12 +41,15 @@ export function scrambleText(currentText, targetText, phase, progress, frame, se
 
 export function getTypedSoFar(state) {
     if (!state || !state.words) return '';
+    const titleLength = state.titleLength != null ? state.titleLength : state.words.length;
     let s = '';
     for (let wi = 0; wi < state.wordIndex; wi++) {
+        if (state.titleLength != null && wi === titleLength) s += '\n\n';
         if (state.words[wi] === '\n') s += '\n';
         else s += state.words[wi] + (wi + 1 < state.words.length && state.words[wi + 1] !== '\n' ? ' ' : '');
     }
     if (state.wordIndex < state.words.length && state.words[state.wordIndex] !== '\n') {
+        if (state.titleLength != null && state.wordIndex === titleLength) s += '\n\n';
         const w = state.words[state.wordIndex];
         for (let ci = 0; ci < state.charIndex; ci++) s += w[ci];
     }
@@ -80,25 +83,40 @@ export function createStorylineController() {
         el.classList.remove('reveal');
         el.innerHTML = '';
         if (!text || !text.trim()) return;
+        const nn = text.indexOf('\n\n');
+        const titleText = nn === -1 ? text : text.slice(0, nn);
+        const bodyText = nn === -1 ? '' : text.slice(nn + 2);
+
+        function lineToWords(t) {
+            const words = [];
+            const lines = t.split('\n');
+            lines.forEach((line, i) => {
+                line.split(/\s+/).forEach(w => { if (w.length) words.push(w); });
+                if (i < lines.length - 1) words.push('\n');
+            });
+            return words;
+        }
+        const titleWords = lineToWords(titleText);
+        const bodyWords = lineToWords(bodyText);
+        const words = titleWords.concat(bodyWords);
+        const titleLength = titleWords.length;
+
         const scrollWrap = document.createElement('div');
         scrollWrap.className = 'storyline-scroll';
-        const container = document.createElement('span');
-        container.className = 'storyline-typewriter-content';
+        const titleContainer = document.createElement('span');
+        titleContainer.className = 'storyline-typewriter-content storyline-title';
+        const bodyContainer = document.createElement('span');
+        bodyContainer.className = 'storyline-typewriter-content storyline-body';
         const cursorSpan = document.createElement('span');
         cursorSpan.className = 'typewriter-cursor';
-        scrollWrap.appendChild(container);
+        scrollWrap.appendChild(titleContainer);
+        scrollWrap.appendChild(bodyContainer);
         scrollWrap.appendChild(cursorSpan);
         el.appendChild(scrollWrap);
 
-        const lines = text.split('\n');
-        const words = [];
-        lines.forEach((line, i) => {
-            line.split(/\s+/).forEach(w => { if (w.length) words.push(w); });
-            if (i < lines.length - 1) words.push('\n');
-        });
         const fullText = text;
         const delayMs = Math.max(2, STORYLINE_TOTAL_MS / fullText.length);
-        state = { words, wordIndex: 0, charIndex: 0, fullText, container, scrollWrap, el, delayMs };
+        state = { words, wordIndex: 0, charIndex: 0, fullText, titleLength, titleContainer, bodyContainer, container: titleContainer, scrollWrap, el, delayMs, bodyStarted: false };
 
         function scrollToBottom() {
             if (paused) return;
@@ -111,6 +129,12 @@ export function createStorylineController() {
                 restartId = setTimeout(() => { restartId = null; run(el, fullText); }, STORYLINE_COMPLETE_WAIT_MS);
                 return;
             }
+            if (state.wordIndex === state.titleLength && !state.bodyStarted) {
+                state.bodyStarted = true;
+                scrollWrap.insertBefore(document.createElement('br'), bodyContainer);
+                scrollWrap.insertBefore(document.createElement('br'), bodyContainer);
+            }
+            const container = state.wordIndex < state.titleLength ? titleContainer : bodyContainer;
             const word = state.words[state.wordIndex];
             if (word === '\n') {
                 container.appendChild(document.createElement('br'));
@@ -142,6 +166,12 @@ export function createStorylineController() {
         let scrambleSeed = 0;
         let animId = null;
 
+        function setStorylineFromText(s, text) {
+            const p = (text || '').split('\n\n');
+            if (s.titleContainer) s.titleContainer.textContent = p[0] || '';
+            if (s.bodyContainer) s.bodyContainer.textContent = p[1] || '';
+            if (s.container && !s.titleContainer) s.container.textContent = text || '';
+        }
         function runScrambleAnimation(fromText, toText, onDone) {
             if (animId) cancelAnimationFrame(animId);
             scrambleSeed = Math.floor(Math.random() * 1000000);
@@ -150,7 +180,6 @@ export function createStorylineController() {
             let lastTime = performance.now();
             const s = state;
             if (!s) return;
-            const container = s.container;
             function tick(currentTime) {
                 if (currentTime - lastTime < 16) { animId = requestAnimationFrame(tick); return; }
                 lastTime = currentTime;
@@ -163,7 +192,7 @@ export function createStorylineController() {
                     progress = frame / phase2;
                     display = scrambleText(fromText, toText, 1, progress, frame + phase1, scrambleSeed);
                 }
-                container.textContent = display;
+                setStorylineFromText(s, display);
                 if (phase === 0 || frame < phase2) { frame++; animId = requestAnimationFrame(tick); }
                 else { animId = null; if (onDone) onDone(); }
             }
@@ -178,13 +207,13 @@ export function createStorylineController() {
             const currentText = getTypedSoFar(s);
             const fullText = s.fullText;
             if (currentText === fullText) {
-                s.container.textContent = fullText;
+                setStorylineFromText(s, fullText);
                 overlayEl.classList.add('reveal');
                 revealActive = true;
                 return;
             }
             runScrambleAnimation(currentText, fullText, () => {
-                s.container.textContent = fullText;
+                setStorylineFromText(s, fullText);
                 overlayEl.classList.add('reveal');
                 revealActive = true;
             });
@@ -197,15 +226,17 @@ export function createStorylineController() {
             const fullText = s.fullText;
             overlayEl.classList.remove('reveal');
             revealActive = false;
+            const titleLen = s.titleLength != null ? s.titleLength : s.words.length;
+            const getContainer = () => s.wordIndex < titleLen ? s.titleContainer : s.bodyContainer;
             if (targetText === fullText || targetText === '') {
-                s.container.textContent = targetText;
+                setStorylineFromText(s, targetText);
                 paused = false;
                 if (s.wordIndex >= s.words.length) {
                     restartId = setTimeout(() => run(s.el, s.fullText), STORYLINE_COMPLETE_WAIT_MS);
                     return;
                 }
                 if (s.wordIndex < s.words.length) {
-                    const words = s.words, container = s.container, scrollWrap = s.scrollWrap;
+                    const words = s.words, scrollWrap = s.scrollWrap;
                     function scrollToBottom() { scrollWrap.scrollTop = Math.max(0, scrollWrap.scrollHeight - scrollWrap.clientHeight); }
                     function typeNext() {
                         if (cancel || paused) return;
@@ -213,6 +244,12 @@ export function createStorylineController() {
                             restartId = setTimeout(() => run(s.el, s.fullText), STORYLINE_COMPLETE_WAIT_MS);
                             return;
                         }
+                        if (s.wordIndex === titleLen && !s.bodyStarted) {
+                            s.bodyStarted = true;
+                            scrollWrap.insertBefore(document.createElement('br'), s.bodyContainer);
+                            scrollWrap.insertBefore(document.createElement('br'), s.bodyContainer);
+                        }
+                        const container = getContainer();
                         const word = words[s.wordIndex];
                         if (word === '\n') {
                             container.appendChild(document.createElement('br'));
@@ -241,9 +278,9 @@ export function createStorylineController() {
                 return;
             }
             runScrambleAnimation(fullText, targetText, () => {
-                s.container.textContent = targetText;
+                setStorylineFromText(s, targetText);
                 paused = false;
-                const words = s.words, container = s.container, scrollWrap = s.scrollWrap;
+                const words = s.words, scrollWrap = s.scrollWrap;
                 function scrollToBottom() { scrollWrap.scrollTop = Math.max(0, scrollWrap.scrollHeight - scrollWrap.clientHeight); }
                 function typeNext() {
                     if (cancel || paused) return;
@@ -251,6 +288,12 @@ export function createStorylineController() {
                         restartId = setTimeout(() => run(s.el, s.fullText), STORYLINE_COMPLETE_WAIT_MS);
                         return;
                     }
+                    if (s.wordIndex === titleLen && !s.bodyStarted) {
+                        s.bodyStarted = true;
+                        scrollWrap.insertBefore(document.createElement('br'), s.bodyContainer);
+                        scrollWrap.insertBefore(document.createElement('br'), s.bodyContainer);
+                    }
+                    const container = getContainer();
                     const word = words[s.wordIndex];
                     if (word === '\n') {
                         container.appendChild(document.createElement('br'));

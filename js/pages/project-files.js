@@ -163,58 +163,63 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const centerTransform = 'translate(-50%, -50%)';
 
-    function updateBox() {
-        boxContainer.style.transform = `translate(-50%, -50%) translate3d(${positionX}px, ${positionY}px, ${positionZ}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    /** Sets dimensions and builds card DOM. Call only when config or card count changes. */
+    function applyBoxLayout() {
         const halfWidth = boxWidth / 2, halfLength = boxLength / 2, halfHeight = boxHeight / 2;
-
         frontFace.style.width = boxWidth + 'px';
         frontFace.style.height = boxHeight + 'px';
         frontFace.style.left = '50%';
         frontFace.style.top = '50%';
+        manageIsoCards();
+        const frontDuplicates = boxContainer.querySelectorAll('.front-duplicate');
+        frontDuplicates.forEach((duplicate, index) => {
+            duplicate.style.width = boxWidth + 'px';
+            duplicate.style.height = boxHeight + 'px';
+            duplicate.style.left = '50%';
+            duplicate.style.top = '50%';
+        });
+        backFace.style.width = boxWidth + 'px';
+        backFace.style.height = boxHeight + 'px';
+        backFace.style.left = '50%';
+        backFace.style.top = '50%';
+        rightFace.style.width = boxLength + 'px';
+        rightFace.style.height = boxHeight + 'px';
+        rightFace.style.left = '50%';
+        rightFace.style.top = '50%';
+        leftFace.style.width = boxLength + 'px';
+        leftFace.style.height = boxHeight + 'px';
+        leftFace.style.left = '50%';
+        leftFace.style.top = '50%';
+        topFace.style.width = boxWidth + 'px';
+        topFace.style.height = boxLength + 'px';
+        topFace.style.left = '50%';
+        topFace.style.top = '50%';
+        bottomFace.style.width = boxWidth + 'px';
+        bottomFace.style.height = boxLength + 'px';
+        bottomFace.style.left = '50%';
+        bottomFace.style.top = '50%';
+    }
+
+    /** Updates only transforms (compositor-only, no layout). Call every frame during scroll. */
+    function updateBox() {
+        boxContainer.style.transform = `translate(-50%, -50%) translate3d(${positionX}px, ${positionY}px, ${positionZ}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        const halfWidth = boxWidth / 2, halfLength = boxLength / 2, halfHeight = boxHeight / 2;
+
         frontFace.style.transform = `${centerTransform} rotateY(0deg) translateZ(${halfLength}px)`;
 
-        manageIsoCards();
         const frontDuplicates = boxContainer.querySelectorAll('.front-duplicate');
         frontDuplicates.forEach((duplicate, index) => {
             const virtualPosition = (index - scrollPosition) % isoCardCount;
             const wrappedPosition = virtualPosition < 0 ? virtualPosition + isoCardCount : virtualPosition;
             const offset = halfLength - ((wrappedPosition + 1) * isoCardSpacing);
             duplicate.dataset.baseOffset = offset;
-            duplicate.style.width = boxWidth + 'px';
-            duplicate.style.height = boxHeight + 'px';
-            duplicate.style.left = '50%';
-            duplicate.style.top = '50%';
             duplicate.style.transform = `${centerTransform} rotateY(0deg) translateZ(${offset}px)`;
         });
 
-        backFace.style.width = boxWidth + 'px';
-        backFace.style.height = boxHeight + 'px';
-        backFace.style.left = '50%';
-        backFace.style.top = '50%';
         backFace.style.transform = `${centerTransform} rotateY(180deg) translateZ(${halfLength}px)`;
-
-        rightFace.style.width = boxLength + 'px';
-        rightFace.style.height = boxHeight + 'px';
-        rightFace.style.left = '50%';
-        rightFace.style.top = '50%';
         rightFace.style.transform = `${centerTransform} rotateY(90deg) translateZ(${halfWidth}px)`;
-
-        leftFace.style.width = boxLength + 'px';
-        leftFace.style.height = boxHeight + 'px';
-        leftFace.style.left = '50%';
-        leftFace.style.top = '50%';
         leftFace.style.transform = `${centerTransform} rotateY(-90deg) translateZ(${halfWidth}px)`;
-
-        topFace.style.width = boxWidth + 'px';
-        topFace.style.height = boxLength + 'px';
-        topFace.style.left = '50%';
-        topFace.style.top = '50%';
         topFace.style.transform = `${centerTransform} rotateX(90deg) translateZ(${halfHeight}px)`;
-
-        bottomFace.style.width = boxWidth + 'px';
-        bottomFace.style.height = boxLength + 'px';
-        bottomFace.style.left = '50%';
-        bottomFace.style.top = '50%';
         bottomFace.style.transform = `${centerTransform} rotateX(-90deg) translateZ(${halfHeight}px)`;
     }
 
@@ -235,6 +240,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (config.showLeftFace !== undefined) leftFace.style.display = config.showLeftFace ? 'flex' : 'none';
         if (config.showTopFace !== undefined) topFace.style.display = config.showTopFace ? 'flex' : 'none';
         if (config.showBottomFace !== undefined) bottomFace.style.display = config.showBottomFace ? 'flex' : 'none';
+        applyBoxLayout();
         updateBox();
     }
 
@@ -336,6 +342,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     animateScroll();
 
+    applyBoxLayout();
     updateBox();
 
     const PROJECT_FILES_CONFIG_KEY = 'project_files_3d_config';

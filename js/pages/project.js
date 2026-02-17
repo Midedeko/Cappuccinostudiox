@@ -298,25 +298,6 @@ function openContentView(index) {
     }
     wrap.appendChild(actions);
     contentViewInner.appendChild(wrap);
-    var hasStoryline = item.storyline != null && String(item.storyline).trim() !== '';
-    var hasName = item.name != null && String(item.name).trim() !== '';
-    if (isMobile && (hasStoryline || hasName)) {
-        const info = document.createElement('div');
-        info.className = 'content-view-mobile-info';
-        if (hasName) {
-            const nameEl = document.createElement('h3');
-            nameEl.className = 'content-view-mobile-name';
-            nameEl.textContent = item.name;
-            info.appendChild(nameEl);
-        }
-        if (hasStoryline) {
-            const body = document.createElement('p');
-            body.className = 'content-view-mobile-storyline';
-            body.textContent = item.storyline;
-            info.appendChild(body);
-        }
-        contentViewInner.appendChild(info);
-    }
     contentViewOverlay.classList.add('active');
 }
 
@@ -354,8 +335,8 @@ function runInits() {
     const galleryContainer = document.getElementById('galleryContainer');
     if (galleryContainer) {
         galleryContainer.addEventListener('mouseleave', () => {
+            if (activeItemIndex !== null) return; /* keep preview mode when leaving gallery; only click-away or another item deactivates */
             clearHoverPreview();
-            if (activeItemIndex !== null) resetToBackground();
         });
         /* mouseover fallback for browsers where mouseenter doesn't fire on gallery items (e.g. Cursor) */
         galleryContainer.addEventListener('mouseover', (e) => {
