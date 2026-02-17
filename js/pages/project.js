@@ -359,8 +359,8 @@ function initPdfScrollbar() {
         document.addEventListener('touchcancel', end);
     }
 
-    thumb.addEventListener('mousedown', (e) => { e.preventDefault(); drag(e.clientY, contentViewInner.scrollTop); }, { signal });
-    thumb.addEventListener('touchstart', (e) => { e.preventDefault(); drag(e.touches[0].clientY, contentViewInner.scrollTop); }, { passive: false, signal });
+    thumb.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); drag(e.clientY, contentViewInner.scrollTop); }, { signal });
+    thumb.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); drag(e.touches[0].clientY, contentViewInner.scrollTop); }, { passive: false, signal });
 
     update();
 }
