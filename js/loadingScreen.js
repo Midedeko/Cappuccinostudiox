@@ -36,9 +36,15 @@ const styles = `
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     font-family: 'Code Saver', sans-serif;
     transition: opacity ${FADE_DURATION_MS}ms ease-out;
+}
+.loading-screen-logo-zone {
+    height: 75vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 body.loading-active > *:not(#loadingScreenOverlay):not(.text-carousel) {
     opacity: 0;
@@ -129,6 +135,14 @@ function ensureOverlay() {
     if (existing) {
         overlay = existing;
         wipeEl = overlay.querySelector('.loading-screen-wipe');
+        let logoZone = overlay.querySelector('.loading-screen-logo-zone');
+        const logoWrapEl = overlay.querySelector('.loading-screen-logo-wrap');
+        if (logoWrapEl && !logoZone) {
+            logoZone = document.createElement('div');
+            logoZone.className = 'loading-screen-logo-zone';
+            logoWrapEl.parentNode.insertBefore(logoZone, logoWrapEl);
+            logoZone.appendChild(logoWrapEl);
+        }
         const strip = overlay.querySelector('.loading-screen-carousel-strip');
         if (strip) {
             let track = strip.querySelector('.carousel-track');
@@ -149,6 +163,8 @@ function ensureOverlay() {
     overlay.className = 'loading-screen-overlay';
     overlay.setAttribute('aria-live', 'polite');
     overlay.setAttribute('aria-label', 'Loading');
+    const logoZone = document.createElement('div');
+    logoZone.className = 'loading-screen-logo-zone';
     const logoWrap = document.createElement('div');
     logoWrap.className = 'loading-screen-logo-wrap';
     const img = document.createElement('img');
@@ -161,7 +177,8 @@ function ensureOverlay() {
     wipeEl.className = 'loading-screen-wipe';
     wipeEl.style.setProperty('--loading-progress', '0');
     logoWrap.appendChild(wipeEl);
-    overlay.appendChild(logoWrap);
+    logoZone.appendChild(logoWrap);
+    overlay.appendChild(logoZone);
     const strip = document.createElement('div');
     strip.className = 'loading-screen-carousel-strip';
     const track = document.createElement('div');
