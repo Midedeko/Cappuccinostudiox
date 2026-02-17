@@ -63,12 +63,11 @@ function buildExpandedMedia(item) {
     return el;
 }
 
-/** Caption text = storyline title (fallback item name). For PDF in preview we show TAP/CLICK TO OPEN PDF. Blank if item name contains 6969. */
+/** Caption text = storyline title (fallback item name). For PDF in preview we show TAP TO OPEN. Blank if item name contains 6969. */
 function getCaptionText(item, usePdfCta) {
     if (!item) return '';
     if (item.name != null && String(item.name).includes('6969')) return '';
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    if (usePdfCta && item.type === 'pdf') return isMobile ? 'TAP TO OPEN PDF' : 'CLICK TO OPEN PDF';
+    if (usePdfCta && item.type === 'pdf') return 'TAP TO OPEN';
     return (item.storylineTitle != null && String(item.storylineTitle).trim() !== '') ? String(item.storylineTitle).trim() : (item.name || '');
 }
 /** Set caption for one gallery item. */
