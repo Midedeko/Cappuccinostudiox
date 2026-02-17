@@ -59,9 +59,10 @@ function buildExpandedMedia(item) {
     return el;
 }
 
-/** Desktop only: show item in expanded background. Other items: media 0 opacity, captions 0.4. */
+/** Desktop only: show item in expanded background. Other items: media 0 opacity, captions 0.4. No-op when in preview mode. */
 function setHoverPreview(index) {
     if (window.matchMedia('(max-width: 768px)').matches) return;
+    if (activeItemIndex !== null) return; /* don't hijack preview mode */
     const item = state.galleryItems[index];
     if (!item) return;
     const expandedBg = document.getElementById('expandedBackground');
@@ -287,6 +288,11 @@ function runInits() {
         galleryContainer.addEventListener('mouseleave', () => {
             clearHoverPreview();
             if (activeItemIndex !== null) resetToBackground();
+        });
+        /* mouseover fallback for browsers where mouseenter doesn't fire on gallery items (e.g. Cursor) */
+        galleryContainer.addEventListener('mouseover', (e) => {
+            const item = e.target.closest('.gallery-item');
+            if (item && activeItemIndex === null) setHoverPreview(Number(item.dataset.index));
         });
         galleryContainer.addEventListener('mouseenter', (e) => {
             const item = e.target.closest('.gallery-item');
