@@ -31,11 +31,11 @@ const styles = `
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     font-family: 'Code Saver', sans-serif;
     transition: opacity ${FADE_DURATION_MS}ms ease-out;
 }
 .loading-screen-logo-zone {
-    height: 75vh;
     display: flex;
     align-items: center;
     justify-content: center;
