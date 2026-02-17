@@ -150,6 +150,11 @@
         .gallery-item.hidden .gallery-item-media video {
             opacity: 0; /* only media fades when not interacted with */
         }
+        /* Preview mode: hovered non-active item's media matches caption opacity */
+        .gallery-item.hidden.gallery-item-media-reveal .gallery-item-media img,
+        .gallery-item.hidden.gallery-item-media-reveal .gallery-item-media video {
+            opacity: 0.4;
+        }
 
         /* Caption: absolute so item width = image width only; fixed height so text aligns to bottom */
         .gallery-caption {
@@ -185,6 +190,11 @@
 
         .gallery-item.hidden .gallery-caption {
             opacity: 0.4; /* caption at 40% when not interacted with (20% more visible than before) */
+        }
+
+        /* Desktop hover mode: non-hovered items dim to 50% */
+        .gallery-item.gallery-item-dimmed {
+            opacity: 0.5;
         }
 
         .gallery-item-media img,

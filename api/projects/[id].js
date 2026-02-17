@@ -24,7 +24,7 @@ export async function GET(request) {
         const supabase = getSupabase();
         const { data, error } = await supabase
             .from('projects')
-            .select('id, name, items, storyline, storylineTitle, thumbnail, assets')
+            .select('id, name, items, storyline, storyline_title, thumbnail, assets')
             .eq('id', id)
             .maybeSingle();
         if (error) {
@@ -52,7 +52,7 @@ export async function GET(request) {
             name: data.name ?? `Project ${data.id}`,
             items: Array.isArray(data.items) ? data.items : [],
             storyline: data.storyline ?? '',
-            storylineTitle: data.storylineTitle ?? '',
+            storylineTitle: data.storyline_title ?? data.storylineTitle ?? '',
             thumbnail: data.thumbnail ?? null,
             assets: Array.isArray(data.assets) ? data.assets : []
         }), {

@@ -59,7 +59,7 @@ function buildExpandedMedia(item) {
     return el;
 }
 
-/** Desktop only: show item in expanded background (no track hiding). No-op on touch/mobile. */
+/** Desktop only: show item in expanded background (no track hiding). Other items dim to 50% opacity. */
 function setHoverPreview(index) {
     if (window.matchMedia('(max-width: 768px)').matches) return;
     const item = state.galleryItems[index];
@@ -70,11 +70,16 @@ function setHoverPreview(index) {
     expandedBg.innerHTML = '';
     expandedBg.appendChild(buildExpandedMedia(item));
     expandedBg.classList.add('active');
+    document.querySelectorAll('.gallery-item').forEach(el => {
+        if (String(el.dataset.index) !== String(index)) el.classList.add('gallery-item-dimmed');
+        else el.classList.remove('gallery-item-dimmed');
+    });
 }
 
 /** Clear hover preview when leaving gallery; no-op if in full preview mode. */
 function clearHoverPreview() {
     if (activeItemIndex !== null) return;
+    document.querySelectorAll('.gallery-item').forEach(el => el.classList.remove('gallery-item-dimmed'));
     const expandedBg = document.getElementById('expandedBackground');
     if (!expandedBg) return;
     expandedBg.innerHTML = '';
@@ -283,6 +288,16 @@ function runInits() {
             clearHoverPreview();
             if (activeItemIndex !== null) resetToBackground();
         });
+        galleryContainer.addEventListener('mouseenter', (e) => {
+            const item = e.target.closest('.gallery-item');
+            if (item && activeItemIndex !== null && Number(item.dataset.index) !== activeItemIndex) {
+                item.classList.add('gallery-item-media-reveal');
+            }
+        }, true);
+        galleryContainer.addEventListener('mouseleave', (e) => {
+            const item = e.target.closest('.gallery-item');
+            if (item) item.classList.remove('gallery-item-media-reveal');
+        }, true);
     }
     document.addEventListener('wheel', (e) => {
         const gallery = document.getElementById('galleryContainer');
