@@ -51,12 +51,10 @@ export function init(options = {}) {
     }
 
     if (PAGES_WITH_MENU_CAROUSEL.includes(pageName)) {
-        Promise.all([import('./loadingScreen.js'), import('./ui.js')]).then(([loadingScreen, ui]) => {
+        Promise.all([import('./loadingScreen.js'), import('./ui.js')]).then(([_, ui]) => {
             const { setupMenuAnimated, initCarousel, carouselSets, pageCarouselSets } = ui;
             setupMenuAnimated('menuContainer', 'menuButton');
-            const label = loadingScreen.getCurrentLoadingLabel();
-            const firstSetText = label ? ('LOADING ' + (label || '').toUpperCase()) : null;
-            initCarousel('carouselTrack', { carouselSets, pageCarouselSets, firstSetText });
+            initCarousel('carouselTrack', { carouselSets, pageCarouselSets });
             if (typeof options.onReady === 'function') options.onReady();
         });
     }
