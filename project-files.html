@@ -240,7 +240,7 @@
             z-index: 300;
         }
 
-        /* Modal overlay: hidden until body.site-modal-open so Book a session works */
+        /* Modal overlay: match kitchen + landing (background image, red layer, centered modal) */
         .site-overlay {
             position: fixed;
             inset: 0;
@@ -254,12 +254,120 @@
         body.site-modal-open .site-overlay {
             display: flex;
         }
+        body.site-modal-open .navigation,
+        body.site-modal-open .scene-3d {
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .site-overlay-bg {
+            position: absolute;
+            inset: 0;
+            background-image: url("Scenes/Lib/Scene 1 Front Elevation.png");
+            background-size: cover;
+            background-position: center;
+        }
+        .site-overlay-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: #E70017;
+            opacity: 0.9;
+        }
+        .site-overlay-center {
+            position: relative;
+            z-index: 1;
+            min-width: 320px;
+            max-width: 100%;
+        }
+        @media (max-width: 360px) {
+            .site-overlay-center {
+                min-width: 0;
+                width: 100%;
+            }
+        }
         .site-modal {
             display: none;
         }
         body.site-modal-open .site-modal.active {
             display: block;
         }
+        .site-overlay .site-modal .kit-modal-wrap {
+            max-width: 320px;
+        }
+        .site-modal .booking-message,
+        .site-modal .waitlist-message {
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            min-height: 1.2em;
+        }
+        .site-modal .booking-message,
+        .site-modal .booking-message.error,
+        .site-modal .waitlist-message,
+        .site-modal .waitlist-message.error { color: #FFF212; }
+        .site-modal .booking-message.success,
+        .site-modal .waitlist-message.success { color: #FFF212; }
+        .booking-success-card {
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 2px solid #FFF212;
+            color: #FFF212;
+            font-size: 0.8rem;
+        }
+        .booking-success-card .booking-success-title { font-weight: bold; margin-bottom: 0.5rem; text-transform: uppercase; }
+        .booking-success-card .booking-success-details { margin-bottom: 1rem; line-height: 1.4; }
+        .booking-success-card .booking-success-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+        .booking-success-card a,
+        .booking-success-card .booking-success-btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #FFF212;
+            color: #E70017;
+            border: 2px solid #FFF212;
+            text-align: center;
+            text-decoration: none;
+            font-family: inherit;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+        .booking-success-card a:hover,
+        .booking-success-card .booking-success-btn:hover { background: #E70017; color: #FFF212; border-color: #FFF212; }
+        .booking-success-card a:active,
+        .booking-success-card .booking-success-btn:active { background: #FFFFFF; color: #E70017; border-color: #FFFFFF; }
+        .site-modal .kit-modal-wrap.booking-done .kit-modal-label,
+        .site-modal .kit-modal-wrap.booking-done .kit-modal-row { display: none !important; }
+        .site-modal .kit-modal-wrap.booking-done .booking-message { margin-top: 0; }
+        .kit-modal-option-disabled { opacity: 0.65; cursor: not-allowed; }
+        .waitlist-success-card {
+            display: none;
+            margin-top: 0;
+            padding: 1rem;
+            border: 2px solid #FFF212;
+            color: #FFF212;
+            font-size: 0.8rem;
+        }
+        .waitlist-success-card .waitlist-success-details { margin-bottom: 1rem; line-height: 1.4; }
+        .waitlist-success-card .waitlist-success-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+        .waitlist-success-card .waitlist-success-btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #FFF212;
+            color: #E70017;
+            border: 2px solid #FFF212;
+            text-align: center;
+            font-family: inherit;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+        .waitlist-success-card .waitlist-success-btn:hover { background: #E70017; color: #FFF212; border-color: #FFF212; }
+        .waitlist-success-card .waitlist-success-btn:active { background: #FFFFFF; color: #E70017; border-color: #FFFFFF; }
+        .site-modal .kit-modal-wrap.waitlist-done .kit-modal-label,
+        .site-modal .kit-modal-wrap.waitlist-done .kit-modal-row,
+        .site-modal .kit-modal-wrap.waitlist-done .waitlist-message { display: none !important; }
+        .site-modal .kit-modal-wrap.waitlist-done .waitlist-success-card { display: block !important; }
 
         .scene-3d {
             position: fixed;

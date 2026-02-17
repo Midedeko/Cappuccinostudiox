@@ -381,12 +381,19 @@ function openContentView(index) {
 
         const loadingWrap = document.createElement('div');
         loadingWrap.className = 'content-view-pdf-loading-wrap';
+        const loadingBlock = document.createElement('div');
+        loadingBlock.className = 'content-view-pdf-loading-block';
         const loadingBarOuter = document.createElement('div');
         loadingBarOuter.className = 'content-view-pdf-loading-bar-outer';
         const loadingBarInner = document.createElement('div');
         loadingBarInner.className = 'content-view-pdf-loading-bar-inner';
         loadingBarOuter.appendChild(loadingBarInner);
-        loadingWrap.appendChild(loadingBarOuter);
+        loadingBlock.appendChild(loadingBarOuter);
+        const loadingText = document.createElement('div');
+        loadingText.className = 'content-view-pdf-loading-text';
+        loadingText.textContent = 'LOADING FILE...';
+        loadingBlock.appendChild(loadingText);
+        loadingWrap.appendChild(loadingBlock);
 
         const toolbar = document.createElement('div');
         toolbar.className = 'content-view-pdf-toolbar content-view-pdf-toolbar-hidden';
