@@ -325,15 +325,13 @@
             .logo { top: 20px; right: 30px; height: 72.96px; }
         }
 
-        /* Storyline: below menu button, left-aligned with menu; spacing similar to caption/content */
+        /* Storyline: below menu button, left-aligned; fades in/out on change; hugs content */
         .storyline-overlay {
             position: fixed;
             top: 97px; /* menu top 40px + button 45px + gap 12px */
             left: 80px;
-            width: 48ch;
-            height: 30vh;
             max-width: 48ch;
-            max-height: 30vh;
+            max-height: 70vh;
             padding: 0;
             background: transparent;
             font-family: 'Code Saver', sans-serif;
@@ -345,13 +343,19 @@
             transition: opacity 0.3s ease;
             white-space: pre-wrap;
             text-transform: uppercase;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
+        .storyline-overlay::-webkit-scrollbar { display: none; width: 0; height: 0; }
         .storyline-overlay.visible { opacity: 1; pointer-events: auto; }
-        .storyline-title { color: #ffffff; }
-        .storyline-body { color: #ffffff; }
+        .storyline-content {
+            display: block;
+        }
+        .storyline-title { display: block; color: #ffffff; }
+        .storyline-body { display: block; color: #ffffff; }
         .storyline-separator {
             display: block;
             width: 100%;
@@ -362,25 +366,8 @@
             font-size: 1em;
             line-height: 1.5;
         }
-        .storyline-scroll {
-            overflow-y: auto;
-            flex: 1;
-            min-height: 0;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        .storyline-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
-        .storyline-overlay .typewriter-cursor::after {
-            content: '|';
-            animation: storyline-blink 0.8s step-end infinite;
-        }
-        .storyline-overlay.reveal .typewriter-cursor { display: none; }
-        @keyframes storyline-blink {
-            50% { opacity: 0; }
-        }
         @media (max-width: 768px) {
-            .storyline-overlay { top: 96px; left: 30px; width: 48ch; max-width: 90vw; height: 30vh; font-size: 12px; }
+            .storyline-overlay { top: 96px; left: 30px; max-width: 90vw; font-size: 12px; }
         }
 
         /* Content view mode (click / double-tap) */
