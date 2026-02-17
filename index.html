@@ -840,7 +840,6 @@
             color: #E70017;
             border-color: #FFFFFF;
         }
-        .site-modal .kit-modal-wrap.booking-done .booking-version,
         .site-modal .kit-modal-wrap.booking-done .kit-modal-label,
         .site-modal .kit-modal-wrap.booking-done .kit-modal-row {
             display: none !important;
@@ -900,32 +899,6 @@
         .site-modal .kit-modal-wrap.waitlist-done .waitlist-success-card {
             display: block !important;
         }
-        .booking-version {
-            font-family: 'Code Saver', monospace;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            color: #FFF212;
-            background: #E70017;
-            padding: 4px 8px;
-            margin-bottom: 8px;
-            display: inline-block;
-            border: 1px solid #FFF212;
-        }
-        .staging-badge {
-            position: fixed;
-            top: 12px;
-            right: 12px;
-            z-index: 9999;
-            font-family: 'Code Saver', monospace;
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #FFF212;
-            background: #E70017;
-            padding: 6px 12px;
-            border: 2px solid #FFF212;
-            pointer-events: none;
-        }
     </style>
 </head>
 <body class="loading-active page-entering">
@@ -933,7 +906,6 @@
     <div id="loadingScreenOverlay" class="loading-screen-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;min-width:100vw;min-height:100vh;background:#E70017;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Code Saver',sans-serif" aria-live="polite" aria-label="Loading">
         <div class="loading-screen-logo-zone"><div class="loading-screen-logo-wrap" style="position:relative;height:84px"><img src="Studiox Logo.svg" alt="Cappuccino Studio" style="display:block;height:84px;width:auto"><div class="loading-screen-wipe" style="position:absolute;left:0;right:0;top:0;pointer-events:none"></div></div></div>
     </div>
-    <div class="staging-badge" aria-hidden="true">Staging v6</div>
     <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0" aria-hidden="true">
         <defs>
             <symbol id="kit-caret" viewBox="0 0 12 12">
@@ -989,7 +961,6 @@
         <div class="site-overlay-center">
             <div id="modalBookSession" class="site-modal" data-modal="book-session">
                 <div class="kit-modal-wrap" data-modal-prefix="booking">
-                    <div class="booking-version" aria-hidden="true">Staging · v6</div>
                     <div class="kit-modal-label">BOOK A SESSION</div>
                     <div class="kit-modal-row">
                         <input type="text" id="bookingName" class="kit-modal-input" placeholder="FIRSTNAME LASTNAME" aria-label="Full name" autocomplete="name">

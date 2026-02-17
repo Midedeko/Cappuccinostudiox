@@ -160,13 +160,23 @@ function setActiveItem(index) {
         expandedBg.style.backgroundColor = DEFAULT_RED_BG;
     }
     expandedBg.classList.add('active');
+    /* Clear all state classes so Chrome applies the new active item correctly when switching preview */
+    allItems.forEach(el => {
+        el.classList.remove('hidden', 'gallery-item-hover-hidden', 'gallery-item-media-reveal');
+    });
     allItems.forEach((el, i) => { el.classList.toggle('hidden', i !== index); });
     state.galleryItems.forEach((_, i) => setGalleryCaptionForIndex(i, i === index));
+    /* Force Chrome to apply visibility: read layout so next paint shows the correct item */
+    const activeEl = allItems[index];
+    if (activeEl) void activeEl.offsetHeight;
     if (storylineEl) {
         storylineEl.classList.add('visible');
+        const captionStr = getCaptionText(item, true);
+        const hasTitle = captionStr !== '' && !String(captionStr).includes('6969');
         const itemStory = (item.storyline != null && String(item.storyline).trim() !== '') ? String(item.storyline).trim() : '';
-        const text = itemStory || formatProjectStoryline();
-        storylineController.run(storylineEl, text.toUpperCase());
+        const body = itemStory || formatProjectStoryline();
+        const text = hasTitle ? (body ? captionStr + '\n\n' + body : captionStr) : body;
+        storylineController.run(storylineEl, (text || '').toUpperCase());
         storylineController.setupHoverReveal(storylineEl);
     }
 }

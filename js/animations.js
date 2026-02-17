@@ -131,8 +131,11 @@ export function createStorylineController() {
             }
             if (state.wordIndex === state.titleLength && !state.bodyStarted) {
                 state.bodyStarted = true;
-                scrollWrap.insertBefore(document.createElement('br'), bodyContainer);
-                scrollWrap.insertBefore(document.createElement('br'), bodyContainer);
+                const sep = document.createElement('div');
+                sep.className = 'storyline-separator';
+                sep.setAttribute('aria-hidden', 'true');
+                sep.textContent = '----------'.repeat(50);
+                scrollWrap.insertBefore(sep, bodyContainer);
             }
             const container = state.wordIndex < state.titleLength ? titleContainer : bodyContainer;
             const word = state.words[state.wordIndex];
