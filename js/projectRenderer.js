@@ -189,7 +189,8 @@ export function initGallery(trackId, containerId, galleryItems, callbacks) {
         inner.className = 'gallery-caption-inner';
         const captionText = document.createElement('span');
         captionText.className = 'gallery-caption-text';
-        captionText.textContent = (item.storylineTitle != null && String(item.storylineTitle).trim() !== '') ? String(item.storylineTitle).trim() : (item.name || '');
+        const nameStr = item.name != null ? String(item.name) : '';
+        captionText.textContent = nameStr.includes('6969') ? '' : ((item.storylineTitle != null && String(item.storylineTitle).trim() !== '') ? String(item.storylineTitle).trim() : (item.name || ''));
         inner.appendChild(captionText);
         caption.appendChild(inner);
         galleryItem.appendChild(caption);
