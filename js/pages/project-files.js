@@ -5,10 +5,10 @@
 import { init } from '../core.js';
 import { getProjectList, fetchProjectList, saveProjectList } from '../storage.js';
 import { navigateTo } from '../pageTransition.js';
-import { showLoadingScreenIfFirstVisit, markPageVisited, hideLoadingScreen } from '../loadingScreen.js';
+import { showLoadingScreen, hideLoadingScreen } from '../loadingScreen.js';
 
 window.addEventListener('DOMContentLoaded', () => {
-    const showedLoader = showLoadingScreenIfFirstVisit('project-files.html', 'Project Files');
+    showLoadingScreen('Project Files');
     init();
     fetchProjectList().then(list => { if (list && list.length) saveProjectList(list); }).then(() => {
     const projectList = getProjectList();
@@ -365,10 +365,8 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     } catch (e) {}
     loadConfig(config);
-    markPageVisited('project-files.html');
-    if (showedLoader) hideLoadingScreen();
+    hideLoadingScreen();
     }).catch(() => {
-        markPageVisited('project-files.html');
-        if (showedLoader) hideLoadingScreen();
+        hideLoadingScreen();
     });
 });

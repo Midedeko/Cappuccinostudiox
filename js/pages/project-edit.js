@@ -613,6 +613,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     data.assets = assets;
     data.name = (document.getElementById('projectNameInput') || {}).value || data.name || ('Project ' + projectId);
     data.storyline = (document.getElementById('projectStoryline') || {}).value || '';
+    data.storylineTitle = (document.getElementById('projectStorylineTitle') || {}).value || '';
     data.thumbnail = thumbnailDataUrl;
     if (getProjectSizeBytes(data) > PROJECT_STORAGE_LIMIT_BYTES) {
         alert('Project size exceeds the ' + (PROJECT_STORAGE_LIMIT_BYTES / (1024 * 1024)).toFixed(0) + ' MB limit. Remove some content to save.');
@@ -620,7 +621,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     }
     btn.textContent = 'Saving…';
     btn.disabled = true;
-    saveProject({ id: projectId, name: data.name, items: data.items, storyline: data.storyline, thumbnail: data.thumbnail, assets: data.assets }).then(() => {
+    saveProject({ id: projectId, name: data.name, items: data.items, storyline: data.storyline, storylineTitle: data.storylineTitle, thumbnail: data.thumbnail, assets: data.assets }).then(() => {
         const list = getProjectList();
         const idx = list.findIndex(p => String(p.id) === String(projectId));
         const entry = { id: projectId, name: data.name, thumbnail: data.thumbnail || null };
@@ -637,7 +638,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
         const msg = e && e.message ? e.message : (e.name === 'QuotaExceededError' ? 'Storage full' : 'Error');
         const isTooLarge = msg.indexOf('too large') !== -1;
         btn.textContent = isTooLarge ? 'Saved locally only' : 'Sync failed';
-        const dataSizeMB = (getProjectSizeBytes({ name: data.name, items: data.items, storyline: data.storyline, thumbnail: data.thumbnail, assets: data.assets }) / (1024 * 1024)).toFixed(1);
+        const dataSizeMB = (getProjectSizeBytes({ name: data.name, items: data.items, storyline: data.storyline, storylineTitle: data.storylineTitle, thumbnail: data.thumbnail, assets: data.assets }) / (1024 * 1024)).toFixed(1);
         const hint = isTooLarge
             ? 'Your project is about ' + dataSizeMB + ' MB (cloud limit 4.5 MB). Set up Supabase Storage so media is stored in the cloud and only links are saved here, or remove some content.'
             : 'Check your connection and try again.';
@@ -659,6 +660,8 @@ document.getElementById('pageTitle').textContent = 'Edit Project ' + projectId;
             if (nameEl && record.name != null) nameEl.value = record.name || '';
             const storyEl = document.getElementById('projectStoryline');
             if (storyEl && record.storyline != null) storyEl.value = record.storyline || '';
+            const storyTitleEl = document.getElementById('projectStorylineTitle');
+            if (storyTitleEl && record.storylineTitle != null) storyTitleEl.value = record.storylineTitle || '';
             if (record.thumbnail) { thumbnailDataUrl = record.thumbnail; updateThumbnailPreview(thumbnailDataUrl); }
         } else {
             const fallback = getProjectDataSync(projectId);
@@ -668,6 +671,8 @@ document.getElementById('pageTitle').textContent = 'Edit Project ' + projectId;
             if (nameEl && fallback.name != null) nameEl.value = fallback.name || '';
             const storyEl = document.getElementById('projectStoryline');
             if (storyEl && fallback.storyline != null) storyEl.value = fallback.storyline || '';
+            const storyTitleEl = document.getElementById('projectStorylineTitle');
+            if (storyTitleEl && fallback.storylineTitle != null) storyTitleEl.value = fallback.storylineTitle || '';
             if (fallback.thumbnail) { thumbnailDataUrl = fallback.thumbnail; updateThumbnailPreview(thumbnailDataUrl); }
         }
         render();
@@ -680,6 +685,8 @@ document.getElementById('pageTitle').textContent = 'Edit Project ' + projectId;
         if (nameEl && fallback.name != null) nameEl.value = fallback.name || '';
         const storyEl = document.getElementById('projectStoryline');
         if (storyEl && fallback.storyline != null) storyEl.value = fallback.storyline || '';
+        const storyTitleEl = document.getElementById('projectStorylineTitle');
+        if (storyTitleEl && fallback.storylineTitle != null) storyTitleEl.value = fallback.storylineTitle || '';
         if (fallback.thumbnail) { thumbnailDataUrl = fallback.thumbnail; updateThumbnailPreview(thumbnailDataUrl); }
         render();
         hideLoadingScreen({ label: fallback.name || ('Project ' + projectId) });

@@ -310,7 +310,8 @@
     <p style="margin-bottom: 16px;">Upload content. Drag items to reorder. Toggle â€œBackground rosterâ€ to use in the default background loop. Add a storyline to show when this content is hovered on the project page.</p>
     <div class="storyline-panel" style="margin-bottom: 24px;">
         <label class="switch-label" style="display: block; margin-bottom: 8px;">Storyline (project)</label>
-        <textarea id="projectStoryline" class="storyline-project" placeholder="Storyline text for this project (shown on the project page when content is active)"></textarea>
+        <input type="text" id="projectStorylineTitle" class="storyline-title-input" placeholder="Storyline title (optional)" style="display: block; width: 100%; margin-bottom: 8px; padding: 8px; font-family: inherit; font-size: 14px; box-sizing: border-box;">
+        <textarea id="projectStoryline" class="storyline-project" placeholder="Storyline body text (shown on the project page when content is active; title appears above body)"></textarea>
     </div>
     <div class="upload-zone" id="uploadZone">
         <input type="file" id="fileInput" accept="image/*,video/*" multiple>

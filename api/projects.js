@@ -67,6 +67,7 @@ export async function POST(request) {
         name: body.name ?? `Project ${id}`,
         items: Array.isArray(body.items) ? body.items : [],
         storyline: body.storyline ?? '',
+        storylineTitle: body.storylineTitle ?? '',
         thumbnail: body.thumbnail ?? null,
         assets: Array.isArray(body.assets) ? body.assets : []
     };

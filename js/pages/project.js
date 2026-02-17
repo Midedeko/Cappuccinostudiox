@@ -18,6 +18,7 @@ const state = {
     galleryItems: DEFAULT_GALLERY_ITEMS.slice(),
     backgroundVideos: DEFAULT_BACKGROUND_VIDEOS.slice(),
     projectStoryline: '',
+    projectStorylineTitle: '',
     projectName: 'Project ' + projectId
 };
 
@@ -115,10 +116,17 @@ function setActiveItem(index) {
     allItems.forEach((el, i) => { el.classList.toggle('hidden', i !== index); });
     if (storylineEl) {
         storylineEl.classList.add('visible');
-        var text = (item.storyline != null && String(item.storyline).trim() !== '') ? String(item.storyline).trim() : (state.projectStoryline || '');
+        const itemStory = (item.storyline != null && String(item.storyline).trim() !== '') ? String(item.storyline).trim() : '';
+        const text = itemStory || formatProjectStoryline();
         storylineController.run(storylineEl, text.toUpperCase());
         storylineController.setupHoverReveal(storylineEl);
     }
+}
+
+function formatProjectStoryline() {
+    const title = (state.projectStorylineTitle || '').trim();
+    const body = (state.projectStoryline || '').trim();
+    return title ? (body ? title + '\n\n' + body : title) : body;
 }
 
 function resetToBackground() {
@@ -141,9 +149,9 @@ function resetToBackground() {
     allItems.forEach(item => item.classList.remove('hidden'));
     backgroundController.restartCycle();
     const storylineEl = document.getElementById('storylineOverlay');
-    if (storylineEl && state.projectStoryline) {
+    if (storylineEl && (state.projectStorylineTitle || state.projectStoryline)) {
         storylineEl.classList.add('visible');
-        storylineController.run(storylineEl, (state.projectStoryline || '').toUpperCase());
+        storylineController.run(storylineEl, formatProjectStoryline().toUpperCase());
         storylineController.setupHoverReveal(storylineEl);
     }
 }
@@ -260,11 +268,11 @@ function runInits() {
     const menuText = document.getElementById('projectMenuText');
     if (menuText) menuText.textContent = (state.projectName || ('Project ' + projectId)).toUpperCase();
     document.title = (state.projectName || ('Project ' + projectId)) + ' - Portfolio';
-    if (state.projectStoryline) {
+    if (state.projectStorylineTitle || state.projectStoryline) {
         const el = document.getElementById('storylineOverlay');
         if (el) {
             el.classList.add('visible');
-            storylineController.run(el, (state.projectStoryline || '').toUpperCase());
+            storylineController.run(el, formatProjectStoryline().toUpperCase());
             storylineController.setupHoverReveal(el);
         }
     }

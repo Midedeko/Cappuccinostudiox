@@ -19,10 +19,11 @@ export const DEFAULT_BACKGROUND_VIDEOS = [
 ];
 
 /**
- * Mutate state with CMS data. state: { galleryItems, backgroundVideos, projectStoryline, projectName }
+ * Mutate state with CMS data. state: { galleryItems, backgroundVideos, projectStoryline, projectStorylineTitle, projectName }
  */
 export function applyCmsData(data, state, projectId) {
     if (data.storyline != null) state.projectStoryline = data.storyline || '';
+    if (data.storylineTitle != null) state.projectStorylineTitle = data.storylineTitle || '';
     if (data.name != null) state.projectName = data.name || ('Project ' + projectId);
     const resolveSrc = (it) => it.src || (data.assets && (data.assets.find(a => a.id === it.assetId) || {}).src) || '';
     if (data.items != null && Array.isArray(data.items)) {
