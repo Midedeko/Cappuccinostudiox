@@ -143,7 +143,12 @@
 
         .gallery-item-media {
             display: block;
-            margin-top: 3.375em; /* caption zone (3em) + gap (0.375em), half of previous gap */
+            margin-top: 3.1875em; /* caption zone (3em) + gap (0.1875em), 50% of previous gap */
+        }
+
+        .gallery-item-media img,
+        .gallery-item-media video {
+            transition: opacity 0.3s ease;
         }
 
         .gallery-item.hidden .gallery-item-media img,
@@ -192,9 +197,13 @@
             opacity: 0.4; /* caption at 40% when not interacted with (20% more visible than before) */
         }
 
-        /* Desktop hover mode: non-hovered items dim to 50% */
-        .gallery-item.gallery-item-dimmed {
-            opacity: 0.5;
+        /* Desktop hover mode (not preview): non-hovered items — media hidden, captions 0.4 */
+        .gallery-item.gallery-item-hover-hidden .gallery-item-media img,
+        .gallery-item.gallery-item-hover-hidden .gallery-item-media video {
+            opacity: 0;
+        }
+        .gallery-item.gallery-item-hover-hidden .gallery-caption {
+            opacity: 0.4;
         }
 
         .gallery-item-media img,
@@ -213,7 +222,7 @@
             }
 
             .gallery-item-media {
-                margin-top: 2.875em; /* caption zone (2.5em) + gap (0.375em), half of previous gap */
+                margin-top: 2.6875em; /* caption zone (2.5em) + gap (0.1875em), 50% of previous gap */
             }
 
             .gallery-caption {

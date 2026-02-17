@@ -59,7 +59,7 @@ function buildExpandedMedia(item) {
     return el;
 }
 
-/** Desktop only: show item in expanded background (no track hiding). Other items dim to 50% opacity. */
+/** Desktop only: show item in expanded background. Other items: media 0 opacity, captions 0.4. */
 function setHoverPreview(index) {
     if (window.matchMedia('(max-width: 768px)').matches) return;
     const item = state.galleryItems[index];
@@ -71,15 +71,15 @@ function setHoverPreview(index) {
     expandedBg.appendChild(buildExpandedMedia(item));
     expandedBg.classList.add('active');
     document.querySelectorAll('.gallery-item').forEach(el => {
-        if (String(el.dataset.index) !== String(index)) el.classList.add('gallery-item-dimmed');
-        else el.classList.remove('gallery-item-dimmed');
+        if (String(el.dataset.index) !== String(index)) el.classList.add('gallery-item-hover-hidden');
+        else el.classList.remove('gallery-item-hover-hidden');
     });
 }
 
 /** Clear hover preview when leaving gallery; no-op if in full preview mode. */
 function clearHoverPreview() {
     if (activeItemIndex !== null) return;
-    document.querySelectorAll('.gallery-item').forEach(el => el.classList.remove('gallery-item-dimmed'));
+    document.querySelectorAll('.gallery-item').forEach(el => el.classList.remove('gallery-item-hover-hidden'));
     const expandedBg = document.getElementById('expandedBackground');
     if (!expandedBg) return;
     expandedBg.innerHTML = '';
