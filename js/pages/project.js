@@ -621,7 +621,41 @@ function runInits() {
     });
 
     setupMenuSimple('projectMenuContainer', 'projectMenuButton');
-    hideLoadingScreen({ label: state.projectName || ('Project ' + projectId) });
+
+    /* Wait for first visible content to load before hiding loading screen */
+    const maxWaitMs = 4000;
+    const minWaitMs = 400;
+    const start = Date.now();
+    function hideWhenReady() {
+        hideLoadingScreen({ label: state.projectName || ('Project ' + projectId) });
+    }
+    function tryHide() {
+        if (Date.now() - start >= minWaitMs) hideWhenReady();
+        else setTimeout(hideWhenReady, minWaitMs - (Date.now() - start));
+    }
+    const bg = document.getElementById('backgroundVideos');
+    const gallery = document.getElementById('galleryContainer');
+    const firstBg = bg && (bg.querySelector('.background-video') || bg.querySelector('.background-image'));
+    const firstGalleryImg = gallery && gallery.querySelector('.gallery-item img, .gallery-item video');
+    let resolved = false;
+    function done() {
+        if (resolved) return;
+        resolved = true;
+        tryHide();
+    }
+    if (firstBg) {
+        if (firstBg.tagName === 'VIDEO') firstBg.addEventListener('loadeddata', done, { once: true });
+        else firstBg.addEventListener('load', done, { once: true });
+    }
+    if (firstGalleryImg) {
+        if (firstGalleryImg.tagName === 'VIDEO') firstGalleryImg.addEventListener('loadeddata', done, { once: true });
+        else firstGalleryImg.addEventListener('load', done, { once: true });
+    }
+    if (!firstBg && !firstGalleryImg) {
+        tryHide();
+    } else {
+        setTimeout(done, maxWaitMs);
+    }
 }
 
 if (document.readyState === 'loading') {
