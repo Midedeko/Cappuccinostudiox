@@ -195,7 +195,11 @@
         }
 
         .gallery-item.hidden .gallery-caption {
-            opacity: 0.4; /* caption at 40% when not interacted with (20% more visible than before) */
+            opacity: 1;
+            color: #ffffff;
+        }
+        .gallery-item.hidden .gallery-caption-text {
+            color: #ffffff;
         }
 
         /* Desktop hover mode (not preview): non-hovered items — media hidden, captions 0.4 */
@@ -204,7 +208,11 @@
             opacity: 0;
         }
         .gallery-item.gallery-item-hover-hidden .gallery-caption {
-            opacity: 0.4;
+            opacity: 1;
+            color: #ffffff;
+        }
+        .gallery-item.gallery-item-hover-hidden .gallery-caption-text {
+            color: #ffffff;
         }
 
         .gallery-item-media img,
