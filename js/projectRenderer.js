@@ -148,7 +148,7 @@ export function initBackgroundVideos(containerId, backgroundVideos, ref) {
 }
 
 /**
- * Init gallery track. callbacks: { setActiveItem(index), openContentView(index) }
+ * Init gallery track. callbacks: { setHoverPreview(index), clearHoverPreview(), onItemClick(index, e?) }
  */
 export function initGallery(trackId, containerId, galleryItems, callbacks) {
     const track = document.getElementById(trackId);
@@ -187,8 +187,8 @@ export function initGallery(trackId, containerId, galleryItems, callbacks) {
         mediaWrap.className = 'gallery-item-media';
         mediaWrap.appendChild(mediaElement);
         galleryItem.appendChild(mediaWrap);
-        galleryItem.addEventListener('mouseenter', () => callbacks.setActiveItem(index));
-        galleryItem.addEventListener('click', (e) => { e.stopPropagation(); callbacks.openContentView(index); });
+        galleryItem.addEventListener('mouseenter', () => callbacks.setHoverPreview(index));
+        galleryItem.addEventListener('click', (e) => callbacks.onItemClick(index, e));
         track.appendChild(galleryItem);
     });
     const spacerEnd = document.createElement('div');

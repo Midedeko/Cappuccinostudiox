@@ -1,10 +1,10 @@
 /**
- * Shared loading screen: red full page, Cappuccino Studio logo (2× size),
- * bottom-to-top wipe: 0→10→20% during load; on ready 50% then 50→80% over 3.5s, 80→100% over 0.5s; then fade out/in.
+ * Shared loading screen: red full page, Cappuccino Studio logo (half of previous 2× size),
+ * wipe bottom-to-top: 0→10→20% during load; on ready 50% then 50→80% over 3.5s, 80→100% over 0.5s; then fade out/in.
  * Carousel text "Loading Page Name" (no parentheses). First-visit per session for some pages.
  */
 const LOGO_HEIGHT_OTHER = 83.52;
-const LOGO_HEIGHT_LOADING = Math.round(LOGO_HEIGHT_OTHER * 2);
+const LOGO_HEIGHT_LOADING = Math.round(LOGO_HEIGHT_OTHER); /* half of previous 2× size */
 const RED_BG = '#E70017';
 const YELLOW = '#FFF212';
 const SESSION_VISITED_KEY = 'loadingScreen_visited';
@@ -61,7 +61,7 @@ body:not(.loading-active) > *:not(#loadingScreenOverlay) {
 }
 .loading-screen-wipe {
     position: absolute;
-    left: 0; right: 0; bottom: 0;
+    left: 0; right: 0; top: 0;
     height: calc((100 - var(--loading-progress, 0)) * 1%);
     background: ${RED_BG};
     transition: height 0.35s linear;

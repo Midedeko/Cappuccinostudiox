@@ -55,7 +55,7 @@ export function navigateTo(url) {
     const onEnd = () => {
         if (done) return;
         done = true;
-        document.body.classList.remove('page-exiting');
+        /* Do not remove page-exiting: keep page faded out until navigation completes */
         window.location.href = url;
     };
     requestAnimationFrame(() => requestAnimationFrame(() => {})); // force reflow so transition runs

@@ -1,7 +1,7 @@
 /**
  * Scramble animation and storyline typewriter.
  */
-const STORYLINE_WPM = 240;
+const STORYLINE_WPM = 360;
 const MS_PER_WORD = (60 * 1000) / STORYLINE_WPM;
 const STORYLINE_COMPLETE_WAIT_MS = 60 * 1000;
 

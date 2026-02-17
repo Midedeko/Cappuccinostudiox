@@ -35,6 +35,73 @@ const ref = {
     getActiveItemIndex: () => activeItemIndex
 };
 
+function buildExpandedMedia(item) {
+    let el;
+    if (item.type === 'video') {
+        el = document.createElement('video');
+        el.src = item.src;
+        el.autoplay = true;
+        el.loop = true;
+        el.muted = true;
+        el.playsInline = true;
+        const trimStart = item.trimStart != null && isFinite(item.trimStart) ? item.trimStart : 0;
+        const trimEnd = item.trimEnd != null && isFinite(item.trimEnd) ? item.trimEnd : null;
+        el.addEventListener('loadeddata', () => { el.currentTime = trimStart; });
+        if (trimEnd != null) {
+            el.addEventListener('timeupdate', () => { if (el.currentTime >= trimEnd) el.currentTime = trimStart; });
+        }
+    } else {
+        el = document.createElement('img');
+        el.src = item.src;
+        el.alt = item.name;
+    }
+    return el;
+}
+
+/** Desktop only: show item in expanded background (no track hiding). No-op on touch/mobile. */
+function setHoverPreview(index) {
+    if (window.matchMedia('(max-width: 768px)').matches) return;
+    const item = state.galleryItems[index];
+    if (!item) return;
+    const expandedBg = document.getElementById('expandedBackground');
+    if (!expandedBg) return;
+    document.querySelectorAll('.background-video').forEach(v => { v.classList.remove('active'); if (v.pause) v.pause(); });
+    expandedBg.innerHTML = '';
+    expandedBg.appendChild(buildExpandedMedia(item));
+    expandedBg.classList.add('active');
+}
+
+/** Clear hover preview when leaving gallery; no-op if in full preview mode. */
+function clearHoverPreview() {
+    if (activeItemIndex !== null) return;
+    const expandedBg = document.getElementById('expandedBackground');
+    if (!expandedBg) return;
+    expandedBg.innerHTML = '';
+    expandedBg.classList.remove('active');
+    const videos = document.querySelectorAll('.background-video');
+    let foundActive = false;
+    videos.forEach((el, i) => {
+        if (el.classList.contains('active')) { foundActive = true; currentVideoIndex = i; if (el.play) el.play(); }
+    });
+    if (!foundActive && videos.length > 0) {
+        currentVideoIndex = 0;
+        videos[0].classList.add('active');
+        if (videos[0].currentTime !== undefined) videos[0].currentTime = 0;
+        if (videos[0].play) videos[0].play();
+    }
+    backgroundController.restartCycle();
+}
+
+/** First click/tap = preview mode; second on same item = content view. */
+function onGalleryItemClick(index, e) {
+    if (e) e.stopPropagation();
+    if (activeItemIndex === index) {
+        openContentView(index);
+    } else {
+        setActiveItem(index);
+    }
+}
+
 function setActiveItem(index) {
     activeItemIndex = index;
     const item = state.galleryItems[index];
@@ -43,28 +110,7 @@ function setActiveItem(index) {
     const storylineEl = document.getElementById('storylineOverlay');
     document.querySelectorAll('.background-video').forEach(v => { v.classList.remove('active'); if (v.pause) v.pause(); });
     expandedBg.innerHTML = '';
-    let expandedMedia;
-    if (item.type === 'video') {
-        expandedMedia = document.createElement('video');
-        expandedMedia.src = item.src;
-        expandedMedia.autoplay = true;
-        expandedMedia.loop = true;
-        expandedMedia.muted = true;
-        expandedMedia.playsInline = true;
-        const trimStart = item.trimStart != null && isFinite(item.trimStart) ? item.trimStart : 0;
-        const trimEnd = item.trimEnd != null && isFinite(item.trimEnd) ? item.trimEnd : null;
-        expandedMedia.addEventListener('loadeddata', () => { expandedMedia.currentTime = trimStart; });
-        if (trimEnd != null) {
-            expandedMedia.addEventListener('timeupdate', () => {
-                if (expandedMedia.currentTime >= trimEnd) expandedMedia.currentTime = trimStart;
-            });
-        }
-    } else {
-        expandedMedia = document.createElement('img');
-        expandedMedia.src = item.src;
-        expandedMedia.alt = item.name;
-    }
-    expandedBg.appendChild(expandedMedia);
+    expandedBg.appendChild(buildExpandedMedia(item));
     expandedBg.classList.add('active');
     allItems.forEach((el, i) => { el.classList.toggle('hidden', i !== index); });
     if (storylineEl) {
@@ -206,8 +252,9 @@ function runInits() {
     } catch (e) { console.error('initBackgroundVideos', e); }
     try {
         rendererInitGallery('galleryTrack', 'galleryContainer', state.galleryItems, {
-            setActiveItem,
-            openContentView
+            setHoverPreview,
+            clearHoverPreview,
+            onItemClick: onGalleryItemClick
         });
     } catch (e) { console.error('initGallery', e); }
     const menuText = document.getElementById('projectMenuText');
@@ -224,7 +271,10 @@ function runInits() {
 
     const galleryContainer = document.getElementById('galleryContainer');
     if (galleryContainer) {
-        galleryContainer.addEventListener('mouseleave', () => { if (activeItemIndex !== null) resetToBackground(); });
+        galleryContainer.addEventListener('mouseleave', () => {
+            clearHoverPreview();
+            if (activeItemIndex !== null) resetToBackground();
+        });
     }
     document.addEventListener('wheel', (e) => {
         const gallery = document.getElementById('galleryContainer');
