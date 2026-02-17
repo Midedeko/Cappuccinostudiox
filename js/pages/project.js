@@ -221,8 +221,8 @@ const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.149';
 let pdfjsLib = null;
 
 /**
- * Load PDF.js from CDN and render the PDF into the container (for mobile inline view).
- * Falls back to iframe if import or render fails.
+ * Load PDF.js and render into container. Returns { pdf, renderAtScale(scaleLogical) } for zoom/fit.
+ * scaleLogical = display scale (e.g. fit width = containerWidth / pageWidth). DPR applied internally.
  */
 async function loadAndRenderPdfWithPdfJs(pdfUrl, container, loadingEl) {
     if (!pdfjsLib) {
@@ -237,22 +237,49 @@ async function loadAndRenderPdfWithPdfJs(pdfUrl, container, loadingEl) {
     const numPages = pdf.numPages;
     const firstPage = await pdf.getPage(1);
     const baseViewport = firstPage.getViewport({ scale: 1 });
-    const containerWidth = container.clientWidth || 400;
-    const scale = Math.min(2.5, (containerWidth - 24) / baseViewport.width);
+    const dpr = Math.min(3, window.devicePixelRatio || 1);
 
-    for (let i = 1; i <= numPages; i++) {
-        const page = i === 1 ? firstPage : await pdf.getPage(i);
-        const viewport = page.getViewport({ scale });
-        const canvas = document.createElement('canvas');
-        canvas.className = 'content-view-pdf-page-canvas';
-        const ctx = canvas.getContext('2d');
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-        await page.render({ canvasContext: ctx, viewport }).promise;
-        container.appendChild(canvas);
+    async function renderAtScale(scaleLogical) {
+        const scale = scaleLogical * dpr;
+        container.querySelectorAll('.content-view-pdf-page-canvas').forEach(c => c.remove());
+        for (let i = 1; i <= numPages; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale });
+            const canvas = document.createElement('canvas');
+            canvas.className = 'content-view-pdf-page-canvas';
+            const ctx = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            await page.render({ canvasContext: ctx, viewport }).promise;
+            canvas.style.width = (viewport.width / dpr) + 'px';
+            canvas.style.height = (viewport.height / dpr) + 'px';
+            container.appendChild(canvas);
+        }
+        requestAnimationFrame(() => initPdfScrollbar());
     }
+
+    const containerWidth = container.clientWidth || 400;
+    const scaleForFitWidth = (containerWidth - 24) / baseViewport.width;
+    await renderAtScale(scaleForFitWidth);
     if (loadingEl && loadingEl.parentNode) loadingEl.remove();
-    requestAnimationFrame(() => initPdfScrollbar());
+
+    return { pdf, baseViewport, renderAtScale };
+}
+
+function createToolbarSep() {
+    const sep = document.createElement('span');
+    sep.className = 'content-view-pdf-toolbar-sep';
+    return sep;
+}
+
+function createToolbarBtn(title, label, onClick) {
+    const btn = document.createElement('button');
+    btn.className = 'content-view-pdf-toolbar-btn';
+    btn.type = 'button';
+    btn.title = title;
+    btn.textContent = label;
+    btn.addEventListener('click', onClick);
+    return btn;
 }
 
 let pdfScrollbarAbort = null;
@@ -336,18 +363,39 @@ function openContentView(index) {
         const wrap = document.createElement('div');
         wrap.className = 'content-view-pdf-wrap';
         const pdfUrl = item.src || '';
-        const isMobilePdf = isMobile;
+        const container = document.createElement('div');
+        container.className = 'content-view-pdf-canvas-container';
+        const loadingEl = document.createElement('div');
+        loadingEl.className = 'content-view-pdf-loading';
+        loadingEl.textContent = 'Loading PDF…';
 
-        if (isMobilePdf) {
-            /* On mobile, iframe often triggers download or external viewer; use PDF.js to render inline */
-            const container = document.createElement('div');
-            container.className = 'content-view-pdf-canvas-container';
-            const loadingEl = document.createElement('div');
-            loadingEl.className = 'content-view-pdf-loading';
-            loadingEl.textContent = 'Loading PDF…';
-            wrap.appendChild(loadingEl);
-            wrap.appendChild(container);
-            contentViewInner.appendChild(wrap);
+        if (!isMobile) {
+            const toolbar = document.createElement('div');
+            toolbar.className = 'content-view-pdf-toolbar';
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'content-view-pdf-toolbar-btn';
+            closeBtn.type = 'button';
+            closeBtn.title = 'Close';
+            closeBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
+            closeBtn.addEventListener('click', closeContentView);
+            toolbar.appendChild(closeBtn);
+            toolbar.appendChild(createToolbarSep());
+            toolbar.appendChild(createToolbarBtn('Zoom out', '−', () => { if (window.__pdfScale) { window.__pdfScale = Math.max(0.25, window.__pdfScale / 1.2); window.__pdfRender(window.__pdfScale); } }));
+            toolbar.appendChild(createToolbarBtn('Zoom in', '+', () => { if (window.__pdfScale) { window.__pdfScale = Math.min(4, window.__pdfScale * 1.2); window.__pdfRender(window.__pdfScale); } }));
+            toolbar.appendChild(createToolbarSep());
+            toolbar.appendChild(createToolbarBtn('Fit to width', '⇔', () => { if (window.__pdfFitWidth) window.__pdfFitWidth(); }));
+            toolbar.appendChild(createToolbarBtn('Fit to height', '⇕', () => { if (window.__pdfFitHeight) window.__pdfFitHeight(); }));
+            const scrollOuter = document.getElementById('contentViewPdfScrollOuter');
+            const pdfScrollbarEl = document.getElementById('contentViewPdfScrollbar');
+            if (scrollOuter && pdfScrollbarEl) {
+                const bodyWrap = document.createElement('div');
+                bodyWrap.className = 'content-view-pdf-body';
+                bodyWrap.appendChild(contentViewInner);
+                bodyWrap.appendChild(pdfScrollbarEl);
+                scrollOuter.appendChild(bodyWrap);
+                scrollOuter.insertBefore(toolbar, bodyWrap);
+            }
+        } else {
             const closeBtn = document.createElement('button');
             closeBtn.className = 'content-view-close-fixed';
             closeBtn.type = 'button';
@@ -355,40 +403,52 @@ function openContentView(index) {
             closeBtn.textContent = 'Close';
             closeBtn.addEventListener('click', closeContentView);
             contentViewOverlay.appendChild(closeBtn);
-            contentViewOverlay.classList.add('active');
-            contentViewOverlay.classList.add('content-view-pdf-active');
-            requestAnimationFrame(() => initPdfScrollbar());
-
-            loadAndRenderPdfWithPdfJs(pdfUrl, container, loadingEl).catch(() => {
-                /* Fallback to iframe if PDF.js fails (e.g. CORS, script load) */
-                loadingEl.remove();
-                container.innerHTML = '';
-                const iframe = document.createElement('iframe');
-                iframe.src = pdfUrl;
-                iframe.title = item.name || 'PDF';
-                iframe.className = 'content-view-pdf-iframe';
-                container.appendChild(iframe);
-            });
-            return;
         }
 
-        const iframe = document.createElement('iframe');
-        const sep = pdfUrl.indexOf('#') >= 0 ? '&' : '#';
-        iframe.src = pdfUrl + sep + 'toolbar=0&navpanes=0';
-        iframe.title = item.name || 'PDF';
-        iframe.className = 'content-view-pdf-iframe';
-        wrap.appendChild(iframe);
+        wrap.appendChild(loadingEl);
+        wrap.appendChild(container);
         contentViewInner.appendChild(wrap);
-        const closeBtn = document.createElement('button');
-        closeBtn.className = 'content-view-close-fixed';
-        closeBtn.type = 'button';
-        closeBtn.title = 'Close';
-        closeBtn.textContent = 'Close';
-        closeBtn.addEventListener('click', closeContentView);
-        contentViewOverlay.appendChild(closeBtn);
         contentViewOverlay.classList.add('active');
         contentViewOverlay.classList.add('content-view-pdf-active');
+        contentViewOverlay.classList.add('content-view-pdf-canvas-mode');
         requestAnimationFrame(() => initPdfScrollbar());
+
+        loadAndRenderPdfWithPdfJs(pdfUrl, container, loadingEl).then(({ pdf, baseViewport, renderAtScale }) => {
+            const cw = () => container.clientWidth || 400;
+            const ch = () => container.clientHeight || 500;
+            const pad = 24;
+            const fitWidthScale = () => (cw() - pad) / baseViewport.width;
+            const fitHeightScale = () => (ch() - pad) / baseViewport.height;
+            window.__pdfScale = fitWidthScale();
+            window.__pdfRender = renderAtScale;
+            window.__pdfFitWidth = () => { window.__pdfScale = fitWidthScale(); renderAtScale(window.__pdfScale); };
+            window.__pdfFitHeight = () => { window.__pdfScale = fitHeightScale(); renderAtScale(window.__pdfScale); };
+        }).catch(() => {
+            contentViewOverlay.classList.remove('content-view-pdf-canvas-mode');
+            document.querySelector('.content-view-pdf-toolbar')?.remove();
+            const bw = document.querySelector('.content-view-pdf-body');
+            if (bw && bw.parentNode) {
+                while (bw.firstChild) bw.parentNode.appendChild(bw.firstChild);
+                bw.remove();
+            }
+            loadingEl.remove();
+            container.innerHTML = '';
+            const iframe = document.createElement('iframe');
+            iframe.src = pdfUrl;
+            iframe.title = item.name || 'PDF';
+            iframe.className = 'content-view-pdf-iframe';
+            container.appendChild(iframe);
+            if (!isMobile) {
+                const closeBtn = document.createElement('button');
+                closeBtn.className = 'content-view-close-fixed';
+                closeBtn.type = 'button';
+                closeBtn.title = 'Close';
+                closeBtn.textContent = 'Close';
+                closeBtn.addEventListener('click', closeContentView);
+                contentViewOverlay.appendChild(closeBtn);
+            }
+            requestAnimationFrame(() => initPdfScrollbar());
+        });
         return;
     }
 
@@ -463,9 +523,22 @@ function closeContentView() {
     contentViewMedia = null;
     contentViewOverlay.classList.remove('active');
     contentViewOverlay.classList.remove('content-view-pdf-active');
+    contentViewOverlay.classList.remove('content-view-pdf-canvas-mode');
     contentViewOverlay.querySelectorAll('.content-view-close-fixed').forEach(el => el.remove());
+    const toolbarEl = document.querySelector('.content-view-pdf-toolbar');
+    if (toolbarEl) toolbarEl.remove();
+    const bodyWrap = document.querySelector('.content-view-pdf-body');
+    if (bodyWrap && bodyWrap.parentNode) {
+        const scrollOuter = bodyWrap.parentNode;
+        while (bodyWrap.firstChild) scrollOuter.appendChild(bodyWrap.firstChild);
+        bodyWrap.remove();
+    }
     pdfScrollbarAbort?.abort();
     pdfScrollbarAbort = null;
+    window.__pdfScale = null;
+    window.__pdfRender = null;
+    window.__pdfFitWidth = null;
+    window.__pdfFitHeight = null;
     if (document.fullscreenElement) document.exitFullscreen();
 }
 
