@@ -9,15 +9,18 @@ import { showLoadingScreen, hideLoadingScreen } from '../loadingScreen.js';
 function renderList() {
     const list = getProjectList();
     const ul = document.getElementById('projectList');
-    ul.innerHTML = list.map(p => `
+    ul.innerHTML = list.map(p => {
+        const id = String(p.id != null ? p.id : '');
+        const safeId = escapeHtml(id);
+        return `
         <li>
             <span class="name">${escapeHtml(p.name)}</span>
             <div class="actions">
-                <a href="project-edit.html?id=${p.id}" class="edit-link">Edit</a>
-                <button type="button" class="delete-btn" title="Delete project" data-project-id="${p.id}" data-project-name="${escapeHtml(p.name)}">&#128465;</button>
+                <a href="project-edit.html?id=${encodeURIComponent(id)}" class="edit-link">Edit</a>
+                <button type="button" class="delete-btn" title="Delete project" data-project-id="${safeId}" data-project-name="${escapeHtml(p.name)}">&#128465;</button>
             </div>
         </li>
-    `).join('');
+    `}).join('');
     ul.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();

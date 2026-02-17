@@ -110,8 +110,9 @@ function onGalleryItemClick(index, e) {
 }
 
 function setActiveItem(index) {
-    activeItemIndex = index;
     const item = state.galleryItems[index];
+    if (!item) return;
+    activeItemIndex = index;
     const expandedBg = document.getElementById('expandedBackground');
     const allItems = document.querySelectorAll('.gallery-item');
     const storylineEl = document.getElementById('storylineOverlay');

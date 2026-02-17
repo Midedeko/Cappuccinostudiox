@@ -115,7 +115,7 @@ export function getProjectDataSync(projectId) {
         const def = { name: `Project ${projectId}`, items: [], storyline: '', storylineTitle: '', thumbnail: null, assets: [] };
         return raw ? Object.assign(def, JSON.parse(raw)) : def;
     } catch (e) {
-        return { name: `Project ${projectId}`, items: [], storyline: '', thumbnail: null, assets: [] };
+        return { name: `Project ${projectId}`, items: [], storyline: '', storylineTitle: '', thumbnail: null, assets: [] };
     }
 }
 

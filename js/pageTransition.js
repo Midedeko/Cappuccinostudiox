@@ -29,15 +29,6 @@ body.page-exiting > *:not(#loadingScreenOverlay):not(.text-carousel) {
     document.head.appendChild(el);
 })();
 
-function sameOrigin(href) {
-    try {
-        const u = new URL(href, window.location.href);
-        return u.origin === window.location.origin && u.pathname !== window.location.pathname || (u.pathname === window.location.pathname && u.search !== window.location.search);
-    } catch (_) {
-        return false;
-    }
-}
-
 /**
  * Navigate to url after fading out the current page.
  * @param {string} url
