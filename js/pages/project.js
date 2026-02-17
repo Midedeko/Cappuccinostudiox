@@ -171,11 +171,12 @@ function setActiveItem(index) {
     if (activeEl) void activeEl.offsetHeight;
     if (storylineEl) {
         storylineEl.classList.add('visible');
-        const captionStr = getCaptionText(item, true);
-        const hasTitle = captionStr !== '' && !String(captionStr).includes('6969');
+        /* Storyline title = item caption (title/name), not the PDF instruction; gallery caption alone shows TAP/CLICK TO OPEN PDF */
+        const storylineTitleStr = getCaptionText(item, false);
+        const hasTitle = storylineTitleStr !== '' && !String(storylineTitleStr).includes('6969');
         const itemStory = (item.storyline != null && String(item.storyline).trim() !== '') ? String(item.storyline).trim() : '';
         const body = itemStory || formatProjectStoryline();
-        const text = hasTitle ? (body ? captionStr + '\n\n' + body : captionStr) : body;
+        const text = hasTitle ? (body ? storylineTitleStr + '\n\n' + body : storylineTitleStr) : body;
         storylineController.run(storylineEl, (text || '').toUpperCase());
         storylineController.setupHoverReveal(storylineEl);
     }
@@ -214,6 +215,44 @@ function resetToBackground() {
         storylineController.run(storylineEl, formatProjectStoryline().toUpperCase());
         storylineController.setupHoverReveal(storylineEl);
     }
+}
+
+const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.149';
+let pdfjsLib = null;
+
+/**
+ * Load PDF.js from CDN and render the PDF into the container (for mobile inline view).
+ * Falls back to iframe if import or render fails.
+ */
+async function loadAndRenderPdfWithPdfJs(pdfUrl, container, loadingEl) {
+    if (!pdfjsLib) {
+        const mod = await import(/* webpackIgnore: true */ PDFJS_CDN + '/pdf.min.mjs');
+        pdfjsLib = mod.default ?? mod;
+        if (pdfjsLib.GlobalWorkerOptions) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_CDN + '/pdf.worker.min.mjs';
+        }
+    }
+    const loadingTask = pdfjsLib.getDocument({ url: pdfUrl });
+    const pdf = await loadingTask.promise;
+    const numPages = pdf.numPages;
+    const firstPage = await pdf.getPage(1);
+    const baseViewport = firstPage.getViewport({ scale: 1 });
+    const containerWidth = container.clientWidth || 400;
+    const scale = Math.min(2.5, (containerWidth - 24) / baseViewport.width);
+
+    for (let i = 1; i <= numPages; i++) {
+        const page = i === 1 ? firstPage : await pdf.getPage(i);
+        const viewport = page.getViewport({ scale });
+        const canvas = document.createElement('canvas');
+        canvas.className = 'content-view-pdf-page-canvas';
+        const ctx = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        container.appendChild(canvas);
+    }
+    if (loadingEl && loadingEl.parentNode) loadingEl.remove();
+    requestAnimationFrame(() => initPdfScrollbar());
 }
 
 let pdfScrollbarAbort = null;
@@ -296,8 +335,44 @@ function openContentView(index) {
     if (item.type === 'pdf') {
         const wrap = document.createElement('div');
         wrap.className = 'content-view-pdf-wrap';
-        const iframe = document.createElement('iframe');
         const pdfUrl = item.src || '';
+        const isMobilePdf = isMobile;
+
+        if (isMobilePdf) {
+            /* On mobile, iframe often triggers download or external viewer; use PDF.js to render inline */
+            const container = document.createElement('div');
+            container.className = 'content-view-pdf-canvas-container';
+            const loadingEl = document.createElement('div');
+            loadingEl.className = 'content-view-pdf-loading';
+            loadingEl.textContent = 'Loading PDF…';
+            wrap.appendChild(loadingEl);
+            wrap.appendChild(container);
+            contentViewInner.appendChild(wrap);
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'content-view-close-fixed';
+            closeBtn.type = 'button';
+            closeBtn.title = 'Close';
+            closeBtn.textContent = 'Close';
+            closeBtn.addEventListener('click', closeContentView);
+            contentViewOverlay.appendChild(closeBtn);
+            contentViewOverlay.classList.add('active');
+            contentViewOverlay.classList.add('content-view-pdf-active');
+            requestAnimationFrame(() => initPdfScrollbar());
+
+            loadAndRenderPdfWithPdfJs(pdfUrl, container, loadingEl).catch(() => {
+                /* Fallback to iframe if PDF.js fails (e.g. CORS, script load) */
+                loadingEl.remove();
+                container.innerHTML = '';
+                const iframe = document.createElement('iframe');
+                iframe.src = pdfUrl;
+                iframe.title = item.name || 'PDF';
+                iframe.className = 'content-view-pdf-iframe';
+                container.appendChild(iframe);
+            });
+            return;
+        }
+
+        const iframe = document.createElement('iframe');
         const sep = pdfUrl.indexOf('#') >= 0 ? '&' : '#';
         iframe.src = pdfUrl + sep + 'toolbar=0&navpanes=0';
         iframe.title = item.name || 'PDF';
