@@ -388,7 +388,7 @@
             position: fixed;
             inset: 0;
             z-index: 500;
-            background: rgba(0,0,0,0.85);
+            background: #E70017;
             display: none;
             align-items: center;
             justify-content: center;
@@ -459,7 +459,7 @@
             color: #E70017;
         }
 
-        /* PDF active: scroll-outer fills overlay, inner scrolls, custom scrollbar (circle thumb + line track) */
+        /* PDF active: scroll-outer fills overlay; inner = PDF area with viewport padding (9/10 desktop, 11/12 mobile) */
         .content-view-pdf-scroll-outer {
             display: block;
             flex: 1;
@@ -471,28 +471,36 @@
             inset: 0;
             display: flex;
             flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            padding: 5vh 5vw;
+            box-sizing: border-box;
         }
-        .content-view-pdf-scroll-outer:has(.content-view-pdf-toolbar) {
-            flex-direction: column;
-        }
-        .content-view-pdf-body {
-            flex: 1;
-            min-height: 0;
-            min-width: 0;
-            display: flex;
-            flex-direction: row;
+        @media (max-width: 768px) {
+            .content-view-overlay.content-view-pdf-active .content-view-pdf-scroll-outer {
+                gap: 1rem;
+                padding: 8.333vh 8.333vw;
+            }
         }
         .content-view-overlay.content-view-pdf-active .content-view-inner {
             flex: 1;
             min-width: 0;
             min-height: 0;
+            max-width: calc(90vw - 2rem - 12px);
+            max-height: 90vh;
             overflow-y: auto;
             overflow-x: hidden;
-            max-height: none;
             display: block;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             -ms-overflow-style: none;
+        }
+        @media (max-width: 768px) {
+            .content-view-overlay.content-view-pdf-active .content-view-inner {
+                max-width: calc(100vw - 2 * (100vw / 12) - 1rem - 9px);
+                max-height: calc(100vh - 2 * (100vh / 12));
+            }
         }
         .content-view-overlay.content-view-pdf-active .content-view-inner::-webkit-scrollbar {
             display: none;
@@ -501,20 +509,25 @@
         }
         .content-view-overlay.content-view-pdf-active .content-view-pdf-wrap {
             width: 100%;
-            height: 100%;
-            max-height: none;
+            min-height: min-content;
             display: flex;
             flex-direction: column;
-            min-height: 0;
+            align-items: center;
+            justify-content: flex-start;
         }
-        /* PDF.js canvas mode: wrap grows with content so contentViewInner scrolls → custom scrollbar used */
+        .content-view-pdf-wrap.content-view-pdf-content-hidden {
+            visibility: hidden;
+            position: absolute;
+            pointer-events: none;
+        }
         .content-view-overlay.content-view-pdf-active.content-view-pdf-canvas-mode .content-view-pdf-wrap {
-            flex: 1 1 auto;
-            min-height: min-content;
+            flex: none;
         }
         .content-view-overlay.content-view-pdf-active.content-view-pdf-canvas-mode .content-view-pdf-canvas-container {
             flex: none;
             overflow: visible;
+            padding: 0;
+            background: transparent;
         }
         .content-view-pdf-iframe {
             flex: 1;
@@ -524,32 +537,46 @@
             background: #fff;
         }
         .content-view-pdf-canvas-container {
-            flex: 1;
-            min-height: 0;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 12px;
-            background: #fff;
+            flex: none;
+            overflow: visible;
+            padding: 0;
+            background: transparent;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 12px;
         }
-        /* PDF toolbar: Chrome-like bar with Close, Zoom, Fit (desktop PDF.js) */
+        /* PDF floating toolbar: bottom, centered, same on mobile and desktop; fades after 5s inactivity */
         .content-view-pdf-toolbar {
-            flex: none;
+            position: fixed;
+            bottom: 6rem;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             align-items: center;
             gap: 2px;
-            padding: 6px 10px;
+            padding: 8px 12px;
             background: #323639;
             color: #fff;
             font-family: 'Code Saver', sans-serif;
             font-size: 12px;
+            border-radius: 4px;
+            z-index: 501;
+            opacity: 1;
+            transition: opacity 0.4s ease;
+        }
+        .content-view-pdf-toolbar.content-view-pdf-toolbar-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        @media (max-width: 768px) {
+            .content-view-pdf-toolbar {
+                bottom: 2rem;
+            }
         }
         .content-view-pdf-toolbar-btn {
-            width: 32px;
-            height: 28px;
+            width: 36px;
+            height: 32px;
             border: none;
             background: transparent;
             color: #fff;
@@ -576,11 +603,34 @@
             background: rgba(255,255,255,0.3);
             margin: 0 4px;
         }
-        .content-view-pdf-loading {
-            padding: 2rem;
-            color: #E70017;
-            font-family: 'Code Saver', sans-serif;
-            font-size: 14px;
+        /* PDF loading: yellow bar centered in overlay; content hidden until load complete */
+        .content-view-pdf-loading-wrap {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 502;
+            pointer-events: none;
+        }
+        .content-view-pdf-loading-bar-outer {
+            width: 210px;
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        @media (max-width: 768px) {
+            .content-view-pdf-loading-bar-outer {
+                width: 180px;
+            }
+        }
+        .content-view-pdf-loading-bar-inner {
+            height: 100%;
+            width: 0%;
+            background: #FFF212;
+            border-radius: 4px;
+            transition: width 0.15s ease;
         }
         .content-view-pdf-page-canvas {
             display: block;
@@ -588,7 +638,7 @@
             height: auto;
             box-shadow: 0 1px 4px rgba(0,0,0,0.15);
         }
-        /* PDF custom scrollbar: same as modal (6px track line + circle thumb) */
+        /* PDF custom scrollbar: 1rem (mobile) / 2rem right of PDF; thumb 9px (mobile) / 12px (desktop) for PDF only */
         .content-view-custom-scrollbar {
             width: 6px;
             flex-shrink: 0;
@@ -597,6 +647,12 @@
         }
         .content-view-overlay.content-view-pdf-active .content-view-custom-scrollbar {
             display: block;
+            width: 12px;
+        }
+        @media (max-width: 768px) {
+            .content-view-overlay.content-view-pdf-active .content-view-custom-scrollbar {
+                width: 9px;
+            }
         }
         .content-view-scrollbar-track {
             position: absolute;
@@ -631,6 +687,16 @@
         }
         .content-view-scrollbar-thumb:active {
             cursor: grabbing;
+        }
+        .content-view-overlay.content-view-pdf-active .content-view-scrollbar-thumb {
+            width: 12px;
+            height: 12px;
+        }
+        @media (max-width: 768px) {
+            .content-view-overlay.content-view-pdf-active .content-view-scrollbar-thumb {
+                width: 9px;
+                height: 9px;
+            }
         }
 
         /* Mobile open-media: fit width + name/storyline below */
