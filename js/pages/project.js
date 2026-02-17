@@ -420,6 +420,7 @@ function openContentView(index) {
         loadAndRenderPdfWithPdfJs(pdfUrl, container, loadingBarInner).then(({ baseViewport, renderAtScale }) => {
             loadingWrap.remove();
             wrap.classList.remove('content-view-pdf-content-hidden');
+            contentViewOverlay.classList.add('content-view-pdf-loaded');
             window.__pdfScale = Math.min(
                 (container.clientWidth || 400) / baseViewport.width,
                 (container.clientHeight || 500) / baseViewport.height
@@ -525,6 +526,7 @@ function closeContentView() {
     contentViewOverlay.querySelector('.content-view-pdf-loading-wrap')?.remove();
     contentViewOverlay.classList.remove('active');
     contentViewOverlay.classList.remove('content-view-pdf-active');
+    contentViewOverlay.classList.remove('content-view-pdf-loaded');
     contentViewOverlay.classList.remove('content-view-pdf-canvas-mode');
     contentViewOverlay.querySelectorAll('.content-view-close-fixed').forEach(el => el.remove());
     const toolbarEl = document.querySelector('.content-view-pdf-toolbar');
