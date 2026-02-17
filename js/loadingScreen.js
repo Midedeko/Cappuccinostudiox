@@ -8,16 +8,25 @@ const LOGO_HEIGHT_LOADING = Math.round(LOGO_HEIGHT_OTHER * 2);
 const RED_BG = '#E70017';
 const YELLOW = '#FFF212';
 const SESSION_VISITED_KEY = 'loadingScreen_visited';
+const LOADING_ACTIVE_CLASS = 'loading-active';
+const DEFAULT_MIN_DISPLAY_MS = 2000;
 
 let overlay = null;
 let wipeEl = null;
 let textEl = null;
 let currentProgress = 0;
+let showTime = 0;
+let minDisplayMs = DEFAULT_MIN_DISPLAY_MS;
 
 const styles = `
 .loading-screen-overlay {
     position: fixed;
-    inset: 0;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    min-width: 100vw;
+    min-height: 100vh;
+    overflow: hidden;
     background: ${RED_BG};
     z-index: 99999;
     display: flex;
@@ -40,39 +49,56 @@ const styles = `
 }
 .loading-screen-wipe {
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    left: 0; right: 0; bottom: 0;
     height: calc((100 - var(--loading-progress, 0)) * 1%);
     background: ${RED_BG};
     transition: height 0.35s linear;
     pointer-events: none;
 }
-.loading-screen-text {
-    margin-top: 32px;
+.loading-screen-carousel-strip {
+    position: absolute;
+    top: 75%; left: 0;
+    width: 100vw;
+    height: 12.5vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    pointer-events: none;
+}
+.loading-screen-carousel-strip .carousel-inner {
+    display: inline-block;
     color: ${YELLOW};
-    font-size: clamp(14px, 2.5vw, 20px);
+    font-size: 20px;
     text-transform: uppercase;
     white-space: nowrap;
-    overflow: hidden;
-    max-width: 90vw;
-}
-.loading-screen-text .carousel-inner {
-    display: inline-block;
-    animation: loading-carousel-scroll 12s linear infinite;
+    animation: loading-carousel-scroll 50s linear infinite;
 }
 @keyframes loading-carousel-scroll {
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
 }
+@media (max-width: 768px) {
+    .loading-screen-carousel-strip .carousel-inner { font-size: 16px; }
+}
 `;
 
 function ensureOverlay() {
     if (overlay) return overlay;
+    const existing = document.getElementById('loadingScreenOverlay');
+    if (existing) {
+        overlay = existing;
+        wipeEl = overlay.querySelector('.loading-screen-wipe');
+        const strip = overlay.querySelector('.loading-screen-carousel-strip');
+        textEl = strip ? strip.querySelector('.carousel-inner') : overlay.querySelector('.carousel-inner');
+        if (wipeEl) wipeEl.style.setProperty('--loading-progress', '0');
+        return overlay;
+    }
     const style = document.createElement('style');
     style.textContent = styles;
     document.head.appendChild(style);
     overlay = document.createElement('div');
+    overlay.id = 'loadingScreenOverlay';
     overlay.className = 'loading-screen-overlay';
     overlay.setAttribute('aria-live', 'polite');
     overlay.setAttribute('aria-label', 'Loading');
@@ -89,12 +115,13 @@ function ensureOverlay() {
     wipeEl.style.setProperty('--loading-progress', '0');
     logoWrap.appendChild(wipeEl);
     overlay.appendChild(logoWrap);
-    textEl = document.createElement('div');
-    textEl.className = 'loading-screen-text';
+    const strip = document.createElement('div');
+    strip.className = 'loading-screen-carousel-strip';
     const carouselInner = document.createElement('span');
     carouselInner.className = 'carousel-inner';
-    textEl.appendChild(carouselInner);
-    overlay.appendChild(textEl);
+    strip.appendChild(carouselInner);
+    overlay.appendChild(strip);
+    textEl = carouselInner;
     document.body.appendChild(overlay);
     return overlay;
 }
@@ -108,14 +135,28 @@ function setCarouselContent(label) {
 
 /**
  * Show the loading screen.
- * @param {string} pageOrProjectName - Display name for "Loading (Page Name)" (e.g. "Project", "Project Files", "Content Management", or project name).
+ * @param {string} pageOrProjectName - Display name for "Loading (Page Name)".
+ * @param {object} [options] - Optional: { minDisplayMs } e.g. 3000 for project-files so loader shows at least 3s.
  */
-export function showLoadingScreen(pageOrProjectName) {
+export function showLoadingScreen(pageOrProjectName, options = {}) {
     ensureOverlay();
     currentProgress = 0;
-    wipeEl.style.setProperty('--loading-progress', '0');
+    showTime = Date.now();
+    minDisplayMs = options.minDisplayMs != null ? options.minDisplayMs : DEFAULT_MIN_DISPLAY_MS;
+    if (wipeEl) wipeEl.style.setProperty('--loading-progress', '0');
     setCarouselContent(pageOrProjectName || '…');
     overlay.style.display = 'flex';
+    document.body.classList.add(LOADING_ACTIVE_CLASS);
+}
+
+/**
+ * Dismiss the loading screen without animation (e.g. on revisit when we skip showing it).
+ * Removes loading-active from body and hides the overlay.
+ */
+export function dismissLoadingScreen() {
+    document.body.classList.remove(LOADING_ACTIVE_CLASS);
+    const el = overlay || document.getElementById('loadingScreenOverlay');
+    if (el) el.style.display = 'none';
 }
 
 /**
@@ -173,25 +214,47 @@ export function markPageVisited(pageKey) {
  * Show the loading screen only on first visit this session (no cached load). Use for landing, kitchen, admin.
  * @param {string} pageKey - e.g. 'index.html', 'kitchen.html', 'admin.html'
  * @param {string} label - Display name for "Loading (Label)" (e.g. "Landing", "Kitchen", "Admin")
+ * @param {object} [options] - Optional: { minDisplayMs } e.g. 3000 for project-files
  * @returns {boolean} - true if the loading screen was shown, false if skipped (already visited)
  */
-export function showLoadingScreenIfFirstVisit(pageKey, label) {
-    if (hasVisitedPage(pageKey)) return false;
-    showLoadingScreen(label || pageKey);
+export function showLoadingScreenIfFirstVisit(pageKey, label, options = {}) {
+    if (hasVisitedPage(pageKey)) {
+        dismissLoadingScreen();
+        return false;
+    }
+    showLoadingScreen(label || pageKey, options);
     return true;
 }
 
 /**
- * Hide the loading screen. Optionally update label first; then animates wipe to 100% and removes overlay.
- * @param {object} [opts] - Optional: { label?: string }
+ * Hide the loading screen after at least minDisplayMs (default 2s). Optionally update label; then camera flash and remove overlay.
+ * @param {object} [opts] - Optional: { label?: string, minDisplayMs?: number }
  */
 export function hideLoadingScreen(opts = {}) {
-    if (!overlay) return;
+    const el = overlay || document.getElementById('loadingScreenOverlay');
+    if (!el) return;
     if (opts.label != null) setCarouselContent(opts.label);
     setLoadingProgress(100);
-    const afterTransition = () => {
-        overlay.style.display = 'none';
-        wipeEl.removeEventListener('transitionend', afterTransition);
+    const effectiveMin = opts.minDisplayMs != null ? opts.minDisplayMs : minDisplayMs;
+    const doFlashAndHide = () => {
+        const flash = document.createElement('div');
+        flash.setAttribute('aria-hidden', 'true');
+        flash.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:100000;pointer-events:none;opacity:0;transition:opacity 0.15s ease;';
+        document.body.appendChild(flash);
+        requestAnimationFrame(() => { flash.style.opacity = '1'; });
+        setTimeout(() => {
+            flash.style.opacity = '0';
+            flash.addEventListener('transitionend', () => {
+                flash.remove();
+                document.body.classList.remove(LOADING_ACTIVE_CLASS);
+                el.style.display = 'none';
+            }, { once: true });
+        }, 180);
     };
-    wipeEl.addEventListener('transitionend', afterTransition, { once: true });
+    const elapsed = Date.now() - showTime;
+    if (elapsed >= effectiveMin) {
+        doFlashAndHide();
+    } else {
+        setTimeout(doFlashAndHide, effectiveMin - elapsed);
+    }
 }

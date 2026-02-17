@@ -18,6 +18,7 @@
             box-sizing: border-box;
         }
 
+        html, body { background-color: #E70017; }
         body {
             overflow: hidden;
             height: 100vh;
@@ -417,7 +418,12 @@
         }
     </style>
 </head>
-<body>
+<body class="loading-active">
+    <style id="loading-screen-critical">body.loading-active>*:not(#loadingScreenOverlay){visibility:hidden}#loadingScreenOverlay .loading-screen-wipe{height:calc((100 - var(--loading-progress,0))*1%);background:#E70017;transition:height .35s linear}@keyframes loadingCarouselScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}</style>
+    <div id="loadingScreenOverlay" class="loading-screen-overlay" style="position:fixed;top:0;left:0;width:100vw;height:100vh;min-width:100vw;min-height:100vh;overflow:hidden;background:#E70017;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Code Saver',sans-serif" aria-live="polite" aria-label="Loading">
+        <div class="loading-screen-logo-wrap" style="position:relative;height:167px"><img src="Studiox Logo.png" alt="Cappuccino Studio" style="display:block;height:167px;width:auto"><div class="loading-screen-wipe" style="position:absolute;left:0;right:0;bottom:0;pointer-events:none"></div></div>
+        <div class="loading-screen-carousel-strip" style="position:absolute;top:75%;left:0;width:100vw;height:12.5vh;overflow:hidden;display:flex;align-items:center;white-space:nowrap;pointer-events:none"><span class="carousel-inner" style="display:inline-block;color:#FFF212;font-size:20px;text-transform:uppercase;white-space:nowrap;animation:loadingCarouselScroll 50s linear infinite">Loading (Project Files) Loading (Project Files) </span></div>
+    </div>
     <div class="navigation">
         <div class="menu-container" id="menuContainer">
             <button class="menu-button" id="menuButton">
