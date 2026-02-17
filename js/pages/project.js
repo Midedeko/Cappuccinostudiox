@@ -216,6 +216,77 @@ function resetToBackground() {
     }
 }
 
+let pdfScrollbarAbort = null;
+
+function initPdfScrollbar() {
+    const scrollOuter = document.getElementById('contentViewPdfScrollOuter');
+    const scrollbarEl = scrollOuter?.querySelector('.content-view-custom-scrollbar');
+    const track = scrollOuter?.querySelector('.content-view-scrollbar-track');
+    const thumb = scrollOuter?.querySelector('.content-view-scrollbar-thumb');
+    if (!scrollOuter || !scrollbarEl || !track || !thumb || !contentViewInner) return;
+
+    pdfScrollbarAbort?.abort();
+    pdfScrollbarAbort = new AbortController();
+    const { signal } = pdfScrollbarAbort;
+
+    const thumbSize = 6;
+
+    function update() {
+        const canScroll = contentViewInner.scrollHeight > contentViewInner.clientHeight;
+        scrollbarEl.style.display = canScroll ? 'block' : 'none';
+        if (!canScroll) return;
+        const maxScroll = contentViewInner.scrollHeight - contentViewInner.clientHeight;
+        const trackHeight = track.clientHeight;
+        const thumbTop = maxScroll <= 0 ? 0 : (contentViewInner.scrollTop / maxScroll) * (trackHeight - thumbSize);
+        thumb.style.top = thumbTop + 'px';
+    }
+
+    contentViewInner.addEventListener('scroll', update, { signal });
+    const ro = new ResizeObserver(update);
+    ro.observe(contentViewInner);
+    signal.addEventListener('abort', () => ro.disconnect(), { once: true });
+
+    track.addEventListener('click', (e) => {
+        if (e.target === thumb) return;
+        const maxScroll = contentViewInner.scrollHeight - contentViewInner.clientHeight;
+        if (maxScroll <= 0) return;
+        const trackRect = track.getBoundingClientRect();
+        const y = (e.clientY - trackRect.top - thumbSize / 2) / (trackRect.height - thumbSize);
+        const rel = Math.max(0, Math.min(1, y));
+        contentViewInner.scrollTop = rel * maxScroll;
+    }, { signal });
+
+    function drag(startY, startScrollTop) {
+        const maxScroll = contentViewInner.scrollHeight - contentViewInner.clientHeight;
+        if (maxScroll <= 0) return;
+        function move(e) {
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
+            const trackRect = track.getBoundingClientRect();
+            const rel = (trackRect.height - thumbSize) > 0
+                ? (y - trackRect.top - thumbSize / 2) / (trackRect.height - thumbSize)
+                : 0;
+            contentViewInner.scrollTop = Math.max(0, Math.min(maxScroll, rel * maxScroll));
+        }
+        function end() {
+            document.removeEventListener('mousemove', move);
+            document.removeEventListener('mouseup', end);
+            document.removeEventListener('touchmove', move, { passive: false });
+            document.removeEventListener('touchend', end);
+            document.removeEventListener('touchcancel', end);
+        }
+        document.addEventListener('mousemove', move);
+        document.addEventListener('mouseup', end);
+        document.addEventListener('touchmove', move, { passive: false });
+        document.addEventListener('touchend', end);
+        document.addEventListener('touchcancel', end);
+    }
+
+    thumb.addEventListener('mousedown', (e) => { e.preventDefault(); drag(e.clientY, contentViewInner.scrollTop); }, { signal });
+    thumb.addEventListener('touchstart', (e) => { e.preventDefault(); drag(e.touches[0].clientY, contentViewInner.scrollTop); }, { passive: false, signal });
+
+    update();
+}
+
 function openContentView(index) {
     const item = state.galleryItems[index];
     if (!item) return;
@@ -226,7 +297,9 @@ function openContentView(index) {
         const wrap = document.createElement('div');
         wrap.className = 'content-view-pdf-wrap';
         const iframe = document.createElement('iframe');
-        iframe.src = item.src;
+        const pdfUrl = item.src || '';
+        const sep = pdfUrl.indexOf('#') >= 0 ? '&' : '#';
+        iframe.src = pdfUrl + sep + 'toolbar=0&navpanes=0';
         iframe.title = item.name || 'PDF';
         iframe.className = 'content-view-pdf-iframe';
         wrap.appendChild(iframe);
@@ -240,6 +313,7 @@ function openContentView(index) {
         contentViewOverlay.appendChild(closeBtn);
         contentViewOverlay.classList.add('active');
         contentViewOverlay.classList.add('content-view-pdf-active');
+        requestAnimationFrame(() => initPdfScrollbar());
         return;
     }
 
@@ -315,6 +389,8 @@ function closeContentView() {
     contentViewOverlay.classList.remove('active');
     contentViewOverlay.classList.remove('content-view-pdf-active');
     contentViewOverlay.querySelectorAll('.content-view-close-fixed').forEach(el => el.remove());
+    pdfScrollbarAbort?.abort();
+    pdfScrollbarAbort = null;
     if (document.fullscreenElement) document.exitFullscreen();
 }
 
