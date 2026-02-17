@@ -8,6 +8,34 @@ function getSupabase() {
 }
 
 /**
+ * GET /api/projects — list all projects (id, name, thumbnail) for project list and cards.
+ */
+export async function GET() {
+    try {
+        const supabase = getSupabase();
+        const { data, error } = await supabase
+            .from('projects')
+            .select('id, name, thumbnail');
+        if (error) {
+            return new Response(JSON.stringify({ error: error.message }), {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+        const list = Array.isArray(data) ? data.map(p => ({ id: p.id, name: p.name || ('Project ' + p.id), thumbnail: p.thumbnail || null })) : [];
+        return new Response(JSON.stringify(list), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+        });
+    } catch (e) {
+        return new Response(JSON.stringify({ error: String(e.message) }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+}
+
+/**
  * POST /api/projects — upsert a project into Supabase.
  * Body: { id, name, items, storyline, thumbnail }
  */

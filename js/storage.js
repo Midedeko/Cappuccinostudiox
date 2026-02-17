@@ -127,6 +127,16 @@ export function getProjectList() {
     }
 }
 
+/**
+ * Fetch project list from API (id, name, thumbnail). Use on load so project cards and CMS list show on all devices.
+ * @returns {Promise<Array<{id, name, thumbnail}>>}
+ */
+export function fetchProjectList() {
+    return fetch('/api/projects')
+        .then(res => res.ok ? res.json() : [])
+        .catch(() => []);
+}
+
 export function saveProjectList(list) {
     localStorage.setItem(CMS_LIST_KEY, JSON.stringify(list));
 }
