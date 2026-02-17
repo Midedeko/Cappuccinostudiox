@@ -670,9 +670,17 @@
             left: 50%;
             top: 0;
             bottom: 0;
-            width: 0.5px;
+            width: 1px;
             transform: translateX(-50%);
             background: #FFF212;
+        }
+        .content-view-overlay.content-view-pdf-active .content-view-scrollbar-track::after {
+            width: 2px;
+        }
+        @media (max-width: 768px) {
+            .content-view-overlay.content-view-pdf-active .content-view-scrollbar-track::after {
+                width: 1px;
+            }
         }
         .content-view-scrollbar-thumb {
             position: absolute;
