@@ -495,6 +495,9 @@
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            padding-top: 12px;
+            padding-bottom: 12px;
+            box-sizing: border-box;
         }
         @media (max-width: 768px) {
             .content-view-overlay.content-view-pdf-active .content-view-inner {
@@ -539,12 +542,12 @@
         .content-view-pdf-canvas-container {
             flex: none;
             overflow: visible;
-            padding: 12px 0;
+            padding: 0;
             background: transparent;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0;
+            gap: 12px;
         }
         /* PDF floating toolbar: bottom, centered, same on mobile and desktop; fades after 5s inactivity */
         .content-view-pdf-toolbar {
