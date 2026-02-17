@@ -5,6 +5,7 @@ import { init } from '../core.js';
 import { getProjectIdFromURL } from '../projectLoader.js';
 import { createStorylineController } from '../animations.js';
 import { setupMenuSimple } from '../ui.js';
+import { showLoadingScreen, hideLoadingScreen } from '../loadingScreen.js';
 import { initBackgroundVideos as rendererInitBg, initGallery as rendererInitGallery, DEFAULT_GALLERY_ITEMS, DEFAULT_BACKGROUND_VIDEOS } from '../projectRenderer.js';
 
 const projectId = getProjectIdFromURL();
@@ -244,10 +245,15 @@ function runInits() {
     });
 
     setupMenuSimple('projectMenuContainer', 'projectMenuButton');
+    hideLoadingScreen({ label: state.projectName || ('Project ' + projectId) });
 }
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => init({ projectPage: { projectId, state, runAfterLoad: runInits } }));
+    document.addEventListener('DOMContentLoaded', () => {
+        showLoadingScreen('Project');
+        init({ projectPage: { projectId, state, runAfterLoad: runInits } });
+    });
 } else {
+    showLoadingScreen('Project');
     init({ projectPage: { projectId, state, runAfterLoad: runInits } });
 }

@@ -2,9 +2,16 @@
  * Admin page: 3D box controls, config, apply to Project Files; init() handles menu and carousel.
  */
 import { init } from '../core.js';
+import { showLoadingScreenIfFirstVisit, markPageVisited, hideLoadingScreen } from '../loadingScreen.js';
 
 window.addEventListener('DOMContentLoaded', () => {
-    init();
+    const showedLoader = showLoadingScreenIfFirstVisit('admin.html', 'Admin');
+    init({
+        onReady: () => {
+            markPageVisited('admin.html');
+            if (showedLoader) hideLoadingScreen();
+        }
+    });
     const contentManagementPanelBtn = document.getElementById('contentManagementPanelBtn');
     if (contentManagementPanelBtn) {
         contentManagementPanelBtn.addEventListener('click', (e) => {

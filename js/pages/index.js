@@ -2,6 +2,7 @@
  * Index page: interactive image, hotspots, admin access; init() handles menu and carousel.
  */
 import { init } from '../core.js';
+import { showLoadingScreenIfFirstVisit, markPageVisited, hideLoadingScreen } from '../loadingScreen.js';
 
 const container = document.getElementById('imageContainer');
 const image = document.getElementById('landscapeImage');
@@ -326,7 +327,13 @@ document.addEventListener('click', (e) => {
     }
 });
 
-init();
+const showedLoader = showLoadingScreenIfFirstVisit('index.html', 'Landing');
+init({
+    onReady: () => {
+        markPageVisited('index.html');
+        if (showedLoader) hideLoadingScreen();
+    }
+});
 
 if (image.complete) {
     updateHotspotPositions();

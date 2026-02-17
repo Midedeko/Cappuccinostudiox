@@ -24,6 +24,7 @@ export function getPageName() {
  * Call from each page script after page-specific setup.
  * @param {object} [options]
  * @param {object} [options.projectPage] - Required for project.html: { projectId, state, runAfterLoad }
+ * @param {function} [options.onReady] - Called when menu/carousel init is done (for first-visit loading on landing/kitchen/admin).
  */
 export function init(options = {}) {
     const pageName = getPageName();
@@ -51,6 +52,7 @@ export function init(options = {}) {
         import('./ui.js').then(({ setupMenuAnimated, initCarousel, carouselSets, pageCarouselSets }) => {
             setupMenuAnimated('menuContainer', 'menuButton');
             initCarousel('carouselTrack', { carouselSets, pageCarouselSets });
+            if (typeof options.onReady === 'function') options.onReady();
         });
     }
 }

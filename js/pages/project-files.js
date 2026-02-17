@@ -3,10 +3,13 @@
  * Card links use project list ids (URL ?id=).
  */
 import { init } from '../core.js';
-import { getProjectList } from '../storage.js';
+import { getProjectList, fetchProjectList, saveProjectList } from '../storage.js';
+import { showLoadingScreenIfFirstVisit, markPageVisited, hideLoadingScreen } from '../loadingScreen.js';
 
 window.addEventListener('DOMContentLoaded', () => {
+    const showedLoader = showLoadingScreenIfFirstVisit('project-files.html', 'Project Files');
     init();
+    fetchProjectList().then(list => { if (list && list.length) saveProjectList(list); }).then(() => {
     const projectList = getProjectList();
     const projectIds = projectList.map(p => String(p.id));
     const boxContainer = document.getElementById('boxContainer');
@@ -361,4 +364,10 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     } catch (e) {}
     loadConfig(config);
+    markPageVisited('project-files.html');
+    if (showedLoader) hideLoadingScreen();
+    }).catch(() => {
+        markPageVisited('project-files.html');
+        if (showedLoader) hideLoadingScreen();
+    });
 });

@@ -5,6 +5,7 @@ import { escapeHtml, init } from '../core.js';
 import { getProjectIdFromURL } from '../projectLoader.js';
 import { getProject, saveProject, getProjectDataSync, getProjectList, saveProjectList } from '../storage.js';
 import { uploadFile, uploadDataUrl } from '../supabaseStorage.js';
+import { showLoadingScreen, hideLoadingScreen } from '../loadingScreen.js';
 
 const PROJECT_STORAGE_LIMIT_BYTES = 300 * 1024 * 1024;
 
@@ -647,7 +648,8 @@ document.getElementById('saveBtn').addEventListener('click', () => {
 
 document.getElementById('pageTitle').textContent = 'Edit Project ' + projectId;
 
-(function init() {
+(function loadProject() {
+    showLoadingScreen('Edit Project');
     getProject(projectId).then(record => {
         if (record && record.items && record.items.length >= 0) {
             items = record.items.slice();
@@ -669,6 +671,7 @@ document.getElementById('pageTitle').textContent = 'Edit Project ' + projectId;
             if (fallback.thumbnail) { thumbnailDataUrl = fallback.thumbnail; updateThumbnailPreview(thumbnailDataUrl); }
         }
         render();
+        hideLoadingScreen({ label: (record && record.name) || ('Project ' + projectId) });
     }).catch(() => {
         const fallback = getProjectDataSync(projectId);
         items = (fallback.items || []).slice();
@@ -679,6 +682,7 @@ document.getElementById('pageTitle').textContent = 'Edit Project ' + projectId;
         if (storyEl && fallback.storyline != null) storyEl.value = fallback.storyline || '';
         if (fallback.thumbnail) { thumbnailDataUrl = fallback.thumbnail; updateThumbnailPreview(thumbnailDataUrl); }
         render();
+        hideLoadingScreen({ label: fallback.name || ('Project ' + projectId) });
     });
 })();
 

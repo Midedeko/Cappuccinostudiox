@@ -2,9 +2,16 @@
  * 3D Cabinet page: 3D box controls, config; init() handles menu and carousel.
  */
 import { init } from '../core.js';
+import { showLoadingScreenIfFirstVisit, markPageVisited, hideLoadingScreen } from '../loadingScreen.js';
 
 window.addEventListener('DOMContentLoaded', () => {
-    init();
+    const showedLoader = showLoadingScreenIfFirstVisit('3d-cabinet.html', '3D Cabinet');
+    init({
+        onReady: () => {
+            markPageVisited('3d-cabinet.html');
+            if (showedLoader) hideLoadingScreen();
+        }
+    });
     // Box controls / Controls panel toggle
     const controlsPanel = document.getElementById('controlsPanel');
     const controlsToggleButton = document.getElementById('controlsToggleButton');

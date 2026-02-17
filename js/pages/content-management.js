@@ -2,7 +2,8 @@
  * Content management page: project list, add/delete, storage.
  */
 import { escapeHtml, CMS_PROJECT_PREFIX, init } from '../core.js';
-import { getProjectList, saveProjectList, deleteProjectFromIDB } from '../storage.js';
+import { getProjectList, saveProjectList, fetchProjectList, deleteProjectFromIDB } from '../storage.js';
+import { showLoadingScreen, hideLoadingScreen } from '../loadingScreen.js';
 
 function renderList() {
     const list = getProjectList();
@@ -31,6 +32,14 @@ function renderList() {
     });
 }
 
+function initList() {
+    showLoadingScreen('Content Management');
+    fetchProjectList()
+        .then(list => { if (list && list.length) saveProjectList(list); })
+        .then(() => { renderList(); hideLoadingScreen(); })
+        .catch(() => { renderList(); hideLoadingScreen(); });
+}
+
 document.getElementById('addProjectBtn').addEventListener('click', () => {
     const list = getProjectList();
     const nextId = list.length ? Math.max(...list.map(p => p.id)) + 1 : 1;
@@ -39,5 +48,5 @@ document.getElementById('addProjectBtn').addEventListener('click', () => {
     window.location.href = `project-edit.html?id=${nextId}`;
 });
 
-renderList();
+initList();
 init();

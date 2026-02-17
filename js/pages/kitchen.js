@@ -2,6 +2,7 @@
  * Kitchen page: interactive image, hotspots; init() handles menu and carousel.
  */
 import { init } from '../core.js';
+import { showLoadingScreenIfFirstVisit, markPageVisited, hideLoadingScreen } from '../loadingScreen.js';
 
 const container = document.getElementById('imageContainer');
 const image = document.getElementById('landscapeImage');
@@ -311,7 +312,13 @@ document.addEventListener('click', (e) => {
     }
 });
 
-init();
+const showedLoader = showLoadingScreenIfFirstVisit('kitchen.html', 'Kitchen');
+init({
+    onReady: () => {
+        markPageVisited('kitchen.html');
+        if (showedLoader) hideLoadingScreen();
+    }
+});
 
 if (image.complete) {
     updatePositions();
