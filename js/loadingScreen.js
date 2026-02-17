@@ -20,11 +20,13 @@ let loadPhaseTimeouts = [];
 const styles = `
 .loading-screen-overlay {
     position: fixed;
-    top: 0; left: 0;
+    inset: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     min-width: 100vw;
     min-height: 100vh;
+    min-height: 100dvh;
     overflow: hidden;
     background: ${RED_BG};
     z-index: 99999;
