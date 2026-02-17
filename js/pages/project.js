@@ -601,7 +601,8 @@ function runInits() {
     }
     document.addEventListener('wheel', (e) => {
         const gallery = document.getElementById('galleryContainer');
-        if (!gallery || !gallery.contains(e.target)) return;
+        if (!gallery) return;
+        if (contentViewOverlay.contains(e.target)) return; /* don't steal scroll when in content view (PDF/image) */
         const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
         gallery.scrollLeft += delta;
         e.preventDefault();
