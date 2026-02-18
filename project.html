@@ -28,6 +28,7 @@
             font-family: 'Code Saver', sans-serif;
             user-select: none;
             -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
             position: relative;
         }
 
@@ -310,6 +311,7 @@
         }
         .menu-container.active .menu-child-button { display: flex; opacity: 1; }
         .menu-child-button:hover { background: #FFF212; color: #E70017; }
+        .menu-child-button:active { background-color: #FFFFFF; border-color: #FFFFFF; color: #E70017; }
         .logo {
             position: fixed;
             top: 30px;
@@ -739,6 +741,7 @@
                 <span class="dropdown-icon"></span>
             </button>
             <a href="project-files.html" class="menu-child-button" id="projectMenuBack">PROJECT FILES</a>
+            <button type="button" class="menu-child-button" id="audioToggleBtn">AUDIO: OFF</button>
         </div>
         <img src="Studiox Logo.svg" alt="Studiox Logo" class="logo">
     </div>

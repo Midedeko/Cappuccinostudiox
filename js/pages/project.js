@@ -18,10 +18,33 @@ const state = {
     galleryItems: DEFAULT_GALLERY_ITEMS.slice(),
     backgroundVideos: [],
     defaultBackgroundVideos: [],
+    audioEnabled: false,
     projectStoryline: '',
     projectStorylineTitle: '',
     projectName: 'Project ' + projectId
 };
+
+const AUDIO_ENABLED_KEY = 'csx_audio_enabled';
+function loadAudioEnabled() {
+    try { return localStorage.getItem(AUDIO_ENABLED_KEY) === '1'; } catch (e) { return false; }
+}
+function saveAudioEnabled(v) {
+    try { localStorage.setItem(AUDIO_ENABLED_KEY, v ? '1' : '0'); } catch (e) {}
+}
+function applyAudioPreferenceToActiveMedia() {
+    if (!contentViewMedia) return;
+    if (contentViewMedia.tagName === 'VIDEO' || contentViewMedia.tagName === 'AUDIO') {
+        const allow = !!state.audioEnabled;
+        contentViewMedia.muted = !allow;
+        if (!allow) contentViewMedia.volume = 0;
+        else if (contentViewMedia.volume === 0) contentViewMedia.volume = 1;
+    }
+}
+function updateAudioToggleUI() {
+    const btn = document.getElementById('audioToggleBtn');
+    if (!btn) return;
+    btn.textContent = state.audioEnabled ? 'AUDIO: ON' : 'AUDIO: OFF';
+}
 
 let currentVideoIndex = 0;
 let activeItemIndex = null;
@@ -496,7 +519,8 @@ function openContentView(index) {
     media.src = item.src;
     if (isVideo) {
         media.controls = false;
-        media.muted = false;
+        media.muted = !state.audioEnabled;
+        if (!state.audioEnabled) media.volume = 0;
         media.playsInline = true;
         media.loop = true;
         const trimStart = item.trimStart != null && isFinite(item.trimStart) ? item.trimStart : 0;
@@ -655,6 +679,16 @@ function runInits() {
     });
 
     setupMenuSimple('projectMenuContainer', 'projectMenuButton');
+
+    // Global media audio toggle (OFF means no media plays with audio anywhere)
+    state.audioEnabled = loadAudioEnabled();
+    updateAudioToggleUI();
+    document.getElementById('audioToggleBtn')?.addEventListener('click', () => {
+        state.audioEnabled = !state.audioEnabled;
+        saveAudioEnabled(state.audioEnabled);
+        updateAudioToggleUI();
+        applyAudioPreferenceToActiveMedia();
+    });
 
     /* Wait for first visible content to load before hiding loading screen */
     const maxWaitMs = 4000;
