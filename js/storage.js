@@ -86,7 +86,12 @@ export function saveProject(project) {
         body: JSON.stringify(payload)
     })
         .then(async (res) => {
-            if (res.ok) return;
+            if (res.ok) {
+                // Keep IndexedDB and localStorage in sync with the server after successful save
+                return setProjectInIDB(id, payload).then(() => {
+                    try { localStorage.setItem(CMS_PROJECT_PREFIX + id, JSON.stringify(payload)); } catch (e) {}
+                });
+            }
             const msg = res.status === 413
                 ? 'Project too large to sync (over 4.5 MB). Save works on this device only.'
                 : (await res.text()) || res.statusText || 'Save failed';

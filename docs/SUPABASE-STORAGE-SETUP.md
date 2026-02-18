@@ -1,5 +1,16 @@
 # Supabase Storage setup for project media
 
+## Why you see “can’t store files over 4.5 MB” / “Saved locally only”
+
+When you **Save**, the app sends the whole project (including all media) in one request. **Vercel has a 4.5 MB request body limit** that cannot be changed. If your project JSON is bigger than that (e.g. lots of images or video stored as base64 inside the JSON), the cloud save fails and you get:
+
+- **“Project too large to sync (over 4.5 MB). Save works on this device only.”**
+- Or an alert saying your project is over 4.5 MB and to **set up Supabase Storage**.
+
+**Fix:** Set up Supabase Storage as below. Then **new** images and videos are uploaded to Storage and only **URLs** are saved in the project, so the JSON stays small and Save syncs to the cloud. If a project already has a lot of embedded media, consider re-adding that media after setup (so it uploads to Storage) or removing some content and saving again.
+
+---
+
 So that project media (images, videos, thumbnails) are stored in Supabase instead of in the project JSON, the app uploads files to a **Supabase Storage** bucket and saves only URLs in the database. That keeps the payload under the 4.5 MB API limit and lets projects sync across devices.
 
 ## 1. Create the bucket
@@ -56,8 +67,11 @@ The frontend gets these via **GET /api/config**, which your API serves from the 
 
 The **projects** table only stores URLs and metadata, so the JSON stays small and syncs correctly.
 
-## 5. If uploads fail
+## 5. If uploads fail or save still says “over 4.5 MB”
 
-- Check the bucket name is exactly **project-media** and that it is **public**.
+- **Vercel env vars:** `SUPABASE_URL` and `SUPABASE_ANON_KEY` must be set (and enabled for Preview + Production). The frontend gets them from **GET /api/config**; if those are missing, uploads never go to Storage and media stays in the JSON.
+- **Bucket:** Name must be exactly **project-media**, and the bucket must be **Public**.
+- **Policies:** Both INSERT and SELECT policies for `storage.objects` and `bucket_id = 'project-media'` (see step 2).
+- **Redeploy:** After changing env vars on Vercel, trigger a new deployment so the API and /api/config use the latest values.
 - Check the two policies above (or equivalent) exist for `storage.objects` and bucket `project-media`.
 - In the browser console you may see “Supabase upload error” with the exact error from Supabase.
