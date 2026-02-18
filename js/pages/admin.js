@@ -54,12 +54,16 @@ window.addEventListener('DOMContentLoaded', () => {
         const showTopFace = document.getElementById('showTopFace');
         const showBottomFace = document.getElementById('showBottomFace');
         const isoCardCountMaxEl = document.getElementById('isoCardCountMax');
+        const isoCardRepelDistanceEl = document.getElementById('isoCardRepelDistanceValue');
+        const isoCardRepelDurationEl = document.getElementById('isoCardRepelDurationValue');
         return {
             width: boxWidth,
             height: boxHeight,
             isoCardCount: isoCardCount,
             isoCardCountMax: isoCardCountMaxEl ? parseInt(isoCardCountMaxEl.value, 10) : 100,
             isoCardSpacing: isoCardSpacing,
+            isoCardRepelDistance: isoCardRepelDistanceEl ? parseInt(isoCardRepelDistanceEl.value, 10) : 40,
+            isoCardRepelDuration: isoCardRepelDurationEl ? parseFloat(isoCardRepelDurationEl.value) : 0.3,
             rotateX: rotateX,
             rotateY: rotateY,
             positionX: positionX,
@@ -496,6 +500,19 @@ window.addEventListener('DOMContentLoaded', () => {
             isoCardSpacingControl.value = isoCardSpacing;
             if (isoCardSpacingValue) isoCardSpacingValue.value = isoCardSpacing;
         }
+        const isoCardRepelDistanceControl = document.getElementById('isoCardRepelDistance');
+        const isoCardRepelDistanceValue = document.getElementById('isoCardRepelDistanceValue');
+        if (config.isoCardRepelDistance !== undefined && isoCardRepelDistanceControl) {
+            isoCardRepelDistanceControl.value = config.isoCardRepelDistance;
+            if (isoCardRepelDistanceValue) isoCardRepelDistanceValue.value = config.isoCardRepelDistance;
+        }
+        const isoCardRepelDurationControl = document.getElementById('isoCardRepelDuration');
+        const isoCardRepelDurationValue = document.getElementById('isoCardRepelDurationValue');
+        if (config.isoCardRepelDuration !== undefined && isoCardRepelDurationControl) {
+            const dur = config.isoCardRepelDuration;
+            isoCardRepelDurationControl.value = Math.round(dur * 100);
+            if (isoCardRepelDurationValue) isoCardRepelDurationValue.value = dur;
+        }
         if (config.rotateX !== undefined && rotateXControl) {
             rotateX = config.rotateX;
             rotateXControl.value = rotateX;
@@ -533,6 +550,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Default config matching project-files page when nothing is saved yet
     const defaultProjectFilesConfig = {
         width: 400, height: 300, isoCardCount: 60, isoCardCountMax: 100, isoCardSpacing: 84,
+        isoCardRepelDistance: 40, isoCardRepelDuration: 0.3,
         rotateX: -30, rotateY: -45, positionX: -27, positionY: 48, positionZ: -216,
         showFrontFace: false, showBackFace: false, showRightFace: false, showLeftFace: false, showTopFace: false, showBottomFace: false
     };
@@ -619,6 +637,41 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     popUpAmountValue.addEventListener('input', () => syncSliderFromInput(popUpAmountControl, popUpAmountValue, (v) => { popUpAmount = v; }, attachIsoCardHoverHandlers));
     popUpAmountValue.addEventListener('change', () => syncSliderFromInput(popUpAmountControl, popUpAmountValue, (v) => { popUpAmount = v; }, attachIsoCardHoverHandlers));
+
+    const isoCardRepelDistanceControl = document.getElementById('isoCardRepelDistance');
+    const isoCardRepelDistanceValue = document.getElementById('isoCardRepelDistanceValue');
+    if (isoCardRepelDistanceControl && isoCardRepelDistanceValue) {
+        isoCardRepelDistanceControl.addEventListener('input', () => {
+            const v = parseInt(isoCardRepelDistanceControl.value, 10);
+            isoCardRepelDistanceValue.value = v;
+            updateConfigDisplay();
+        });
+        isoCardRepelDistanceValue.addEventListener('input', () => {
+            let v = parseInt(isoCardRepelDistanceValue.value, 10);
+            if (isNaN(v)) return;
+            v = Math.min(150, Math.max(0, v));
+            isoCardRepelDistanceValue.value = v;
+            isoCardRepelDistanceControl.value = v;
+            updateConfigDisplay();
+        });
+    }
+    const isoCardRepelDurationControl = document.getElementById('isoCardRepelDuration');
+    const isoCardRepelDurationValue = document.getElementById('isoCardRepelDurationValue');
+    if (isoCardRepelDurationControl && isoCardRepelDurationValue) {
+        isoCardRepelDurationControl.addEventListener('input', () => {
+            const v = parseInt(isoCardRepelDurationControl.value, 10) / 100;
+            isoCardRepelDurationValue.value = v;
+            updateConfigDisplay();
+        });
+        isoCardRepelDurationValue.addEventListener('input', () => {
+            let v = parseFloat(isoCardRepelDurationValue.value);
+            if (isNaN(v)) return;
+            v = Math.min(2, Math.max(0.05, v));
+            isoCardRepelDurationValue.value = v;
+            isoCardRepelDurationControl.value = Math.round(v * 100);
+            updateConfigDisplay();
+        });
+    }
 
     // Initialize edge lines
     updateEdgeLines();

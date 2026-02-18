@@ -32,6 +32,9 @@ window.addEventListener('DOMContentLoaded', () => {
     let isoCardCount = 3;
     let isoCardSpacing = 50;
     let scrollPosition = 0;
+    let isoCardRepelDistance = 40;
+    let isoCardRepelDuration = 0.3;
+    let activeIsoCardElement = null;
 
     boxLength = Math.max(200, (isoCardCount * isoCardSpacing) + 100);
 
@@ -49,6 +52,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
     let lastMouseX = 0, lastMouseY = 0, mouseMoved = false, touchMoved = false;
     let previewedCard = null; // mobile: card that has been tapped once (preview); second tap opens
+
+    /** Size card to image aspect ratio, capped by maxW x maxH (config width/height = max). */
+    function sizeCardToImage(card, img, maxW, maxH) {
+        if (!img.naturalWidth || !img.naturalHeight) return;
+        const r = img.naturalWidth / img.naturalHeight;
+        let w = maxW, h = maxH;
+        if (r > maxW / maxH) h = maxW / r; else w = maxH * r;
+        card.style.width = Math.round(w) + 'px';
+        card.style.height = Math.round(h) + 'px';
+    }
 
     function attachIsoCardHoverHandlers() {
         const frontDuplicates = boxContainer.querySelectorAll('.front-duplicate');
@@ -88,31 +101,25 @@ window.addEventListener('DOMContentLoaded', () => {
                         // Second tap: open project (card was already previewed)
                         if (projectId) { e.preventDefault(); navigateTo(`project.html?id=${projectId}`); }
                         previewedCard = null;
+                        activeIsoCardElement = null;
+                        updateBox();
                     } else {
-                        // First tap: card preview interaction (pop up like hover)
-                        if (previewedCard) {
-                            const prevOffset = parseFloat(previewedCard.dataset.baseOffset || '0');
-                            previewedCard.style.transform = `translate(-50%, -50%) rotateY(0deg) translateZ(${prevOffset}px) translateY(0px)`;
-                        }
-                        const baseOffset = parseFloat(newCard.dataset.baseOffset || '0');
-                        const popUpAmount = boxHeight * 0.3;
-                        const centerTransform = 'translate(-50%, -50%)';
-                        newCard.style.transform = `${centerTransform} rotateY(0deg) translateZ(${baseOffset}px) translateY(${-popUpAmount}px)`;
+                        // First tap: card preview (pop up + repel cards in front)
+                        activeIsoCardElement = newCard;
                         previewedCard = newCard;
+                        updateBox();
                         e.preventDefault();
                     }
                 }
                 touchMoved = false;
             });
             newCard.addEventListener('mouseenter', () => {
-                const baseOffset = parseFloat(newCard.dataset.baseOffset || '0');
-                const popUpAmount = boxHeight * 0.3;
-                const centerTransform = 'translate(-50%, -50%)';
-                newCard.style.transform = `${centerTransform} rotateY(0deg) translateZ(${baseOffset}px) translateY(${-popUpAmount}px)`;
+                activeIsoCardElement = newCard;
+                updateBox();
             });
             newCard.addEventListener('mouseleave', () => {
-                const baseOffset = parseFloat(newCard.dataset.baseOffset || '0');
-                newCard.style.transform = `translate(-50%, -50%) rotateY(0deg) translateZ(${baseOffset}px) translateY(0px)`;
+                activeIsoCardElement = null;
+                updateBox();
             });
         });
     }
@@ -150,6 +157,8 @@ window.addEventListener('DOMContentLoaded', () => {
             img.alt = proj && proj.name ? proj.name : `Thumbnail ${(index % imagePaths.length) + 1}`;
             card.appendChild(img);
             card.setAttribute('data-project-id', projectIds.length ? projectIds[index % projectIds.length] : '');
+            img.addEventListener('load', () => sizeCardToImage(card, img, boxWidth, boxHeight));
+            if (img.complete) sizeCardToImage(card, img, boxWidth, boxHeight);
         });
         attachIsoCardHoverHandlers();
         allCards.forEach(card => {
@@ -172,11 +181,15 @@ window.addEventListener('DOMContentLoaded', () => {
         frontFace.style.top = '50%';
         manageIsoCards();
         const frontDuplicates = boxContainer.querySelectorAll('.front-duplicate');
-        frontDuplicates.forEach((duplicate, index) => {
+        frontDuplicates.forEach((duplicate) => {
             duplicate.style.width = boxWidth + 'px';
             duplicate.style.height = boxHeight + 'px';
             duplicate.style.left = '50%';
             duplicate.style.top = '50%';
+        });
+        frontDuplicates.forEach((duplicate) => {
+            const img = duplicate.querySelector('img');
+            if (img && img.complete && img.naturalWidth && img.naturalHeight) sizeCardToImage(duplicate, img, boxWidth, boxHeight);
         });
         backFace.style.width = boxWidth + 'px';
         backFace.style.height = boxHeight + 'px';
@@ -208,12 +221,32 @@ window.addEventListener('DOMContentLoaded', () => {
         frontFace.style.transform = `${centerTransform} rotateY(0deg) translateZ(${halfLength}px)`;
 
         const frontDuplicates = boxContainer.querySelectorAll('.front-duplicate');
+        const activeIndex = activeIsoCardElement ? Array.from(frontDuplicates).indexOf(activeIsoCardElement) : -1;
+        const activeBaseOffset = activeIndex >= 0 ? (() => {
+            const v = (activeIndex - scrollPosition) % isoCardCount;
+            const w = v < 0 ? v + isoCardCount : v;
+            return halfLength - ((w + 1) * isoCardSpacing);
+        })() : null;
+
         frontDuplicates.forEach((duplicate, index) => {
             const virtualPosition = (index - scrollPosition) % isoCardCount;
             const wrappedPosition = virtualPosition < 0 ? virtualPosition + isoCardCount : virtualPosition;
             const offset = halfLength - ((wrappedPosition + 1) * isoCardSpacing);
             duplicate.dataset.baseOffset = offset;
-            duplicate.style.transform = `${centerTransform} rotateY(0deg) translateZ(${offset}px)`;
+            duplicate.style.transition = `transform ${isoCardRepelDuration}s ease`;
+            if (activeIndex >= 0) {
+                const cardHeight = duplicate.offsetHeight || boxHeight;
+                const popUpAmount = cardHeight * 0.3;
+                if (duplicate === activeIsoCardElement) {
+                    duplicate.style.transform = `${centerTransform} rotateY(0deg) translateZ(${offset}px) translateY(${-popUpAmount}px)`;
+                } else if (activeBaseOffset != null && offset > activeBaseOffset) {
+                    duplicate.style.transform = `${centerTransform} rotateY(0deg) translateZ(${offset + isoCardRepelDistance}px)`;
+                } else {
+                    duplicate.style.transform = `${centerTransform} rotateY(0deg) translateZ(${offset}px)`;
+                }
+            } else {
+                duplicate.style.transform = `${centerTransform} rotateY(0deg) translateZ(${offset}px)`;
+            }
         });
 
         backFace.style.transform = `${centerTransform} rotateY(180deg) translateZ(${halfLength}px)`;
@@ -228,6 +261,8 @@ window.addEventListener('DOMContentLoaded', () => {
         if (config.height !== undefined) boxHeight = config.height;
         if (config.isoCardCount !== undefined) isoCardCount = config.isoCardCount;
         if (config.isoCardSpacing !== undefined) isoCardSpacing = config.isoCardSpacing;
+        if (config.isoCardRepelDistance !== undefined) isoCardRepelDistance = config.isoCardRepelDistance;
+        if (config.isoCardRepelDuration !== undefined) isoCardRepelDuration = config.isoCardRepelDuration;
         if (config.rotateX !== undefined) rotateX = config.rotateX;
         if (config.rotateY !== undefined) rotateY = config.rotateY;
         if (config.positionX !== undefined) positionX = config.positionX;
@@ -270,9 +305,9 @@ window.addEventListener('DOMContentLoaded', () => {
             var t = e.target;
             if (!t || !t.closest || !t.closest('.front-duplicate')) {
                 if (previewedCard) {
-                    var prevOffset = parseFloat(previewedCard.dataset.baseOffset || '0');
-                    previewedCard.style.transform = 'translate(-50%, -50%) rotateY(0deg) translateZ(' + prevOffset + 'px) translateY(0px)';
                     previewedCard = null;
+                    activeIsoCardElement = null;
+                    updateBox();
                 }
             }
         }
@@ -351,6 +386,8 @@ window.addEventListener('DOMContentLoaded', () => {
         height: 300,
         isoCardCount: 60,
         isoCardSpacing: 84,
+        isoCardRepelDistance: 40,
+        isoCardRepelDuration: 0.3,
         rotateX: -30,
         rotateY: -45,
         positionX: -27,
