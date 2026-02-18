@@ -4,6 +4,10 @@
  */
 
 const BUCKET = 'project-media';
+/** Supabase Free tier max file size (50 MB). Pro/Team can be higher; set in Storage Settings. */
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+const FILE_TOO_LARGE_MSG = 'File too large (max 50 MB). Use a smaller file or compress it.';
+
 let clientPromise = null;
 
 async function getClient() {
@@ -34,6 +38,7 @@ function makePath(projectId, filename) {
  */
 export async function uploadFile(projectId, file, progress) {
     const size = file && file.size || 0;
+    if (size > MAX_UPLOAD_BYTES) throw new Error(FILE_TOO_LARGE_MSG);
     if (progress && progress.onStart) progress.onStart(size);
     const supabase = await getClient();
     if (!supabase) {
@@ -48,6 +53,7 @@ export async function uploadFile(projectId, file, progress) {
     if (progress && progress.onDone) progress.onDone(size);
     if (error) {
         console.warn('Supabase upload error:', error);
+        if (error.message && /maximum|size|exceeded/i.test(error.message)) throw new Error(FILE_TOO_LARGE_MSG);
         return null;
     }
     const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
@@ -64,6 +70,7 @@ export async function uploadFile(projectId, file, progress) {
  */
 export async function uploadBlob(projectId, blob, filename, progress) {
     const size = blob && blob.size || 0;
+    if (size > MAX_UPLOAD_BYTES) throw new Error(FILE_TOO_LARGE_MSG);
     if (progress && progress.onStart) progress.onStart(size);
     const supabase = await getClient();
     if (!supabase) {
@@ -78,6 +85,7 @@ export async function uploadBlob(projectId, blob, filename, progress) {
     if (progress && progress.onDone) progress.onDone(size);
     if (error) {
         console.warn('Supabase upload error:', error);
+        if (error.message && /maximum|size|exceeded/i.test(error.message)) throw new Error(FILE_TOO_LARGE_MSG);
         return null;
     }
     const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);

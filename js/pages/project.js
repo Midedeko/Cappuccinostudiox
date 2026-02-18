@@ -17,6 +17,7 @@ if (!projectId) {
 const state = {
     galleryItems: DEFAULT_GALLERY_ITEMS.slice(),
     backgroundVideos: [],
+    defaultBackgroundVideos: [],
     projectStoryline: '',
     projectStorylineTitle: '',
     projectName: 'Project ' + projectId
@@ -63,11 +64,36 @@ function buildExpandedMedia(item) {
     return el;
 }
 
-/** Caption text = storyline title (fallback item name). For PDF in preview we show TAP TO OPEN. Blank if item name contains 6969. */
+/** Build expanded-background element from a defaultBackgroundVideos entry ({ type, src, trimStart?, trimEnd? }). */
+function buildExpandedMediaFromDefaultEntry(entry) {
+    if (!entry || !entry.src) return null;
+    const isVideo = entry.type === 'video';
+    if (isVideo) {
+        const el = document.createElement('video');
+        el.src = entry.src;
+        el.autoplay = true;
+        el.loop = true;
+        el.muted = true;
+        el.playsInline = true;
+        const trimStart = entry.trimStart != null && isFinite(entry.trimStart) ? entry.trimStart : 0;
+        const trimEnd = entry.trimEnd != null && isFinite(entry.trimEnd) ? entry.trimEnd : null;
+        el.addEventListener('loadeddata', () => { el.currentTime = trimStart; });
+        if (trimEnd != null) {
+            el.addEventListener('timeupdate', () => { if (el.currentTime >= trimEnd) el.currentTime = trimStart; });
+        }
+        return el;
+    }
+    const img = document.createElement('img');
+    img.src = entry.src;
+    img.alt = '';
+    return img;
+}
+
+/** Caption text = storyline title (fallback item name). In preview mode (active item) we show TAP TO OPEN for all types. Blank if item name contains 6969. */
 function getCaptionText(item, usePdfCta) {
     if (!item) return '';
     if (item.name != null && String(item.name).includes('6969')) return '';
-    if (usePdfCta && item.type === 'pdf') return 'TAP TO OPEN';
+    if (usePdfCta) return 'TAP TO OPEN';
     return (item.storylineTitle != null && String(item.storylineTitle).trim() !== '') ? String(item.storylineTitle).trim() : (item.name || '');
 }
 /** Set caption for one gallery item. */
@@ -85,7 +111,7 @@ function restoreGalleryCaptions() {
 
 const DEFAULT_RED_BG = '#E70017';
 
-/** Desktop only: show item in expanded background (or red if item not on background roster). No-op when in preview mode. */
+/** Desktop only: show item in expanded background (or default background / red if item not on background roster). No-op when in preview mode. */
 function setHoverPreview(index) {
     if (window.matchMedia('(max-width: 768px)').matches) return;
     if (activeItemIndex !== null) return; /* don't hijack preview mode */
@@ -98,6 +124,10 @@ function setHoverPreview(index) {
     expandedBg.style.backgroundColor = '';
     if (item.backgroundRoster) {
         expandedBg.appendChild(buildExpandedMedia(item));
+    } else if (state.defaultBackgroundVideos && state.defaultBackgroundVideos.length > 0) {
+        const defaultEl = buildExpandedMediaFromDefaultEntry(state.defaultBackgroundVideos[0]);
+        if (defaultEl) expandedBg.appendChild(defaultEl);
+        else expandedBg.style.backgroundColor = DEFAULT_RED_BG;
     } else {
         expandedBg.style.backgroundColor = DEFAULT_RED_BG;
     }
@@ -155,6 +185,10 @@ function setActiveItem(index) {
     expandedBg.style.backgroundColor = '';
     if (item.backgroundRoster) {
         expandedBg.appendChild(buildExpandedMedia(item));
+    } else if (state.defaultBackgroundVideos && state.defaultBackgroundVideos.length > 0) {
+        const defaultEl = buildExpandedMediaFromDefaultEntry(state.defaultBackgroundVideos[0]);
+        if (defaultEl) expandedBg.appendChild(defaultEl);
+        else expandedBg.style.backgroundColor = DEFAULT_RED_BG;
     } else {
         expandedBg.style.backgroundColor = DEFAULT_RED_BG;
     }

@@ -24,7 +24,7 @@ export function applyCmsData(data, state, projectId) {
         state.galleryItems = data.items.map(it => {
             const src = resolveSrc(it);
             const type = it.type || 'image';
-            const base = { type, src, name: it.name || 'Untitled', trimStart: it.trimStart, trimEnd: it.trimEnd, storyline: it.storyline, storylineTitle: it.storylineTitle ?? '', backgroundRoster: !!it.backgroundRoster };
+            const base = { type, src, name: it.name || 'Untitled', trimStart: it.trimStart, trimEnd: it.trimEnd, storyline: it.storyline, storylineTitle: it.storylineTitle ?? '', backgroundRoster: !!it.backgroundRoster, defaultBackgroundRoster: !!it.defaultBackgroundRoster };
             if (type === 'pdf') base.thumbnail = it.thumbnail || null;
             return base;
         }).filter(it => it.src);
@@ -43,8 +43,21 @@ export function applyCmsData(data, state, projectId) {
                     trimEnd: it.trimEnd
                 })) : state.backgroundVideos;
             }
+            // Default background roster: used on first load (if no background roster) and when selected item is not on roster.
+            const defaultItems = state.galleryItems.filter(it => it.defaultBackgroundRoster);
+            state.defaultBackgroundVideos = defaultItems.length > 0 ? defaultItems.map(it => ({
+                type: it.type,
+                src: it.src,
+                duration: it.type === 'image' ? 5000 : undefined,
+                trimStart: it.trimStart,
+                trimEnd: it.trimEnd
+            })) : [];
+            if (state.backgroundVideos.length === 0 && state.defaultBackgroundVideos.length > 0) {
+                state.backgroundVideos = state.defaultBackgroundVideos;
+            }
         }
     }
+    if (!state.defaultBackgroundVideos) state.defaultBackgroundVideos = [];
     if (state.galleryItems.length === 0) state.galleryItems = DEFAULT_GALLERY_ITEMS.slice();
 }
 

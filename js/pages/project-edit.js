@@ -133,6 +133,8 @@ function renderItem(item, index) {
         (item.storyline != null && item.storyline !== '' ? '<div class="item-storyline-preview" title="Content storyline">' + escapeHtml(String(item.storyline).slice(0, 60)) + (item.storyline.length > 60 ? '…' : '') + '</div>' : '') +
         '<div class="row"><span class="switch-label">Background roster</span>' +
         '<div class="switch ' + (item.backgroundRoster ? 'on' : '') + '" data-index="' + index + '" role="button" tabindex="0"></div></div>' +
+        '<div class="row"><span class="switch-label">Default background</span>' +
+        '<div class="switch switch-default-bg ' + (item.defaultBackgroundRoster ? 'on' : '') + '" data-index="' + index + '" data-default-bg="1" role="button" tabindex="0" title="Shows on first load and when this content is not on the background roster"></div></div>' +
         '<div class="row storyline-row"><label class="switch-label">Storyline title (gallery caption)</label></div>' +
         '<input type="text" class="item-storyline-title" data-index="' + index + '" placeholder="Shown as caption under the image" value="' + escapeHtml((item.storylineTitle != null ? item.storylineTitle : '')) + '">' +
         '<div class="row storyline-row"><label class="switch-label">Storyline (on preview)</label></div>' +
@@ -152,7 +154,12 @@ function render() {
     ul.innerHTML = items.map((item, i) => renderItem(item, i)).join('');
     ul.querySelectorAll('.switch').forEach(el => {
         el.addEventListener('click', () => {
-            items[parseInt(el.dataset.index, 10)].backgroundRoster = !items[parseInt(el.dataset.index, 10)].backgroundRoster;
+            const idx = parseInt(el.dataset.index, 10);
+            if (el.dataset.defaultBg === '1') {
+                items[idx].defaultBackgroundRoster = !items[idx].defaultBackgroundRoster;
+            } else {
+                items[idx].backgroundRoster = !items[idx].backgroundRoster;
+            }
             render();
         });
     });
@@ -232,7 +239,7 @@ function render() {
                     trimEnd: null,
                     storyline: '',
                     storylineTitle: '',
-                    backgroundRoster: false
+                    backgroundRoster: false, defaultBackgroundRoster: false
                 };
                 openTrimModal(getItemSrc(item), newItem.name, null, (trim) => {
                     newItem.trimStart = trim.trimStart;
@@ -249,7 +256,7 @@ function render() {
                     item.assetId = assetId;
                     delete item.src;
                     openAddCutModal();
-                });
+                }).catch(err => alert(err && err.message ? err.message : 'Upload failed'));
             } else {
                 openAddCutModal();
             }
@@ -367,7 +374,7 @@ document.getElementById('replaceFileInput').addEventListener('change', (e) => {
             }
             items[idx].src = newSrc;
             render();
-        });
+        }).catch(err => alert(err && err.message ? err.message : 'Upload failed'));
     } else if (item.type === 'pdf') {
         if (file.type !== 'application/pdf') {
             alert('Please choose a PDF file.');
@@ -389,7 +396,7 @@ document.getElementById('replaceFileInput').addEventListener('change', (e) => {
                 };
                 reader.readAsDataURL(file);
             }
-        });
+        }).catch(err => alert(err && err.message ? err.message : 'Upload failed'));
     } else {
         if (!file.type.startsWith('video/')) {
             alert('Please choose a video file.');
@@ -416,7 +423,7 @@ document.getElementById('replaceFileInput').addEventListener('change', (e) => {
                     items[idx].trimStart = trim.trimStart;
                     items[idx].trimEnd = trim.trimEnd;
                     render();
-                });
+                }).catch(err => alert(err && err.message ? err.message : 'Upload failed'));
             }, () => {});
         };
         reader.readAsDataURL(file);
@@ -473,7 +480,7 @@ function onPdfThumbnailChosen(thumbUrl) {
             name: pdfThumbnailPending.name || 'PDF',
             storyline: '',
             storylineTitle: '',
-            backgroundRoster: false
+            backgroundRoster: false, defaultBackgroundRoster: false
         });
         render();
     }
@@ -497,7 +504,7 @@ function onPdfThumbnailSkipped() {
         name: pdfThumbnailPending.name || 'PDF',
         storyline: '',
         storylineTitle: '',
-        backgroundRoster: false
+        backgroundRoster: false, defaultBackgroundRoster: false
     });
     render();
     closePdfThumbnailModal();
@@ -518,7 +525,7 @@ document.getElementById('pdfThumbnailInput').addEventListener('change', (e) => {
             reader.onload = () => onPdfThumbnailChosen(reader.result);
             reader.readAsDataURL(file);
         }
-    });
+    }).catch(err => alert(err && err.message ? err.message : 'Upload failed'));
 });
 
 function openTrimModal(videoSrc, name, fileSizeBytes, onAdd, onCancel) {
@@ -663,17 +670,17 @@ function addFiles(files) {
         const name = file.name || 'Untitled';
         uploadFile(projectId, file, uploadProgressCallbacks()).then(url => {
             if (url) {
-                items.push({ type: 'image', src: url, name, storylineTitle: '', backgroundRoster: false });
+                items.push({ type: 'image', src: url, name, storylineTitle: '', backgroundRoster: false, defaultBackgroundRoster: false });
                 render();
             } else {
                 const reader = new FileReader();
                 reader.onload = () => {
-                    items.push({ type: 'image', src: reader.result, name, storylineTitle: '', backgroundRoster: false });
+                    items.push({ type: 'image', src: reader.result, name, storylineTitle: '', backgroundRoster: false, defaultBackgroundRoster: false });
                     render();
                 };
                 reader.readAsDataURL(file);
             }
-        });
+        }).catch(err => alert(err && err.message ? err.message : 'Upload failed'));
     });
     pdfFiles.forEach(file => {
         const name = file.name || 'PDF';
@@ -689,7 +696,7 @@ function addFiles(files) {
                 };
                 reader.readAsDataURL(file);
             }
-        });
+        }).catch(err => alert(err && err.message ? err.message : 'Upload failed'));
     });
     if (videoFiles.length === 0 && pdfFiles.length === 0) return;
     videoTrimQueue = videoFiles.slice();
@@ -711,7 +718,7 @@ function addFiles(files) {
                         src,
                         name,
                         storylineTitle: '',
-                        backgroundRoster: false,
+                        backgroundRoster: false, defaultBackgroundRoster: false,
                         trimStart: trim.trimStart,
                         trimEnd: trim.trimEnd
                     };
@@ -725,7 +732,7 @@ function addFiles(files) {
                     }
                     items.push(newItem);
                     processNextVideo();
-                });
+                }).catch(err => { alert(err && err.message ? err.message : 'Upload failed'); processNextVideo(); });
             }, () => {
                 processNextVideo();
             });
@@ -771,7 +778,7 @@ document.getElementById('thumbnailInput').addEventListener('change', (e) => {
             reader.readAsDataURL(file);
         }
         e.target.value = '';
-    });
+    }).catch(err => alert(err && err.message ? err.message : 'Upload failed'));
 });
 document.getElementById('thumbnailClearBtn').addEventListener('click', () => {
     thumbnailDataUrl = null;

@@ -67,6 +67,8 @@ The frontend gets these via **GET /api/config**, which your API serves from the 
 
 The **projects** table only stores URLs and metadata, so the JSON stays small and syncs correctly.
 
+**File size:** Supabase **Free** tier allows up to **50 MB** per file (set in [Storage Settings](https://supabase.com/dashboard/project/_/storage/settings)). The app blocks uploads over 50 MB and shows “File too large (max 50 MB). Use a smaller file or compress it.” On **Pro/Team** you can raise the global limit (up to 500 GB) in the same settings.
+
 ## 5. If uploads fail or save still says “over 4.5 MB”
 
 - **Vercel env vars:** `SUPABASE_URL` and `SUPABASE_ANON_KEY` must be set (and enabled for Preview + Production). The frontend gets them from **GET /api/config**; if those are missing, uploads never go to Storage and media stays in the JSON.
