@@ -35,8 +35,6 @@ window.addEventListener('DOMContentLoaded', () => {
     let isoCardRepelDistance = 40;
     let isoCardRepelDuration = 0.3;
     let activeIsoCardElement = null;
-    /** Only this many slots from the front are visible; cards further back are hidden so we don't see the long trip. */
-    const isoCardVisibleSlots = 20;
 
     boxLength = Math.max(200, (isoCardCount * isoCardSpacing) + 100);
 
@@ -70,11 +68,6 @@ window.addEventListener('DOMContentLoaded', () => {
         frontDuplicates.forEach((isoCard) => {
             const newCard = isoCard.cloneNode(true);
             isoCard.parentNode.replaceChild(newCard, isoCard);
-            const img = newCard.querySelector('img');
-            if (img) {
-                img.addEventListener('load', () => sizeCardToImage(newCard, img, boxWidth, boxHeight));
-                if (img.complete && img.naturalWidth && img.naturalHeight) sizeCardToImage(newCard, img, boxWidth, boxHeight);
-            }
             newCard.addEventListener('mousedown', (e) => {
                 lastMouseX = e.clientX;
                 lastMouseY = e.clientY;
@@ -164,6 +157,8 @@ window.addEventListener('DOMContentLoaded', () => {
             img.alt = proj && proj.name ? proj.name : `Thumbnail ${(index % imagePaths.length) + 1}`;
             card.appendChild(img);
             card.setAttribute('data-project-id', projectIds.length ? projectIds[index % projectIds.length] : '');
+            img.addEventListener('load', () => sizeCardToImage(card, img, boxWidth, boxHeight));
+            if (img.complete) sizeCardToImage(card, img, boxWidth, boxHeight);
         });
         attachIsoCardHoverHandlers();
         allCards.forEach(card => {
@@ -238,9 +233,6 @@ window.addEventListener('DOMContentLoaded', () => {
             const wrappedPosition = virtualPosition < 0 ? virtualPosition + isoCardCount : virtualPosition;
             const offset = halfLength - ((wrappedPosition + 1) * isoCardSpacing);
             duplicate.dataset.baseOffset = offset;
-            const inVisibleWindow = wrappedPosition < isoCardVisibleSlots;
-            duplicate.style.opacity = inVisibleWindow ? '1' : '0';
-            duplicate.style.pointerEvents = inVisibleWindow ? 'auto' : 'none';
             duplicate.style.transition = `transform ${isoCardRepelDuration}s ease`;
             if (activeIndex >= 0) {
                 const cardHeight = duplicate.offsetHeight || boxHeight;
