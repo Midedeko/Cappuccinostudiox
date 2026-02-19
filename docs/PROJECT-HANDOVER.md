@@ -28,6 +28,7 @@ This document briefs a new agent (or developer) so they can continue work on thi
   - **`projects.js`** — `GET /api/projects` (list), `POST /api/projects` (upsert project). Body limit **4.5 MB** (Vercel, cannot be increased).
   - **`projects/[id].js`** — `GET /api/projects/:id` (single project).
   - **`storage-cleanup.js`** — `POST /api/storage-cleanup`. Deletes orphan files in bucket `project-media`. Requires **SUPABASE_SERVICE_ROLE_KEY** in Vercel.
+  - **`project-files-config.js`** — `GET /api/project-files-config` (fetch 3D config from Supabase), `POST /api/project-files-config` (save). Used by project-files page and admin so config is server-side and consistent across devices.
 - **`docs/`** — Project documentation (setup, troubleshooting, handover). See section 8 below.
 
 ---
@@ -58,7 +59,7 @@ This document briefs a new agent (or developer) so they can continue work on thi
 - **Project URL** — From Dashboard → Project Settings → **API** (or Data API). Used as `SUPABASE_URL` in Vercel.
 - **Keys** — From Project Settings → **API Keys** (not Data API). **Legacy API Keys** tab: **anon** (public) and **service_role** (secret). `SUPABASE_ANON_KEY` for API + frontend; `SUPABASE_SERVICE_ROLE_KEY` only for server (e.g. storage cleanup).
 - **Bucket:** `project-media`, **public**, with RLS: INSERT and SELECT for `bucket_id = 'project-media'`.
-- **Table:** `projects` (id, name, items, storyline, storyline_title, thumbnail, assets). `items`/`assets` are JSON; thumbnail can be URL or null.
+- **Tables:** `projects` (id, name, items, storyline, storyline_title, thumbnail, assets). `items`/`assets` are JSON; thumbnail can be URL or null. **`site_config`** (key text primary key, value jsonb) — stores Project Files 3D config under key `project_files_3d`. One-time setup: see **`docs/PROJECT-FILES-CONFIG-SETUP.md`** (copy-paste SQL).
 
 ---
 
@@ -96,6 +97,7 @@ This document briefs a new agent (or developer) so they can continue work on thi
 - **`SUPABASE-ADD-THUMBNAIL-COLUMN.md`** — Thumbnail column on `projects` table.
 - **`GALLERY-TRACK-INTERACTIONS.md`** — Gallery/project page interactions.
 - **`PROJECT-FILES-MOBILE-SCROLL-REALITY.md`** — Mobile scroll behavior on project-files.
+- **`PROJECT-FILES-CONFIG-SETUP.md`** — Supabase table and RLS for Project Files 3D config (copy-paste SQL).
 
 ---
 

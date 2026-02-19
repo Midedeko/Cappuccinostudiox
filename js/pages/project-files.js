@@ -68,6 +68,11 @@ window.addEventListener('DOMContentLoaded', () => {
         frontDuplicates.forEach((isoCard) => {
             const newCard = isoCard.cloneNode(true);
             isoCard.parentNode.replaceChild(newCard, isoCard);
+            const img = newCard.querySelector('img');
+            if (img) {
+                img.addEventListener('load', () => sizeCardToImage(newCard, img, boxWidth, boxHeight));
+                if (img.complete && img.naturalWidth && img.naturalHeight) sizeCardToImage(newCard, img, boxWidth, boxHeight);
+            }
             newCard.addEventListener('mousedown', (e) => {
                 lastMouseX = e.clientX;
                 lastMouseY = e.clientY;
@@ -157,8 +162,6 @@ window.addEventListener('DOMContentLoaded', () => {
             img.alt = proj && proj.name ? proj.name : `Thumbnail ${(index % imagePaths.length) + 1}`;
             card.appendChild(img);
             card.setAttribute('data-project-id', projectIds.length ? projectIds[index % projectIds.length] : '');
-            img.addEventListener('load', () => sizeCardToImage(card, img, boxWidth, boxHeight));
-            if (img.complete) sizeCardToImage(card, img, boxWidth, boxHeight);
         });
         attachIsoCardHoverHandlers();
         allCards.forEach(card => {
@@ -400,16 +403,41 @@ window.addEventListener('DOMContentLoaded', () => {
         showTopFace: false,
         showBottomFace: false
     };
-    let config = defaultConfig;
-    try {
-        const raw = localStorage.getItem(PROJECT_FILES_CONFIG_KEY);
-        if (raw) {
-            const parsed = JSON.parse(raw);
-            if (parsed && typeof parsed === 'object') config = parsed;
+    function applyConfigAndShow(config) {
+        if (!config || typeof config !== 'object') config = defaultConfig;
+        try {
+            const merged = { ...defaultConfig, ...config };
+            loadConfig(merged);
+            try { localStorage.setItem(PROJECT_FILES_CONFIG_KEY, JSON.stringify(merged)); } catch (e) {}
+        } catch (e) {
+            loadConfig(defaultConfig);
         }
-    } catch (e) {}
-    loadConfig(config);
-    hideLoadingScreen();
+        hideLoadingScreen();
+    }
+    fetch('/api/project-files-config')
+        .then(res => res.ok ? res.json() : { config: null })
+        .then(data => {
+            if (data && data.config && typeof data.config === 'object') return data.config;
+            const raw = localStorage.getItem(PROJECT_FILES_CONFIG_KEY);
+            if (raw) {
+                try {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && typeof parsed === 'object') return parsed;
+                } catch (e) {}
+            }
+            return defaultConfig;
+        })
+        .then(applyConfigAndShow)
+        .catch(() => {
+            try {
+                const raw = localStorage.getItem(PROJECT_FILES_CONFIG_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && typeof parsed === 'object') { applyConfigAndShow(parsed); return; }
+                }
+            } catch (e) {}
+            applyConfigAndShow(defaultConfig);
+        });
     }).catch(() => {
         hideLoadingScreen();
     });

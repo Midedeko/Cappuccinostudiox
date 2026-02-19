@@ -149,6 +149,7 @@ window.addEventListener('DOMContentLoaded', () => {
     let scrollPosition = 0; // Track scroll position for infinite scrolling
     let popUpAmount = 20; // Pop up amount as percentage
     let showEdgeLines = true; // Show edge lines on Iso cards
+    let activeIsoCardIndex = -1; // Hovered card index for repulsion preview
     
     // Calculate initial box length based on Iso cards
     boxLength = Math.max(200, (isoCardCount * isoCardSpacing) + 100);
@@ -212,23 +213,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
     function attachIsoCardHoverHandlers() {
         const frontDuplicates = boxContainer.querySelectorAll('.front-duplicate');
-        frontDuplicates.forEach((isoCard) => {
-            // Remove existing listeners by cloning
+        frontDuplicates.forEach((isoCard, index) => {
             const newCard = isoCard.cloneNode(true);
             isoCard.parentNode.replaceChild(newCard, isoCard);
-            
-            // Add new listeners
             newCard.addEventListener('mouseenter', () => {
-                const baseOffset = parseFloat(newCard.dataset.baseOffset || '0');
-                const popUpPixels = boxHeight * (popUpAmount / 100);
-                const centerTransform = 'translate(-50%, -50%)';
-                newCard.style.transform = `${centerTransform} rotateY(0deg) translateZ(${baseOffset}px) translateY(${-popUpPixels}px)`;
+                activeIsoCardIndex = index;
+                updateBox();
             });
-
             newCard.addEventListener('mouseleave', () => {
-                const baseOffset = parseFloat(newCard.dataset.baseOffset || '0');
-                const centerTransform = 'translate(-50%, -50%)';
-                newCard.style.transform = `${centerTransform} rotateY(0deg) translateZ(${baseOffset}px) translateY(0px)`;
+                activeIsoCardIndex = -1;
+                updateBox();
             });
         });
     }
@@ -257,27 +251,40 @@ window.addEventListener('DOMContentLoaded', () => {
         // Get updated list of Iso cards
         const frontDuplicates = boxContainer.querySelectorAll('.front-duplicate');
         
-        // Position Iso cards with infinite scroll wrapping
+        // Repel distance/duration from controls (same as project-files)
+        const repelDistanceEl = document.getElementById('isoCardRepelDistanceValue');
+        const repelDurationEl = document.getElementById('isoCardRepelDurationValue');
+        const repelDistance = repelDistanceEl ? parseInt(repelDistanceEl.value, 10) : 40;
+        const repelDuration = repelDurationEl ? parseFloat(repelDurationEl.value) : 0.3;
+        const activeBaseOffset = activeIsoCardIndex >= 0 ? (() => {
+            const v = (activeIsoCardIndex - scrollPosition) % isoCardCount;
+            const w = v < 0 ? v + isoCardCount : v;
+            return halfLength - ((w + 1) * isoCardSpacing);
+        })() : null;
+
+        // Position Iso cards with infinite scroll wrapping (and repulsion when one is hovered)
         frontDuplicates.forEach((duplicate, index) => {
-            // Calculate virtual position based on scroll
-            // Scroll up (scrollPosition increases) moves cards forward (to lower position numbers)
-            // Scroll down (scrollPosition decreases) moves cards backward (to higher position numbers)
-            // Lower position numbers = front (higher Z), higher position numbers = back (lower Z)
             const virtualPosition = (index - scrollPosition) % isoCardCount;
-            // Ensure positive modulo result
             const wrappedPosition = virtualPosition < 0 ? virtualPosition + isoCardCount : virtualPosition;
-            
-            // Position cards starting from the front, spaced by isoCardSpacing
-            // Card at position 0 is at the front, higher positions go deeper
             const offset = halfLength - ((wrappedPosition + 1) * isoCardSpacing);
-            
-            // Store the base offset for hover effect
             duplicate.dataset.baseOffset = offset;
             duplicate.style.width = boxWidth + 'px';
             duplicate.style.height = boxHeight + 'px';
             duplicate.style.left = '50%';
             duplicate.style.top = '50%';
-            duplicate.style.transform = `${centerTransform} rotateY(0deg) translateZ(${offset}px)`;
+            duplicate.style.transition = `transform ${repelDuration}s ease`;
+            if (activeIsoCardIndex >= 0) {
+                const popUpPixels = boxHeight * (popUpAmount / 100);
+                if (index === activeIsoCardIndex) {
+                    duplicate.style.transform = `${centerTransform} rotateY(0deg) translateZ(${offset}px) translateY(${-popUpPixels}px)`;
+                } else if (activeBaseOffset != null && offset > activeBaseOffset) {
+                    duplicate.style.transform = `${centerTransform} rotateY(0deg) translateZ(${offset + repelDistance}px)`;
+                } else {
+                    duplicate.style.transform = `${centerTransform} rotateY(0deg) translateZ(${offset}px)`;
+                }
+            } else {
+                duplicate.style.transform = `${centerTransform} rotateY(0deg) translateZ(${offset}px)`;
+            }
         });
 
         // Back face: width x height, positioned at -Z (-length/2)
@@ -555,32 +562,55 @@ window.addEventListener('DOMContentLoaded', () => {
         showFrontFace: false, showBackFace: false, showRightFace: false, showLeftFace: false, showTopFace: false, showBottomFace: false
     };
 
-    // Load Project Files config from localStorage so admin view matches project-files page
+    // Load Project Files config from server first, then localStorage, so admin view matches project-files page
     function loadProjectFilesConfig() {
-        try {
-            let config = null;
-            const raw = localStorage.getItem(PROJECT_FILES_CONFIG_KEY);
-            if (raw) {
-                config = JSON.parse(raw);
-            }
-            if (!config || typeof config !== 'object') config = defaultProjectFilesConfig;
-            applyConfigToControls(config);
-            updateFaceVisibility();
-            updateBox();
-            updateConfigDisplay();
-        } catch (e) {}
+        fetch('/api/project-files-config')
+            .then(res => res.ok ? res.json() : { config: null })
+            .then(data => {
+                let config = (data && data.config && typeof data.config === 'object') ? data.config : null;
+                if (!config) {
+                    try {
+                        const raw = localStorage.getItem(PROJECT_FILES_CONFIG_KEY);
+                        if (raw) config = JSON.parse(raw);
+                    } catch (e) {}
+                }
+                if (!config || typeof config !== 'object') config = defaultProjectFilesConfig;
+                try { localStorage.setItem(PROJECT_FILES_CONFIG_KEY, JSON.stringify(config)); } catch (e) {}
+                applyConfigToControls(config);
+                updateFaceVisibility();
+                updateBox();
+                updateConfigDisplay();
+            })
+            .catch(() => {
+                try {
+                    const raw = localStorage.getItem(PROJECT_FILES_CONFIG_KEY);
+                    const config = raw ? JSON.parse(raw) : defaultProjectFilesConfig;
+                    applyConfigToControls(config);
+                    updateFaceVisibility();
+                    updateBox();
+                    updateConfigDisplay();
+                } catch (e) {}
+            });
     }
 
     document.getElementById('applyToProjectFilesBtn').addEventListener('click', () => {
         if (!confirm('This change will be applied to the Project Files page. Visitors will see this 3D viewport state. Continue?')) return;
-        try {
-            localStorage.setItem(PROJECT_FILES_CONFIG_KEY, JSON.stringify(getCurrentConfig()));
-            const btn = document.getElementById('applyToProjectFilesBtn');
-            btn.textContent = 'Applied';
-            setTimeout(() => { btn.textContent = 'Apply to Project Files'; }, 2000);
-        } catch (e) {
-            alert('Failed to save.');
-        }
+        const btn = document.getElementById('applyToProjectFilesBtn');
+        const payload = getCurrentConfig();
+        fetch('/api/project-files-config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(res => {
+                if (!res.ok) return res.json().then(d => Promise.reject(new Error(d.error || res.statusText)));
+                try { localStorage.setItem(PROJECT_FILES_CONFIG_KEY, JSON.stringify(payload)); } catch (e) {}
+                btn.textContent = 'Applied';
+                setTimeout(() => { btn.textContent = 'Apply to Project Files'; }, 2000);
+            })
+            .catch(e => {
+                alert('Failed to save: ' + (e.message || 'network error'));
+            });
     });
 
     document.getElementById('discardProjectFilesBtn').addEventListener('click', () => {
