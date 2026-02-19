@@ -135,6 +135,7 @@ function renderItem(item, index) {
         '<div class="switch ' + (item.backgroundRoster ? 'on' : '') + '" data-index="' + index + '" role="button" tabindex="0"></div></div>' +
         '<div class="row"><span class="switch-label">Default background</span>' +
         '<div class="switch switch-default-bg ' + (item.defaultBackgroundRoster ? 'on' : '') + '" data-index="' + index + '" data-default-bg="1" role="button" tabindex="0" title="Shows on first load and when this content is not on the background roster"></div></div>' +
+        (item.type === 'video' ? '<div class="row"><span class="switch-label">Sound</span><div class="switch switch-sound ' + (item.audioEnabled ? 'on' : '') + '" data-index="' + index + '" data-sound="1" role="button" tabindex="0" title="Play this video with sound when opened"></div></div>' : '') +
         '<div class="row storyline-row"><label class="switch-label">Storyline title (gallery caption)</label></div>' +
         '<input type="text" class="item-storyline-title" data-index="' + index + '" placeholder="Shown as caption under the image" value="' + escapeHtml((item.storylineTitle != null ? item.storylineTitle : '')) + '">' +
         '<div class="row storyline-row"><label class="switch-label">Storyline (on preview)</label></div>' +
@@ -157,6 +158,8 @@ function render() {
             const idx = parseInt(el.dataset.index, 10);
             if (el.dataset.defaultBg === '1') {
                 items[idx].defaultBackgroundRoster = !items[idx].defaultBackgroundRoster;
+            } else if (el.dataset.sound === '1') {
+                items[idx].audioEnabled = !items[idx].audioEnabled;
             } else {
                 items[idx].backgroundRoster = !items[idx].backgroundRoster;
             }
@@ -239,7 +242,8 @@ function render() {
                     trimEnd: null,
                     storyline: '',
                     storylineTitle: '',
-                    backgroundRoster: false, defaultBackgroundRoster: false
+                    backgroundRoster: false, defaultBackgroundRoster: false,
+                    audioEnabled: false
                 };
                 openTrimModal(getItemSrc(item), newItem.name, null, (trim) => {
                     newItem.trimStart = trim.trimStart;
@@ -719,6 +723,7 @@ function addFiles(files) {
                         name,
                         storylineTitle: '',
                         backgroundRoster: false, defaultBackgroundRoster: false,
+                        audioEnabled: false,
                         trimStart: trim.trimStart,
                         trimEnd: trim.trimEnd
                     };
