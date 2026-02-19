@@ -228,12 +228,29 @@ window.addEventListener('DOMContentLoaded', () => {
             return halfLength - ((w + 1) * isoCardSpacing);
         })() : null;
 
+        // During scroll transition, hide the card that is wrapping (disappears from one end, reappears at the other)
+        const frac = scrollPosition - Math.floor(scrollPosition);
+        const isTransitioning = frac > 0.002 && frac < 0.998;
+        const scrollingDown = targetScrollPosition > scrollPosition;
+        const wrapHideIndex = isTransitioning
+            ? (scrollingDown
+                ? (Math.floor(scrollPosition) + 1 + isoCardCount) % isoCardCount
+                : (Math.floor(scrollPosition) + isoCardCount) % isoCardCount)
+            : -1;
+
         frontDuplicates.forEach((duplicate, index) => {
             const virtualPosition = (index - scrollPosition) % isoCardCount;
             const wrappedPosition = virtualPosition < 0 ? virtualPosition + isoCardCount : virtualPosition;
             const offset = halfLength - ((wrappedPosition + 1) * isoCardSpacing);
             duplicate.dataset.baseOffset = offset;
             duplicate.style.transition = `transform ${isoCardRepelDuration}s ease`;
+            if (wrapHideIndex >= 0 && index === wrapHideIndex) {
+                duplicate.style.visibility = 'hidden';
+                duplicate.style.pointerEvents = 'none';
+            } else {
+                duplicate.style.visibility = '';
+                duplicate.style.pointerEvents = '';
+            }
             if (activeIndex >= 0) {
                 const cardHeight = duplicate.offsetHeight || boxHeight;
                 const popUpAmount = cardHeight * 0.3;
