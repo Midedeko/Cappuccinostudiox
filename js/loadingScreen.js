@@ -110,7 +110,7 @@ function ensureOverlay() {
     const logoWrap = document.createElement('div');
     logoWrap.className = 'loading-screen-logo-wrap';
     const img = document.createElement('img');
-    img.src = 'Studiox Logo.svg';
+    img.src = 'Studioxx Logo.svg';
     img.alt = 'Cappuccino Studio';
     img.setAttribute('width', String(LOGO_HEIGHT_LOADING * 2));
     img.setAttribute('height', String(LOGO_HEIGHT_LOADING));
