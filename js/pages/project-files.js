@@ -228,8 +228,15 @@ window.addEventListener('DOMContentLoaded', () => {
             return halfLength - ((w + 1) * isoCardSpacing);
         })() : null;
 
-        // Hide the one card that is wrapping (just left front or just left back) so it disappears then reappears at the other end
-        const wrapZone = 0.5; // hide when position is in (0, 0.5) or (N-0.5, N)
+        // Kill-and-regenerate: hide the one card that is wrapping (left the back, will reappear at the front, or vice versa).
+        const frac = scrollPosition - Math.floor(scrollPosition);
+        const isTransitioning = frac > 0.02 && frac < 0.98;
+        const scrollingForward = targetScrollPosition > scrollPosition;
+        const wrapHideIndex = isTransitioning
+            ? (scrollingForward
+                ? (Math.floor(scrollPosition) + isoCardCount - 1) % isoCardCount  // card that left the back
+                : (Math.floor(scrollPosition) + isoCardCount) % isoCardCount)      // card that left the front
+            : -1;
 
         frontDuplicates.forEach((duplicate, index) => {
             const virtualPosition = (index - scrollPosition) % isoCardCount;
@@ -237,10 +244,8 @@ window.addEventListener('DOMContentLoaded', () => {
             const offset = halfLength - ((wrappedPosition + 1) * isoCardSpacing);
             duplicate.dataset.baseOffset = offset;
             duplicate.style.transition = `transform ${isoCardRepelDuration}s ease`;
-            const isWrappingFromFront = wrappedPosition > 0 && wrappedPosition < wrapZone;
-            const isWrappingFromBack = wrappedPosition > isoCardCount - wrapZone && wrappedPosition < isoCardCount;
-            const isInWrapZone = isWrappingFromFront || isWrappingFromBack;
-            if (isInWrapZone) {
+            const isKilled = wrapHideIndex >= 0 && index === wrapHideIndex;
+            if (isKilled) {
                 duplicate.style.visibility = 'hidden';
                 duplicate.style.pointerEvents = 'none';
             } else {
