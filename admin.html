@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,12 @@
             font-weight: normal;
             font-style: normal;
         }
-        html, body, * { font-family: 'Code Saver', sans-serif !important; }
+
+        html,
+        body,
+        * {
+            font-family: 'Code Saver', sans-serif !important;
+        }
 
         * {
             margin: 0;
@@ -147,15 +153,19 @@
             0% {
                 opacity: 0;
             }
+
             25% {
                 opacity: 0;
             }
+
             50% {
                 opacity: 1;
             }
+
             75% {
                 opacity: 1;
             }
+
             100% {
                 opacity: 1;
             }
@@ -165,15 +175,19 @@
             0% {
                 opacity: 1;
             }
+
             25% {
                 opacity: 1;
             }
+
             50% {
                 opacity: 0;
             }
+
             75% {
                 opacity: 0;
             }
+
             100% {
                 opacity: 0;
             }
@@ -183,15 +197,19 @@
             0% {
                 opacity: 1;
             }
+
             25% {
                 opacity: 0;
             }
+
             50% {
                 opacity: 1;
             }
+
             75% {
                 opacity: 0;
             }
+
             100% {
                 opacity: 0;
             }
@@ -201,15 +219,19 @@
             0% {
                 opacity: 0;
             }
+
             25% {
                 opacity: 1;
             }
+
             50% {
                 opacity: 0;
             }
+
             75% {
                 opacity: 1;
             }
+
             100% {
                 opacity: 0;
             }
@@ -345,7 +367,7 @@
             overflow-x: hidden;
             transition: transform 0.3s ease, opacity 0.3s ease;
             border-radius: 4px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
         .controls-panel.hidden {
@@ -410,13 +432,22 @@
             width: 100%;
             padding: 3px 5px;
             border: 1px solid #E70017;
-            background: rgba(255,255,255,0.9);
+            background: rgba(255, 255, 255, 0.9);
             color: #E70017;
             font-family: 'Code Saver', sans-serif;
             font-size: 11px;
         }
-        .control-group input[type="number"]:focus { outline: none; border-color: #FFF212; }
-        hr.controls-divider { border: none; border-top: 2px solid #E70017; margin: 8px 0; }
+
+        .control-group input[type="number"]:focus {
+            outline: none;
+            border-color: #FFF212;
+        }
+
+        hr.controls-divider {
+            border: none;
+            border-top: 2px solid #E70017;
+            margin: 8px 0;
+        }
 
         .config-section {
             margin-top: 20px;
@@ -538,16 +569,22 @@
             gap: 4px;
             flex-wrap: wrap;
         }
+
         .control-group .value-input {
             width: 52px;
             padding: 2px 4px;
             border: 1px solid #E70017;
-            background: rgba(255,255,255,0.95);
+            background: rgba(255, 255, 255, 0.95);
             color: #E70017;
             font-family: 'Code Saver', sans-serif;
             font-size: 10px;
         }
-        .control-group .value-input:focus { outline: none; border-color: #FFF212; }
+
+        .control-group .value-input:focus {
+            outline: none;
+            border-color: #FFF212;
+        }
+
         .control-group .max-slider-row {
             display: flex;
             align-items: center;
@@ -555,13 +592,23 @@
             margin-top: 6px;
             flex-wrap: wrap;
         }
+
         .control-group .max-slider-row label.max-label {
             font-size: 9px;
             margin-bottom: 0;
             min-width: 24px;
         }
-        .control-group .max-slider-row .value-input { flex: 0 0 auto; }
-        .control-hint { font-size: 9px; color: #E70017; margin: -2px 0 6px 0; line-height: 1.2; }
+
+        .control-group .max-slider-row .value-input {
+            flex: 0 0 auto;
+        }
+
+        .control-hint {
+            font-size: 9px;
+            color: #E70017;
+            margin: -2px 0 6px 0;
+            line-height: 1.2;
+        }
 
         .control-group input[type="checkbox"] {
             width: 14px;
@@ -594,12 +641,38 @@
             margin-top: 10px;
             padding-top: 8px;
         }
-        .controls-panel .config-section h4 { font-size: 11px; margin-bottom: 4px; }
-        .config-hint { font-size: 9px; color: #E70017; margin-bottom: 6px; opacity: 0.9; }
-        .controls-panel .config-textarea { min-height: 60px; font-size: 9px; padding: 4px; }
-        .controls-panel .config-button { padding: 4px 8px; font-size: 10px; }
-        .controls-panel .selected-object-section h4 { font-size: 11px; }
-        .controls-panel .selected-object-label { font-size: 10px; margin-bottom: 4px; }
+
+        .controls-panel .config-section h4 {
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .config-hint {
+            font-size: 9px;
+            color: #E70017;
+            margin-bottom: 6px;
+            opacity: 0.9;
+        }
+
+        .controls-panel .config-textarea {
+            min-height: 60px;
+            font-size: 9px;
+            padding: 4px;
+        }
+
+        .controls-panel .config-button {
+            padding: 4px 8px;
+            font-size: 10px;
+        }
+
+        .controls-panel .selected-object-section h4 {
+            font-size: 11px;
+        }
+
+        .controls-panel .selected-object-label {
+            font-size: 10px;
+            margin-bottom: 4px;
+        }
 
         .controls-panel::-webkit-scrollbar {
             width: 8px;
@@ -662,6 +735,7 @@
             0% {
                 transform: translateX(0);
             }
+
             100% {
                 transform: translateX(-50%);
             }
@@ -777,6 +851,7 @@
         }
     </style>
 </head>
+
 <body class="page-entering">
     <div class="admin-viewport" id="adminViewport">
         <div class="scene-3d" id="scene3d">
@@ -801,10 +876,11 @@
                 <span class="dropdown-icon"></span>
             </button>
             <button class="menu-child-button" id="menuChildButton" data-page="project-files.html">PROJECT FILES</button>
-            <button class="menu-child-button" id="menuChildButtonCms" data-page="content-management.html">CONTENT MANAGEMENT</button>
+            <button class="menu-child-button" id="menuChildButtonCms" data-page="content-management.html">CONTENT
+                MANAGEMENT</button>
             <button class="menu-child-button" id="menuChildButtonBook" data-page="booking.html">BOOK A SESSION</button>
         </div>
-        <img src="Studioxx Logo.svg" alt="Studiox Logo" class="logo">
+        <img src="Studioxx Logo.svg" alt="Studioxx Logo" class="logo">
     </div>
 
     <div class="controls-panel" id="controlsPanel" style="pointer-events: auto;">
@@ -813,136 +889,153 @@
             <button class="controls-toggle-button" id="controlsToggleButton">Hide</button>
         </div>
         <div class="control-group" style="margin-bottom: 12px;">
-            <button type="button" class="config-button" id="contentManagementPanelBtn" style="display: inline-block; text-decoration: none; color: inherit; text-align: center; border: none; cursor: pointer; font-family: inherit; width: 100%;">Content Management</button>
+            <button type="button" class="config-button" id="contentManagementPanelBtn"
+                style="display: inline-block; text-decoration: none; color: inherit; text-align: center; border: none; cursor: pointer; font-family: inherit; width: 100%;">Content
+                Management</button>
         </div>
         <div class="cabinet-tool-section">
-        <div class="control-group">
-            <label for="widthControl">Width</label>
-            <input type="range" id="widthControl" min="50" max="2400" value="200">
-            <div class="value-display">Value: <input type="number" class="value-input" id="widthValue" value="200" min="50" max="2400" step="1"> px</div>
-        </div>
-        <div class="control-group">
-            <label for="isoCardCount">Number of Iso Cards</label>
-            <div class="max-slider-row"><label class="max-label">Max</label><input type="number" class="value-input" id="isoCardCountMax" value="100" min="1" max="500" title="Slider maximum"></div>
-            <input type="range" id="isoCardCount" min="0" max="100" value="3">
-            <div class="value-display">Value: <input type="number" class="value-input" id="isoCardCountValue" value="3" min="0" max="100" step="1"></div>
-        </div>
-        <div class="control-group">
-            <label for="isoCardSpacing">Iso Card Spacing</label>
-            <input type="range" id="isoCardSpacing" min="10" max="200" value="50">
-            <div class="value-display">Value: <input type="number" class="value-input" id="isoCardSpacingValue" value="50" min="10" max="200" step="1"> px</div>
-        </div>
-        <div class="control-group">
-            <label for="heightControl">Height</label>
-            <input type="range" id="heightControl" min="50" max="1200" value="200">
-            <div class="value-display">Value: <input type="number" class="value-input" id="heightValue" value="200" min="50" max="1200" step="1"> px</div>
-        </div>
-        <div class="control-group">
-            <label for="rotateXControl">Rotate X</label>
-            <input type="range" id="rotateXControl" min="-180" max="180" value="-30">
-            <div class="value-display">Value: <input type="number" class="value-input" id="rotateXValue" value="-30" min="-180" max="180" step="1"> Â°</div>
-        </div>
-        <div class="control-group">
-            <label for="rotateYControl">Rotate Y</label>
-            <input type="range" id="rotateYControl" min="-180" max="180" value="45">
-            <div class="value-display">Value: <input type="number" class="value-input" id="rotateYValue" value="45" min="-180" max="180" step="1"> Â°</div>
-        </div>
-        <div class="control-group">
-            <label for="positionXControl">Position X</label>
-            <input type="range" id="positionXControl" min="-1000" max="1000" value="0">
-            <div class="value-display">Value: <input type="number" class="value-input" id="positionXValue" value="0" min="-1000" max="1000" step="1"> px</div>
-        </div>
-        <div class="control-group">
-            <label for="positionYControl">Position Y</label>
-            <input type="range" id="positionYControl" min="-1000" max="1000" value="0">
-            <div class="value-display">Value: <input type="number" class="value-input" id="positionYValue" value="0" min="-1000" max="1000" step="1"> px</div>
-        </div>
-        <div class="control-group">
-            <label for="positionZControl">Position Z</label>
-            <input type="range" id="positionZControl" min="-1000" max="1000" value="0">
-            <div class="value-display">Value: <input type="number" class="value-input" id="positionZValue" value="0" min="-1000" max="1000" step="1"> px</div>
-        </div>
-        <div class="face-visibility-section">
-            <h3>Face Visibility</h3>
+            <div class="control-group">
+                <label for="widthControl">Width</label>
+                <input type="range" id="widthControl" min="50" max="2400" value="200">
+                <div class="value-display">Value: <input type="number" class="value-input" id="widthValue" value="200"
+                        min="50" max="2400" step="1"> px</div>
+            </div>
+            <div class="control-group">
+                <label for="isoCardCount">Number of Iso Cards</label>
+                <div class="max-slider-row"><label class="max-label">Max</label><input type="number" class="value-input"
+                        id="isoCardCountMax" value="100" min="1" max="500" title="Slider maximum"></div>
+                <input type="range" id="isoCardCount" min="0" max="100" value="3">
+                <div class="value-display">Value: <input type="number" class="value-input" id="isoCardCountValue"
+                        value="3" min="0" max="100" step="1"></div>
+            </div>
+            <div class="control-group">
+                <label for="isoCardSpacing">Iso Card Spacing</label>
+                <input type="range" id="isoCardSpacing" min="10" max="200" value="50">
+                <div class="value-display">Value: <input type="number" class="value-input" id="isoCardSpacingValue"
+                        value="50" min="10" max="200" step="1"> px</div>
+            </div>
+            <div class="control-group">
+                <label for="heightControl">Height</label>
+                <input type="range" id="heightControl" min="50" max="1200" value="200">
+                <div class="value-display">Value: <input type="number" class="value-input" id="heightValue" value="200"
+                        min="50" max="1200" step="1"> px</div>
+            </div>
+            <div class="control-group">
+                <label for="rotateXControl">Rotate X</label>
+                <input type="range" id="rotateXControl" min="-180" max="180" value="-30">
+                <div class="value-display">Value: <input type="number" class="value-input" id="rotateXValue" value="-30"
+                        min="-180" max="180" step="1"> Â°</div>
+            </div>
+            <div class="control-group">
+                <label for="rotateYControl">Rotate Y</label>
+                <input type="range" id="rotateYControl" min="-180" max="180" value="45">
+                <div class="value-display">Value: <input type="number" class="value-input" id="rotateYValue" value="45"
+                        min="-180" max="180" step="1"> Â°</div>
+            </div>
+            <div class="control-group">
+                <label for="positionXControl">Position X</label>
+                <input type="range" id="positionXControl" min="-1000" max="1000" value="0">
+                <div class="value-display">Value: <input type="number" class="value-input" id="positionXValue" value="0"
+                        min="-1000" max="1000" step="1"> px</div>
+            </div>
+            <div class="control-group">
+                <label for="positionYControl">Position Y</label>
+                <input type="range" id="positionYControl" min="-1000" max="1000" value="0">
+                <div class="value-display">Value: <input type="number" class="value-input" id="positionYValue" value="0"
+                        min="-1000" max="1000" step="1"> px</div>
+            </div>
+            <div class="control-group">
+                <label for="positionZControl">Position Z</label>
+                <input type="range" id="positionZControl" min="-1000" max="1000" value="0">
+                <div class="value-display">Value: <input type="number" class="value-input" id="positionZValue" value="0"
+                        min="-1000" max="1000" step="1"> px</div>
+            </div>
+            <div class="face-visibility-section">
+                <h3>Face Visibility</h3>
+                <div class="control-group checkbox-group">
+                    <input type="checkbox" id="showFrontFace" checked>
+                    <label for="showFrontFace">Front Face</label>
+                </div>
+                <div class="control-group checkbox-group">
+                    <input type="checkbox" id="showBackFace" checked>
+                    <label for="showBackFace">Back Face</label>
+                </div>
+                <div class="control-group checkbox-group">
+                    <input type="checkbox" id="showRightFace" checked>
+                    <label for="showRightFace">Right Face</label>
+                </div>
+                <div class="control-group checkbox-group">
+                    <input type="checkbox" id="showLeftFace" checked>
+                    <label for="showLeftFace">Left Face</label>
+                </div>
+                <div class="control-group checkbox-group">
+                    <input type="checkbox" id="showTopFace" checked>
+                    <label for="showTopFace">Top Face</label>
+                </div>
+                <div class="control-group checkbox-group">
+                    <input type="checkbox" id="showBottomFace" checked>
+                    <label for="showBottomFace">Bottom Face</label>
+                </div>
+            </div>
+            <hr class="controls-divider">
+            <h3>Iso Card Settings</h3>
             <div class="control-group checkbox-group">
-                <input type="checkbox" id="showFrontFace" checked>
-                <label for="showFrontFace">Front Face</label>
+                <input type="checkbox" id="showEdgeLines" checked>
+                <label for="showEdgeLines">Show Edge Lines</label>
             </div>
-            <div class="control-group checkbox-group">
-                <input type="checkbox" id="showBackFace" checked>
-                <label for="showBackFace">Back Face</label>
+            <div class="control-group">
+                <label for="popUpAmountControl">Pop Up Amount</label>
+                <input type="range" id="popUpAmountControl" min="0" max="100" value="20">
+                <div class="value-display">Value: <input type="number" class="value-input" id="popUpAmountValue"
+                        value="20" min="0" max="100" step="1"> %</div>
             </div>
-            <div class="control-group checkbox-group">
-                <input type="checkbox" id="showRightFace" checked>
-                <label for="showRightFace">Right Face</label>
+            <div class="control-group">
+                <label for="isoCardRepelDistance">Repel Distance</label>
+                <input type="range" id="isoCardRepelDistance" min="0" max="150" value="40">
+                <div class="value-display">Value: <input type="number" class="value-input"
+                        id="isoCardRepelDistanceValue" value="40" min="0" max="150" step="1"> px</div>
             </div>
-            <div class="control-group checkbox-group">
-                <input type="checkbox" id="showLeftFace" checked>
-                <label for="showLeftFace">Left Face</label>
+            <div class="control-group">
+                <label for="isoCardRepelDuration">Repel duration</label>
+                <input type="range" id="isoCardRepelDuration" min="5" max="200" value="30">
+                <div class="value-display">Value: <input type="number" class="value-input"
+                        id="isoCardRepelDurationValue" value="0.3" min="0.05" max="2" step="0.05"> s</div>
             </div>
-            <div class="control-group checkbox-group">
-                <input type="checkbox" id="showTopFace" checked>
-                <label for="showTopFace">Top Face</label>
-            </div>
-            <div class="control-group checkbox-group">
-                <input type="checkbox" id="showBottomFace" checked>
-                <label for="showBottomFace">Bottom Face</label>
-            </div>
-        </div>
-        <hr class="controls-divider">
-        <h3>Iso Card Settings</h3>
-        <div class="control-group checkbox-group">
-            <input type="checkbox" id="showEdgeLines" checked>
-            <label for="showEdgeLines">Show Edge Lines</label>
-        </div>
-        <div class="control-group">
-            <label for="popUpAmountControl">Pop Up Amount</label>
-            <input type="range" id="popUpAmountControl" min="0" max="100" value="20">
-            <div class="value-display">Value: <input type="number" class="value-input" id="popUpAmountValue" value="20" min="0" max="100" step="1"> %</div>
-        </div>
-        <div class="control-group">
-            <label for="isoCardRepelDistance">Repel Distance</label>
-            <input type="range" id="isoCardRepelDistance" min="0" max="150" value="40">
-            <div class="value-display">Value: <input type="number" class="value-input" id="isoCardRepelDistanceValue" value="40" min="0" max="150" step="1"> px</div>
-        </div>
-        <div class="control-group">
-            <label for="isoCardRepelDuration">Repel duration</label>
-            <input type="range" id="isoCardRepelDuration" min="5" max="200" value="30">
-            <div class="value-display">Value: <input type="number" class="value-input" id="isoCardRepelDurationValue" value="0.3" min="0.05" max="2" step="0.05"> s</div>
-        </div>
-        <div class="config-section">
-            <h4>Configuration</h4>
-            <textarea class="config-textarea" id="configTextarea" readonly placeholder="Your configuration will appear here..."></textarea>
-            <div class="config-button-group">
-                <button class="config-button" id="copyConfigButton">Copy Config</button>
-                <button class="config-button" id="loadConfigButton">Load Config</button>
-            </div>
-            <h4 style="margin-top: 12px;">Project Files viewport</h4>
-            <p class="config-hint">This view matches the Project Files page. Save to apply changes there.</p>
-            <div class="config-button-group">
-                <button class="config-button" id="applyToProjectFilesBtn">Apply to Project Files</button>
-                <button class="config-button" id="discardProjectFilesBtn">Discard</button>
-        </div>
-            <h4 style="margin-top: 10px;">Presets (max 3)</h4>
-            <div class="config-button-group">
-                <button class="config-button preset-save" data-slot="1">Save to 1</button>
-                <button class="config-button preset-save" data-slot="2">Save to 2</button>
-                <button class="config-button preset-save" data-slot="3">Save to 3</button>
-    </div>
-            <div class="config-button-group">
-                <button class="config-button preset-load" data-slot="1">Load 1</button>
-                <button class="config-button preset-load" data-slot="2">Load 2</button>
-                <button class="config-button preset-load" data-slot="3">Load 3</button>
+            <div class="config-section">
+                <h4>Configuration</h4>
+                <textarea class="config-textarea" id="configTextarea" readonly
+                    placeholder="Your configuration will appear here..."></textarea>
+                <div class="config-button-group">
+                    <button class="config-button" id="copyConfigButton">Copy Config</button>
+                    <button class="config-button" id="loadConfigButton">Load Config</button>
+                </div>
+                <h4 style="margin-top: 12px;">Project Files viewport</h4>
+                <p class="config-hint">This view matches the Project Files page. Save to apply changes there.</p>
+                <div class="config-button-group">
+                    <button class="config-button" id="applyToProjectFilesBtn">Apply to Project Files</button>
+                    <button class="config-button" id="discardProjectFilesBtn">Discard</button>
+                </div>
+                <h4 style="margin-top: 10px;">Presets (max 3)</h4>
+                <div class="config-button-group">
+                    <button class="config-button preset-save" data-slot="1">Save to 1</button>
+                    <button class="config-button preset-save" data-slot="2">Save to 2</button>
+                    <button class="config-button preset-save" data-slot="3">Save to 3</button>
+                </div>
+                <div class="config-button-group">
+                    <button class="config-button preset-load" data-slot="1">Load 1</button>
+                    <button class="config-button preset-load" data-slot="2">Load 2</button>
+                    <button class="config-button preset-load" data-slot="3">Load 3</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <button class="controls-toggle-button" id="controlsShowButton" style="display: none;">Show Controls</button>
+        <button class="controls-toggle-button" id="controlsShowButton" style="display: none;">Show Controls</button>
 
-    <div class="text-carousel">
-        <div class="carousel-track" id="carouselTrack"></div>
-    </div>
+        <div class="text-carousel">
+            <div class="carousel-track" id="carouselTrack"></div>
+        </div>
 
-    <script type="module" src="js/pages/admin.js"></script>
+        <script type="module" src="js/pages/admin.js"></script>
 </body>
+
 </html>

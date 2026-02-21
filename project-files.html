@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +14,12 @@
             font-weight: normal;
             font-style: normal;
         }
-        html, body, * { font-family: 'Code Saver', sans-serif !important; }
+
+        html,
+        body,
+        * {
+            font-family: 'Code Saver', sans-serif !important;
+        }
 
         * {
             margin: 0;
@@ -21,7 +27,11 @@
             box-sizing: border-box;
         }
 
-        html, body { background-color: #E70017; }
+        html,
+        body {
+            background-color: #E70017;
+        }
+
         body {
             overflow: hidden;
             height: 100vh;
@@ -149,15 +159,19 @@
             0% {
                 opacity: 0;
             }
+
             25% {
                 opacity: 0;
             }
+
             50% {
                 opacity: 1;
             }
+
             75% {
                 opacity: 1;
             }
+
             100% {
                 opacity: 1;
             }
@@ -167,15 +181,19 @@
             0% {
                 opacity: 1;
             }
+
             25% {
                 opacity: 1;
             }
+
             50% {
                 opacity: 0;
             }
+
             75% {
                 opacity: 0;
             }
+
             100% {
                 opacity: 0;
             }
@@ -185,15 +203,19 @@
             0% {
                 opacity: 1;
             }
+
             25% {
                 opacity: 0;
             }
+
             50% {
                 opacity: 1;
             }
+
             75% {
                 opacity: 0;
             }
+
             100% {
                 opacity: 0;
             }
@@ -203,15 +225,19 @@
             0% {
                 opacity: 0;
             }
+
             25% {
                 opacity: 1;
             }
+
             50% {
                 opacity: 0;
             }
+
             75% {
                 opacity: 1;
             }
+
             100% {
                 opacity: 0;
             }
@@ -252,14 +278,17 @@
             padding: 2rem;
             box-sizing: border-box;
         }
+
         body.site-modal-open .site-overlay {
             display: flex;
         }
+
         body.site-modal-open .navigation,
         body.site-modal-open .scene-3d {
             visibility: hidden;
             pointer-events: none;
         }
+
         .site-overlay-bg {
             position: absolute;
             inset: 0;
@@ -267,6 +296,7 @@
             background-size: cover;
             background-position: center;
         }
+
         .site-overlay-bg::after {
             content: '';
             position: absolute;
@@ -274,39 +304,52 @@
             background: #E70017;
             opacity: 0.9;
         }
+
         .site-overlay-center {
             position: relative;
             z-index: 1;
             min-width: 320px;
             max-width: 100%;
         }
+
         @media (max-width: 360px) {
             .site-overlay-center {
                 min-width: 0;
                 width: 100%;
             }
         }
+
         .site-modal {
             display: none;
         }
+
         body.site-modal-open .site-modal.active {
             display: block;
         }
+
         .site-overlay .site-modal .kit-modal-wrap {
             max-width: 320px;
         }
+
         .site-modal .booking-message,
         .site-modal .waitlist-message {
             margin-top: 1rem;
             font-size: 0.8rem;
             min-height: 1.2em;
         }
+
         .site-modal .booking-message,
         .site-modal .booking-message.error,
         .site-modal .waitlist-message,
-        .site-modal .waitlist-message.error { color: #FFF212; }
+        .site-modal .waitlist-message.error {
+            color: #FFF212;
+        }
+
         .site-modal .booking-message.success,
-        .site-modal .waitlist-message.success { color: #FFF212; }
+        .site-modal .waitlist-message.success {
+            color: #FFF212;
+        }
+
         .booking-success-card {
             margin-top: 1rem;
             padding: 1rem;
@@ -314,9 +357,24 @@
             color: #FFF212;
             font-size: 0.8rem;
         }
-        .booking-success-card .booking-success-title { font-weight: bold; margin-bottom: 0.5rem; text-transform: uppercase; }
-        .booking-success-card .booking-success-details { margin-bottom: 1rem; line-height: 1.4; }
-        .booking-success-card .booking-success-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+
+        .booking-success-card .booking-success-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .booking-success-card .booking-success-details {
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .booking-success-card .booking-success-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
         .booking-success-card a,
         .booking-success-card .booking-success-btn {
             display: inline-block;
@@ -332,14 +390,35 @@
             cursor: pointer;
             box-sizing: border-box;
         }
+
         .booking-success-card a:hover,
-        .booking-success-card .booking-success-btn:hover { background: #E70017; color: #FFF212; border-color: #FFF212; }
+        .booking-success-card .booking-success-btn:hover {
+            background: #E70017;
+            color: #FFF212;
+            border-color: #FFF212;
+        }
+
         .booking-success-card a:active,
-        .booking-success-card .booking-success-btn:active { background: #FFFFFF; color: #E70017; border-color: #FFFFFF; }
+        .booking-success-card .booking-success-btn:active {
+            background: #FFFFFF;
+            color: #E70017;
+            border-color: #FFFFFF;
+        }
+
         .site-modal .kit-modal-wrap.booking-done .kit-modal-label,
-        .site-modal .kit-modal-wrap.booking-done .kit-modal-row { display: none !important; }
-        .site-modal .kit-modal-wrap.booking-done .booking-message { margin-top: 0; }
-        .kit-modal-option-disabled { opacity: 0.65; cursor: not-allowed; }
+        .site-modal .kit-modal-wrap.booking-done .kit-modal-row {
+            display: none !important;
+        }
+
+        .site-modal .kit-modal-wrap.booking-done .booking-message {
+            margin-top: 0;
+        }
+
+        .kit-modal-option-disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
         .waitlist-success-card {
             display: none;
             margin-top: 0;
@@ -348,8 +427,18 @@
             color: #FFF212;
             font-size: 0.8rem;
         }
-        .waitlist-success-card .waitlist-success-details { margin-bottom: 1rem; line-height: 1.4; }
-        .waitlist-success-card .waitlist-success-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+
+        .waitlist-success-card .waitlist-success-details {
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .waitlist-success-card .waitlist-success-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
         .waitlist-success-card .waitlist-success-btn {
             display: inline-block;
             padding: 0.5rem 1rem;
@@ -363,12 +452,28 @@
             cursor: pointer;
             box-sizing: border-box;
         }
-        .waitlist-success-card .waitlist-success-btn:hover { background: #E70017; color: #FFF212; border-color: #FFF212; }
-        .waitlist-success-card .waitlist-success-btn:active { background: #FFFFFF; color: #E70017; border-color: #FFFFFF; }
+
+        .waitlist-success-card .waitlist-success-btn:hover {
+            background: #E70017;
+            color: #FFF212;
+            border-color: #FFF212;
+        }
+
+        .waitlist-success-card .waitlist-success-btn:active {
+            background: #FFFFFF;
+            color: #E70017;
+            border-color: #FFFFFF;
+        }
+
         .site-modal .kit-modal-wrap.waitlist-done .kit-modal-label,
         .site-modal .kit-modal-wrap.waitlist-done .kit-modal-row,
-        .site-modal .kit-modal-wrap.waitlist-done .waitlist-message { display: none !important; }
-        .site-modal .kit-modal-wrap.waitlist-done .waitlist-success-card { display: block !important; }
+        .site-modal .kit-modal-wrap.waitlist-done .waitlist-message {
+            display: none !important;
+        }
+
+        .site-modal .kit-modal-wrap.waitlist-done .waitlist-success-card {
+            display: block !important;
+        }
 
         .scene-3d {
             position: fixed;
@@ -492,6 +597,7 @@
             0% {
                 transform: translateX(0);
             }
+
             100% {
                 transform: translateX(-50%);
             }
@@ -557,10 +663,33 @@
         }
     </style>
 </head>
+
 <body class="loading-active page-entering">
-    <style id="loading-screen-critical">body.loading-active>*:not(#loadingScreenOverlay):not(.text-carousel){visibility:hidden}body.loading-active .text-carousel{z-index:100000}#loadingScreenOverlay .loading-screen-wipe{height:calc((100 - var(--loading-progress,0))*1%);background:#E70017;transition:height .35s linear}</style>
-    <div id="loadingScreenOverlay" class="loading-screen-overlay" style="position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;min-width:100vw;min-height:100vh;min-height:100dvh;overflow:hidden;background:#E70017;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Code Saver',sans-serif" aria-live="polite" aria-label="Loading">
-        <div class="loading-screen-logo-zone"><div class="loading-screen-logo-wrap" style="position:relative;height:84px"><img src="Studioxx Logo.svg" alt="Cappuccino Studio" style="display:block;height:84px;width:auto"><div class="loading-screen-wipe" style="position:absolute;left:0;right:0;top:0;pointer-events:none"></div></div></div>
+    <style id="loading-screen-critical">
+        body.loading-active>*:not(#loadingScreenOverlay):not(.text-carousel) {
+            visibility: hidden
+        }
+
+        body.loading-active .text-carousel {
+            z-index: 100000
+        }
+
+        #loadingScreenOverlay .loading-screen-wipe {
+            height: calc((100 - var(--loading-progress, 0))*1%);
+            background: #E70017;
+            transition: height .35s linear
+        }
+    </style>
+    <div id="loadingScreenOverlay" class="loading-screen-overlay"
+        style="position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;min-width:100vw;min-height:100vh;min-height:100dvh;overflow:hidden;background:#E70017;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Code Saver',sans-serif"
+        aria-live="polite" aria-label="Loading">
+        <div class="loading-screen-logo-zone">
+            <div class="loading-screen-logo-wrap" style="position:relative;height:84px"><img src="Studioxx Logo.svg"
+                    alt="Cappuccino Studio" style="display:block;height:84px;width:auto">
+                <div class="loading-screen-wipe" style="position:absolute;left:0;right:0;top:0;pointer-events:none">
+                </div>
+            </div>
+        </div>
     </div>
     <div class="navigation">
         <div class="menu-container" id="menuContainer">
@@ -571,14 +700,14 @@
             <button class="menu-child-button" id="menuChildButton" data-page="kitchen.html">KITCHEN</button>
             <button class="menu-child-button" id="menuChildButtonBook" data-modal="book-session">BOOK A SESSION</button>
         </div>
-        <img src="Studioxx Logo.svg" alt="Studiox Logo" class="logo">
+        <img src="Studioxx Logo.svg" alt="Studioxx Logo" class="logo">
     </div>
 
 
     <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0" aria-hidden="true">
         <defs>
             <symbol id="kit-caret" viewBox="0 0 12 12">
-                <path d="M0 3h12L6 9z"/>
+                <path d="M0 3h12L6 9z" />
             </symbol>
         </defs>
     </svg>
@@ -604,63 +733,110 @@
                 <div class="kit-modal-wrap" data-modal-prefix="booking">
                     <div class="kit-modal-label">BOOK A SESSION</div>
                     <div class="kit-modal-row">
-                        <input type="text" id="bookingName" class="kit-modal-input" placeholder="FIRSTNAME LASTNAME" aria-label="Full name" autocomplete="name">
+                        <input type="text" id="bookingName" class="kit-modal-input" placeholder="FIRSTNAME LASTNAME"
+                            aria-label="Full name" autocomplete="name">
                     </div>
                     <div class="kit-modal-row">
-                        <input type="email" id="bookingEmail" class="kit-modal-input" placeholder="emailaddress@email.com" aria-label="Email" autocomplete="email">
+                        <input type="email" id="bookingEmail" class="kit-modal-input"
+                            placeholder="emailaddress@email.com" aria-label="Email" autocomplete="email">
                     </div>
                     <div class="kit-modal-row">
                         <div class="kit-modal-dropdown kit-modal-select" data-name="service">
-                            <button type="button" class="kit-modal-dropdown-trigger" aria-expanded="false" aria-haspopup="listbox" aria-label="Choose a service">
+                            <button type="button" class="kit-modal-dropdown-trigger" aria-expanded="false"
+                                aria-haspopup="listbox" aria-label="Choose a service">
                                 <span class="kit-modal-dropdown-label">CHOOSE A SERVICE</span>
-                                <span class="kit-modal-dropdown-arrow" aria-hidden="true"><svg class="kit-caret" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><use href="#kit-caret"/></svg></span>
+                                <span class="kit-modal-dropdown-arrow" aria-hidden="true"><svg class="kit-caret"
+                                        viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                                        <use href="#kit-caret" />
+                                    </svg></span>
                             </button>
                             <div class="kit-modal-dropdown-list-outer">
                                 <div class="kit-modal-dropdown-list" role="listbox">
-                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="immersive-experiences" data-label="IMMERSIVE EXPERIENCES">IMMERSIVE EXPERIENCES</button>
-                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="brand-strategy" data-label="BRAND STRATEGY">BRAND STRATEGY</button>
-                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="product-development" data-label="PRODUCT DEVELOPMENT">PRODUCT DEVELOPMENT</button>
-                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="set-design" data-label="SET DESIGN">SET DESIGN</button>
-                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="video-production" data-label="VIDEO PRODUCTION">VIDEO PRODUCTION</button>
-                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="animation-production" data-label="ANIMATION PRODUCTION">ANIMATION PRODUCTION</button>
-                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="music-release-content-dev" data-label="MUSIC RELEASE CONTENT DEV">MUSIC RELEASE CONTENT DEV</button>
-                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="music-production" data-label="MUSIC PRODUCTION">MUSIC PRODUCTION</button>
-                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="sound-design-and-production" data-label="SOUND DESIGN AND PRODUCTION">SOUND DESIGN AND PRODUCTION</button>
-                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="content-design-and-dev" data-label="CONTENT DESIGN AND DEV">CONTENT DESIGN AND DEV</button>
-                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="web-development" data-label="WEB DEVELOPMENT">WEB DEVELOPMENT</button>
-                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="real-estate-management" data-label="REAL ESTATE MANAGEMENT">REAL ESTATE MANAGEMENT</button>
-                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="marketing-consult" data-label="MARKETING CONSULT">MARKETING CONSULT</button>
-                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="creative-direction" data-label="CREATIVE DIRECTION">CREATIVE DIRECTION</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option"
+                                        data-value="immersive-experiences" data-label="IMMERSIVE EXPERIENCES">IMMERSIVE
+                                        EXPERIENCES</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option"
+                                        data-value="brand-strategy" data-label="BRAND STRATEGY">BRAND STRATEGY</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option"
+                                        data-value="product-development" data-label="PRODUCT DEVELOPMENT">PRODUCT
+                                        DEVELOPMENT</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option"
+                                        data-value="set-design" data-label="SET DESIGN">SET DESIGN</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option"
+                                        data-value="video-production" data-label="VIDEO PRODUCTION">VIDEO
+                                        PRODUCTION</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option"
+                                        data-value="animation-production" data-label="ANIMATION PRODUCTION">ANIMATION
+                                        PRODUCTION</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option"
+                                        data-value="music-release-content-dev"
+                                        data-label="MUSIC RELEASE CONTENT DEV">MUSIC RELEASE CONTENT DEV</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option"
+                                        data-value="music-production" data-label="MUSIC PRODUCTION">MUSIC
+                                        PRODUCTION</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option"
+                                        data-value="sound-design-and-production"
+                                        data-label="SOUND DESIGN AND PRODUCTION">SOUND DESIGN AND PRODUCTION</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option"
+                                        data-value="content-design-and-dev" data-label="CONTENT DESIGN AND DEV">CONTENT
+                                        DESIGN AND DEV</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option"
+                                        data-value="web-development" data-label="WEB DEVELOPMENT">WEB
+                                        DEVELOPMENT</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option"
+                                        data-value="real-estate-management" data-label="REAL ESTATE MANAGEMENT">REAL
+                                        ESTATE MANAGEMENT</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option"
+                                        data-value="marketing-consult" data-label="MARKETING CONSULT">MARKETING
+                                        CONSULT</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option"
+                                        data-value="creative-direction" data-label="CREATIVE DIRECTION">CREATIVE
+                                        DIRECTION</button>
                                 </div>
                                 <div class="kit-modal-custom-scrollbar" aria-hidden="true">
-                                    <div class="kit-modal-scrollbar-track"><div class="kit-modal-scrollbar-thumb"></div></div>
+                                    <div class="kit-modal-scrollbar-track">
+                                        <div class="kit-modal-scrollbar-thumb"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="kit-modal-row kit-modal-timeslot">
                         <div class="kit-modal-dropdown kit-modal-date" data-name="date">
-                            <button type="button" class="kit-modal-dropdown-trigger" aria-expanded="false" aria-haspopup="listbox" aria-label="Date">
+                            <button type="button" class="kit-modal-dropdown-trigger" aria-expanded="false"
+                                aria-haspopup="listbox" aria-label="Date">
                                 <span class="kit-modal-dropdown-label"></span>
-                                <span class="kit-modal-dropdown-arrow" aria-hidden="true"><svg class="kit-caret" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><use href="#kit-caret"/></svg></span>
+                                <span class="kit-modal-dropdown-arrow" aria-hidden="true"><svg class="kit-caret"
+                                        viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                                        <use href="#kit-caret" />
+                                    </svg></span>
                             </button>
                             <div class="kit-modal-dropdown-list-outer">
                                 <div class="kit-modal-dropdown-list" role="listbox">
-                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value="" data-label="Loading…">Loading…</button>
+                                    <button type="button" class="kit-modal-dropdown-option" role="option" data-value=""
+                                        data-label="Loading…">Loading…</button>
                                 </div>
                                 <div class="kit-modal-custom-scrollbar" aria-hidden="true">
-                                    <div class="kit-modal-scrollbar-track"><div class="kit-modal-scrollbar-thumb"></div></div>
+                                    <div class="kit-modal-scrollbar-track">
+                                        <div class="kit-modal-scrollbar-thumb"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div class="kit-modal-dropdown kit-modal-time" data-name="time">
-                            <button type="button" class="kit-modal-dropdown-trigger" aria-expanded="false" aria-haspopup="listbox" aria-label="Time">
+                            <button type="button" class="kit-modal-dropdown-trigger" aria-expanded="false"
+                                aria-haspopup="listbox" aria-label="Time">
                                 <span class="kit-modal-dropdown-label">11:00</span>
-                                <span class="kit-modal-dropdown-arrow" aria-hidden="true"><svg class="kit-caret" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><use href="#kit-caret"/></svg></span>
+                                <span class="kit-modal-dropdown-arrow" aria-hidden="true"><svg class="kit-caret"
+                                        viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                                        <use href="#kit-caret" />
+                                    </svg></span>
                             </button>
                             <div class="kit-modal-dropdown-list" role="listbox">
-                                <button type="button" class="kit-modal-dropdown-option" role="option" data-value="11:00" data-label="11:00">11:00</button>
-                                <button type="button" class="kit-modal-dropdown-option" role="option" data-value="15:00" data-label="15:00">15:00</button>
+                                <button type="button" class="kit-modal-dropdown-option" role="option" data-value="11:00"
+                                    data-label="11:00">11:00</button>
+                                <button type="button" class="kit-modal-dropdown-option" role="option" data-value="15:00"
+                                    data-label="15:00">15:00</button>
                             </div>
                         </div>
                     </div>
@@ -670,7 +846,11 @@
                         <input type="hidden" id="bookingTime" value="11:00">
                         <button type="button" id="bookingSubmit" class="kit-modal-submit">
                             <span>COMPLETE</span>
-                            <span class="kit-modal-submit-icon" aria-hidden="true"><svg class="kit-caret kit-caret-right" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><use href="#kit-caret"/></svg></span>
+                            <span class="kit-modal-submit-icon" aria-hidden="true"><svg
+                                    class="kit-caret kit-caret-right" viewBox="0 0 12 12"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <use href="#kit-caret" />
+                                </svg></span>
                         </button>
                     </div>
                     <div id="bookingMessage" class="booking-message"></div>
@@ -680,20 +860,30 @@
                 <div class="kit-modal-wrap" data-modal-prefix="waitlist">
                     <div class="kit-modal-label">JOIN WAITLIST</div>
                     <div class="kit-modal-row">
-                        <input type="text" id="waitlistName" class="kit-modal-input" placeholder="FIRSTNAME LASTNAME" aria-label="Full name" autocomplete="name">
+                        <input type="text" id="waitlistName" class="kit-modal-input" placeholder="FIRSTNAME LASTNAME"
+                            aria-label="Full name" autocomplete="name">
                     </div>
                     <div class="kit-modal-row">
-                        <input type="email" id="waitlistEmail" class="kit-modal-input" placeholder="emailaddress@email.com" aria-label="Email" autocomplete="email">
+                        <input type="email" id="waitlistEmail" class="kit-modal-input"
+                            placeholder="emailaddress@email.com" aria-label="Email" autocomplete="email">
                     </div>
                     <div class="kit-modal-row kit-modal-tier-row">
                         <div class="kit-modal-dropdown kit-modal-tier" data-name="tier">
-                            <button type="button" class="kit-modal-dropdown-trigger" aria-expanded="false" aria-haspopup="listbox" aria-label="Choose tier">
+                            <button type="button" class="kit-modal-dropdown-trigger" aria-expanded="false"
+                                aria-haspopup="listbox" aria-label="Choose tier">
                                 <span class="kit-modal-dropdown-label">REGULAR ACCESS</span>
-                                <span class="kit-modal-dropdown-arrow" aria-hidden="true"><svg class="kit-caret" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><use href="#kit-caret"/></svg></span>
+                                <span class="kit-modal-dropdown-arrow" aria-hidden="true"><svg class="kit-caret"
+                                        viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                                        <use href="#kit-caret" />
+                                    </svg></span>
                             </button>
                             <div class="kit-modal-dropdown-list" role="listbox">
-                                <button type="button" class="kit-modal-dropdown-option" role="option" data-value="regular" data-label="REGULAR ACCESS" data-price="Free">REGULAR ACCESS</button>
-                                <button type="button" class="kit-modal-dropdown-option kit-modal-option-disabled" role="option" data-value="priority" data-label="PRIORITY ACCESS (COMING SOON)" data-price="$ 100" data-disabled="true">PRIORITY ACCESS (COMING SOON)</button>
+                                <button type="button" class="kit-modal-dropdown-option" role="option"
+                                    data-value="regular" data-label="REGULAR ACCESS" data-price="Free">REGULAR
+                                    ACCESS</button>
+                                <button type="button" class="kit-modal-dropdown-option kit-modal-option-disabled"
+                                    role="option" data-value="priority" data-label="PRIORITY ACCESS (COMING SOON)"
+                                    data-price="$ 100" data-disabled="true">PRIORITY ACCESS (COMING SOON)</button>
                             </div>
                         </div>
                         <div class="kit-modal-price-block" aria-live="polite">
@@ -704,14 +894,20 @@
                         <input type="hidden" id="waitlistTier" value="regular">
                         <button type="button" id="waitlistSubmit" class="kit-modal-submit">
                             <span>COMPLETE</span>
-                            <span class="kit-modal-submit-icon" aria-hidden="true"><svg class="kit-caret kit-caret-right" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><use href="#kit-caret"/></svg></span>
+                            <span class="kit-modal-submit-icon" aria-hidden="true"><svg
+                                    class="kit-caret kit-caret-right" viewBox="0 0 12 12"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <use href="#kit-caret" />
+                                </svg></span>
                         </button>
                     </div>
                     <div id="waitlistMessage" class="waitlist-message"></div>
                     <div id="waitlistSuccessCard" class="waitlist-success-card" style="display: none;">
-                        <div class="waitlist-success-details">You have been added to the waitlist, you will be notified when the Enter the Jungle pieces are live.</div>
+                        <div class="waitlist-success-details">You have been added to the waitlist, you will be notified
+                            when the Enter the Jungle pieces are live.</div>
                         <div class="waitlist-success-actions">
-                            <button type="button" class="waitlist-success-btn" id="waitlistContinueBtn">Continue</button>
+                            <button type="button" class="waitlist-success-btn"
+                                id="waitlistContinueBtn">Continue</button>
                         </div>
                     </div>
                 </div>
@@ -721,43 +917,44 @@
 
     <!-- Populate date rollup immediately so it is never empty (no dependency on API or site-modals.js) -->
     <script>
-    (function () {
-        var modal = document.getElementById('modalBookSession');
-        if (!modal) return;
-        var dateBlock = modal.querySelector('.kit-modal-date');
-        if (!dateBlock) return;
-        var list = dateBlock.querySelector('.kit-modal-dropdown-list-outer .kit-modal-dropdown-list');
-        var label = dateBlock.querySelector('.kit-modal-dropdown-label');
-        if (!list || !label) return;
-        var dayNames = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-        var monthNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-        var today = new Date();
-        var next = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-        while (next.getDay() === 0 || next.getDay() === 6) next.setDate(next.getDate() + 1);
-        list.innerHTML = '';
-        for (var i = 0; i < 15; i++) {
-            var dateStr = next.getFullYear() + '-' + String(next.getMonth() + 1).padStart(2, '0') + '-' + String(next.getDate()).padStart(2, '0');
-            var labelText = dayNames[next.getDay()] + ', ' + next.getDate() + ' ' + monthNames[next.getMonth()];
-            var btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'kit-modal-dropdown-option';
-            btn.setAttribute('role', 'option');
-            btn.setAttribute('data-value', dateStr);
-            btn.setAttribute('data-label', labelText);
-            btn.textContent = labelText;
-            list.appendChild(btn);
-            next.setDate(next.getDate() + 1);
+        (function () {
+            var modal = document.getElementById('modalBookSession');
+            if (!modal) return;
+            var dateBlock = modal.querySelector('.kit-modal-date');
+            if (!dateBlock) return;
+            var list = dateBlock.querySelector('.kit-modal-dropdown-list-outer .kit-modal-dropdown-list');
+            var label = dateBlock.querySelector('.kit-modal-dropdown-label');
+            if (!list || !label) return;
+            var dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+            var monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+            var today = new Date();
+            var next = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
             while (next.getDay() === 0 || next.getDay() === 6) next.setDate(next.getDate() + 1);
-        }
-        var first = list.querySelector('.kit-modal-dropdown-option');
-        if (first) {
-            label.textContent = first.getAttribute('data-label');
-            var dateInput = document.getElementById('bookingDate');
-            if (dateInput) dateInput.value = first.getAttribute('data-value');
-        }
-    })();
+            list.innerHTML = '';
+            for (var i = 0; i < 15; i++) {
+                var dateStr = next.getFullYear() + '-' + String(next.getMonth() + 1).padStart(2, '0') + '-' + String(next.getDate()).padStart(2, '0');
+                var labelText = dayNames[next.getDay()] + ', ' + next.getDate() + ' ' + monthNames[next.getMonth()];
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'kit-modal-dropdown-option';
+                btn.setAttribute('role', 'option');
+                btn.setAttribute('data-value', dateStr);
+                btn.setAttribute('data-label', labelText);
+                btn.textContent = labelText;
+                list.appendChild(btn);
+                next.setDate(next.getDate() + 1);
+                while (next.getDay() === 0 || next.getDay() === 6) next.setDate(next.getDate() + 1);
+            }
+            var first = list.querySelector('.kit-modal-dropdown-option');
+            if (first) {
+                label.textContent = first.getAttribute('data-label');
+                var dateInput = document.getElementById('bookingDate');
+                if (dateInput) dateInput.value = first.getAttribute('data-value');
+            }
+        })();
     </script>
     <script type="module" src="js/site-modals.js"></script>
     <script type="module" src="js/pages/project-files.js"></script>
 </body>
+
 </html>
