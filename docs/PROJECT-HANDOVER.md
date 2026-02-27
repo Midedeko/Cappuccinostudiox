@@ -37,9 +37,10 @@ This document briefs a new agent (or developer) so they can continue work on thi
 
 ### Projects (CMS)
 
-- A **project** has: `id`, `name`, `items` (gallery: image/video/PDF), `assets` (video sources for cuts), `storyline`, `storylineTitle`, `thumbnail`, and per-item flags **`backgroundRoster`** and **`defaultBackgroundRoster`**.
-- **Background roster** — Items with `backgroundRoster: true` appear in the main background loop and in the expanded background when that item is hovered/selected.
-- **Default background** — Items with `defaultBackgroundRoster: true` are used: (1) as the initial background when there are no background-roster items, and (2) when the user hovers/selects an item that is *not* on the background roster (instead of the previous red fallback).
+- A **project** has: `id`, `name`, `items` (gallery: image/video/PDF), `assets` (video sources for cuts), `storyline`, `storylineTitle`, `thumbnail`, **`defaultBackgroundUrl`** (optional; one image or video URL shown as the project page background until a gallery item is selected), and per-item flags **`backgroundRoster`** and **`defaultBackgroundRoster`**.
+- **Default background (uploaded)** — If **`defaultBackgroundUrl`** is set, the project page shows this as the only background on load and when no gallery item is selected; it changes only when the user taps a gallery item.
+- **Background roster** — Items with `backgroundRoster: true` appear in the main background loop and in the expanded background when that item is hovered/selected (used when there is no uploaded default, or for fallback when the selected item is not on the roster).
+- **Default background roster** — Items with `defaultBackgroundRoster: true` are used: (1) as the initial background when there are no background-roster items and no uploaded default, and (2) when the user hovers/selects an item that is *not* on the background roster (instead of the previous red fallback).
 - **Save flow:** Edit page builds payload → `POST /api/projects` with full JSON. If payload &gt; 4.5 MB, Vercel returns 413; app then saves to IndexedDB + localStorage and shows “Saved locally only.” To avoid that, media must be in Supabase Storage (URLs only in JSON).
 
 ### Media and 4.5 MB limit
@@ -59,7 +60,7 @@ This document briefs a new agent (or developer) so they can continue work on thi
 - **Project URL** — From Dashboard → Project Settings → **API** (or Data API). Used as `SUPABASE_URL` in Vercel.
 - **Keys** — From Project Settings → **API Keys** (not Data API). **Legacy API Keys** tab: **anon** (public) and **service_role** (secret). `SUPABASE_ANON_KEY` for API + frontend; `SUPABASE_SERVICE_ROLE_KEY` only for server (e.g. storage cleanup).
 - **Bucket:** `project-media`, **public**, with RLS: INSERT and SELECT for `bucket_id = 'project-media'`.
-- **Tables:** `projects` (id, name, items, storyline, storyline_title, thumbnail, assets). `items`/`assets` are JSON; thumbnail can be URL or null. **`site_config`** (key text primary key, value jsonb) — stores Project Files 3D config under key `project_files_3d`. One-time setup: see **`docs/PROJECT-FILES-CONFIG-SETUP.md`** (copy-paste SQL).
+- **Tables:** `projects` (id, name, items, storyline, storyline_title, thumbnail, assets, **default_background_url**). `items`/`assets` are JSON; thumbnail and default_background_url can be URL or null. If the table was created before the default-background feature, add the column: `ALTER TABLE projects ADD COLUMN IF NOT EXISTS default_background_url text;` **`site_config`** (key text primary key, value jsonb) — stores Project Files 3D config under key `project_files_3d`. One-time setup: see **`docs/PROJECT-FILES-CONFIG-SETUP.md`** (copy-paste SQL).
 
 ---
 

@@ -69,7 +69,8 @@ export async function POST(request) {
         storyline: body.storyline ?? '',
         storyline_title: body.storylineTitle ?? '',
         thumbnail: body.thumbnail ?? null,
-        assets: Array.isArray(body.assets) ? body.assets : []
+        assets: Array.isArray(body.assets) ? body.assets : [],
+        default_background_url: body.defaultBackgroundUrl ?? null
     };
     try {
         const supabase = getSupabase();

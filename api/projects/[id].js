@@ -24,7 +24,7 @@ export async function GET(request) {
         const supabase = getSupabase();
         const { data, error } = await supabase
             .from('projects')
-            .select('id, name, items, storyline, storyline_title, thumbnail, assets')
+            .select('id, name, items, storyline, storyline_title, thumbnail, assets, default_background_url')
             .eq('id', id)
             .maybeSingle();
         if (error) {
@@ -41,7 +41,8 @@ export async function GET(request) {
                 storyline: '',
                 storylineTitle: '',
                 thumbnail: null,
-                assets: []
+                assets: [],
+                defaultBackgroundUrl: null
             }), {
                 status: 200,
                 headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store, no-cache, must-revalidate' }
@@ -54,7 +55,8 @@ export async function GET(request) {
             storyline: data.storyline ?? '',
             storylineTitle: data.storyline_title ?? data.storylineTitle ?? '',
             thumbnail: data.thumbnail ?? null,
-            assets: Array.isArray(data.assets) ? data.assets : []
+            assets: Array.isArray(data.assets) ? data.assets : [],
+            defaultBackgroundUrl: data.default_background_url ?? null
         }), {
             status: 200,
             headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store, no-cache, must-revalidate' }

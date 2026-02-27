@@ -59,6 +59,18 @@ export function applyCmsData(data, state, projectId) {
     }
     if (!state.defaultBackgroundVideos) state.defaultBackgroundVideos = [];
     if (state.galleryItems.length === 0) state.galleryItems = DEFAULT_GALLERY_ITEMS.slice();
+    // Uploaded default background: shown on load and when no gallery item is selected.
+    const defaultBgUrl = data.defaultBackgroundUrl || data.default_background_url;
+    if (defaultBgUrl) {
+        const isVideo = /\.(mp4|webm|ogg)(\?|$)/i.test(defaultBgUrl) || defaultBgUrl.startsWith('data:video');
+        const entry = {
+            src: defaultBgUrl,
+            type: isVideo ? 'video' : 'image',
+            duration: isVideo ? undefined : STACK_IMAGE_DURATION_MS
+        };
+        state.backgroundVideos = [entry];
+        state.defaultBackgroundVideos = [entry];
+    }
 }
 
 const STACK_IMAGE_DURATION_MS = 5000;

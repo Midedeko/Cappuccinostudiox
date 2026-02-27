@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Project - Admin</title>
+    <link rel="icon" href="Cappuccino.svg" type="image/svg+xml">
+    <title>Cappuccino Studiox-Admin</title>
     <style>
         @font-face {
             font-family: 'Code Saver';
@@ -323,6 +324,20 @@
                 <span id="thumbnailPlaceholder" style="font-size: 12px; text-transform: uppercase; opacity: 0.7;">No thumbnail</span>
             </div>
             <button type="button" id="thumbnailClearBtn" class="thumbnail-clear-btn" style="display: none;">Clear</button>
+        </div>
+    </div>
+    <div class="default-background-panel" style="margin-bottom: 20px;">
+        <label class="switch-label" style="display: block; margin-bottom: 8px;">Default background (project page)</label>
+        <p class="thumbnail-hint" style="font-size: 12px; margin-bottom: 8px; text-transform: uppercase; opacity: 0.9;">Shown as the project page background until a gallery item is selected. Image or video.</p>
+        <input type="file" id="defaultBackgroundInput" accept="image/*,video/*" style="display: none;">
+        <div class="default-background-upload-wrap" style="display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+            <button type="button" id="defaultBackgroundChooseBtn" class="thumbnail-choose-btn">Choose image or video</button>
+            <div class="default-background-preview-wrap" style="min-width: 120px; min-height: 90px; background: rgba(0,0,0,0.2); border: 1px solid #FFF212; display: flex; align-items: center; justify-content: center;">
+                <img id="defaultBackgroundPreviewImg" src="" alt="" style="max-width: 200px; max-height: 150px; object-fit: contain; display: none;">
+                <video id="defaultBackgroundPreviewVideo" muted playsinline loop style="max-width: 200px; max-height: 150px; object-fit: contain; display: none;"></video>
+                <span id="defaultBackgroundPlaceholder" style="font-size: 12px; text-transform: uppercase; opacity: 0.7;">No default background</span>
+            </div>
+            <button type="button" id="defaultBackgroundClearBtn" class="thumbnail-clear-btn" style="display: none;">Clear</button>
         </div>
     </div>
     <p style="margin-bottom: 16px;">Upload content. Drag items to reorder. Toggle â€œBackground rosterâ€ to use in the default background loop. Add a storyline to show when this content is hovered on the project page.</p>

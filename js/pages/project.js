@@ -602,7 +602,7 @@ function runInits() {
     } catch (e) { console.error('initGallery', e); }
     const menuText = document.getElementById('projectMenuText');
     if (menuText) menuText.textContent = (state.projectName || ('Project ' + projectId)).toUpperCase();
-    document.title = (state.projectName || ('Project ' + projectId)) + ' - Portfolio';
+    document.title = 'Cappuccino Studiox';
     if (state.projectStorylineTitle || state.projectStoryline) {
         const el = document.getElementById('storylineOverlay');
         if (el) {

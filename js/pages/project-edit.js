@@ -22,6 +22,7 @@ function getProjectSizeBytes(data) {
 let items = [];
 let assets = [];
 let thumbnailDataUrl = null;
+let defaultBackgroundUrl = null;
 
 const uploadProgress = {
     total: 0,
@@ -766,6 +767,22 @@ function updateThumbnailPreview(src) {
     if (clearBtn) clearBtn.style.display = src ? 'inline-block' : 'none';
 }
 
+function updateDefaultBackgroundPreview(src) {
+    const imgEl = document.getElementById('defaultBackgroundPreviewImg');
+    const videoEl = document.getElementById('defaultBackgroundPreviewVideo');
+    const placeholder = document.getElementById('defaultBackgroundPlaceholder');
+    const clearBtn = document.getElementById('defaultBackgroundClearBtn');
+    const isVideo = src && (/\.(mp4|webm|ogg)(\?|$)/i.test(src) || src.startsWith('data:video'));
+    if (imgEl) { imgEl.src = !isVideo ? (src || '') : ''; imgEl.style.display = src && !isVideo ? 'block' : 'none'; }
+    if (videoEl) {
+        videoEl.src = isVideo ? (src || '') : '';
+        videoEl.style.display = isVideo && src ? 'block' : 'none';
+        if (isVideo && src) videoEl.load();
+    }
+    if (placeholder) placeholder.style.display = src ? 'none' : 'block';
+    if (clearBtn) clearBtn.style.display = src ? 'inline-block' : 'none';
+}
+
 document.getElementById('thumbnailChooseBtn').addEventListener('click', () => document.getElementById('thumbnailInput').click());
 document.getElementById('thumbnailInput').addEventListener('change', (e) => {
     const file = (e.target.files || [])[0];
@@ -790,6 +807,30 @@ document.getElementById('thumbnailClearBtn').addEventListener('click', () => {
     updateThumbnailPreview(null);
 });
 
+document.getElementById('defaultBackgroundChooseBtn').addEventListener('click', () => document.getElementById('defaultBackgroundInput').click());
+document.getElementById('defaultBackgroundInput').addEventListener('change', (e) => {
+    const file = (e.target.files || [])[0];
+    if (!file || (!file.type.startsWith('image/') && !file.type.startsWith('video/'))) return;
+    uploadFile(projectId, file, uploadProgressCallbacks()).then(url => {
+        if (url) {
+            defaultBackgroundUrl = url;
+            updateDefaultBackgroundPreview(defaultBackgroundUrl);
+        } else {
+            const reader = new FileReader();
+            reader.onload = () => {
+                defaultBackgroundUrl = reader.result;
+                updateDefaultBackgroundPreview(defaultBackgroundUrl);
+            };
+            reader.readAsDataURL(file);
+        }
+        e.target.value = '';
+    }).catch(err => alert(err && err.message ? err.message : 'Upload failed'));
+});
+document.getElementById('defaultBackgroundClearBtn').addEventListener('click', () => {
+    defaultBackgroundUrl = null;
+    updateDefaultBackgroundPreview(null);
+});
+
 document.getElementById('saveBtn').addEventListener('click', () => {
     const btn = document.getElementById('saveBtn');
     const originalText = btn.textContent;
@@ -800,13 +841,14 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     data.storyline = (document.getElementById('projectStoryline') || {}).value || '';
     data.storylineTitle = (document.getElementById('projectStorylineTitle') || {}).value || '';
     data.thumbnail = thumbnailDataUrl;
+    data.defaultBackgroundUrl = defaultBackgroundUrl;
     if (getProjectSizeBytes(data) > PROJECT_STORAGE_LIMIT_BYTES) {
         alert('Project size exceeds the ' + (PROJECT_STORAGE_LIMIT_BYTES / (1024 * 1024)).toFixed(0) + ' MB limit. Remove some content to save.');
         return;
     }
     btn.textContent = 'Saving…';
     btn.disabled = true;
-    saveProject({ id: projectId, name: data.name, items: data.items, storyline: data.storyline, storylineTitle: data.storylineTitle, thumbnail: data.thumbnail, assets: data.assets }).then(() => {
+    saveProject({ id: projectId, name: data.name, items: data.items, storyline: data.storyline, storylineTitle: data.storylineTitle, thumbnail: data.thumbnail, defaultBackgroundUrl: data.defaultBackgroundUrl, assets: data.assets }).then(() => {
         const list = getProjectList();
         const idx = list.findIndex(p => String(p.id) === String(projectId));
         const entry = { id: projectId, name: data.name, thumbnail: data.thumbnail || null };
@@ -823,7 +865,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
         const msg = e && e.message ? e.message : (e.name === 'QuotaExceededError' ? 'Storage full' : 'Error');
         const isTooLarge = msg.indexOf('too large') !== -1;
         btn.textContent = isTooLarge ? 'Saved locally only' : 'Sync failed';
-        const dataSizeMB = (getProjectSizeBytes({ name: data.name, items: data.items, storyline: data.storyline, storylineTitle: data.storylineTitle, thumbnail: data.thumbnail, assets: data.assets }) / (1024 * 1024)).toFixed(1);
+        const dataSizeMB = (getProjectSizeBytes({ name: data.name, items: data.items, storyline: data.storyline, storylineTitle: data.storylineTitle, thumbnail: data.thumbnail, defaultBackgroundUrl: data.defaultBackgroundUrl, assets: data.assets }) / (1024 * 1024)).toFixed(1);
         const hint = isTooLarge
             ? 'Your project is about ' + dataSizeMB + ' MB (cloud limit 4.5 MB). Set up Supabase Storage so media is stored in the cloud and only links are saved here, or remove some content.'
             : 'Check your connection and try again.';
@@ -848,6 +890,7 @@ document.getElementById('pageTitle').textContent = 'Edit Project ' + projectId;
             const storyTitleEl = document.getElementById('projectStorylineTitle');
             if (storyTitleEl && record.storylineTitle != null) storyTitleEl.value = record.storylineTitle || '';
             if (record.thumbnail) { thumbnailDataUrl = record.thumbnail; updateThumbnailPreview(thumbnailDataUrl); }
+            if (record.defaultBackgroundUrl) { defaultBackgroundUrl = record.defaultBackgroundUrl; updateDefaultBackgroundPreview(defaultBackgroundUrl); }
         } else {
             const fallback = getProjectDataSync(projectId);
             items = (fallback.items || []).slice();
@@ -859,6 +902,7 @@ document.getElementById('pageTitle').textContent = 'Edit Project ' + projectId;
             const storyTitleEl = document.getElementById('projectStorylineTitle');
             if (storyTitleEl && fallback.storylineTitle != null) storyTitleEl.value = fallback.storylineTitle || '';
             if (fallback.thumbnail) { thumbnailDataUrl = fallback.thumbnail; updateThumbnailPreview(thumbnailDataUrl); }
+            if (fallback.defaultBackgroundUrl) { defaultBackgroundUrl = fallback.defaultBackgroundUrl; updateDefaultBackgroundPreview(defaultBackgroundUrl); }
         }
         render();
         hideLoadingScreen({ label: (record && record.name) || ('Project ' + projectId) });
@@ -873,6 +917,7 @@ document.getElementById('pageTitle').textContent = 'Edit Project ' + projectId;
         const storyTitleEl = document.getElementById('projectStorylineTitle');
         if (storyTitleEl && fallback.storylineTitle != null) storyTitleEl.value = fallback.storylineTitle || '';
         if (fallback.thumbnail) { thumbnailDataUrl = fallback.thumbnail; updateThumbnailPreview(thumbnailDataUrl); }
+        if (fallback.defaultBackgroundUrl) { defaultBackgroundUrl = fallback.defaultBackgroundUrl; updateDefaultBackgroundPreview(defaultBackgroundUrl); }
         render();
         hideLoadingScreen({ label: fallback.name || ('Project ' + projectId) });
     });
