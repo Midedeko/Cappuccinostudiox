@@ -38,6 +38,11 @@ export function setupMenuSimple(containerId, buttonId) {
     const container = document.getElementById(containerId);
     const button = document.getElementById(buttonId);
     if (!container || !button) return;
+    const pageName = getPageName();
+    container.querySelectorAll('.menu-child-button').forEach(btn => {
+        const target = (btn.getAttribute && btn.getAttribute('href')) || btn.dataset.page;
+        if (target === pageName) btn.remove();
+    });
     button.addEventListener('click', (e) => {
         e.stopPropagation();
         container.classList.toggle('active');
@@ -55,7 +60,12 @@ export function setupMenuAnimated(containerId, buttonId, options = {}) {
     const container = document.getElementById(containerId);
     const button = document.getElementById(buttonId);
     if (!container || !button) return;
-    const childButtons = container.querySelectorAll('.menu-child-button');
+    const pageName = getPageName();
+    let childButtons = container.querySelectorAll('.menu-child-button');
+    Array.from(childButtons).forEach(btn => {
+        if (btn.dataset.page === pageName) btn.remove();
+    });
+    childButtons = container.querySelectorAll('.menu-child-button');
 
     function closeMenu() {
         childButtons.forEach((btn, index) => {
