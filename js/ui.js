@@ -43,6 +43,14 @@ export function setupMenuSimple(containerId, buttonId) {
         const target = (btn.getAttribute && btn.getAttribute('href')) || btn.dataset.page;
         if (target === pageName) btn.remove();
     });
+    const childButtons = container.querySelectorAll('.menu-child-button');
+    if (childButtons.length > 0) {
+        const originalDisplay = [];
+        childButtons.forEach((btn, i) => { originalDisplay[i] = btn.style.display; btn.style.display = 'flex'; btn.style.visibility = 'hidden'; btn.style.position = 'absolute'; });
+        let maxWidth = 0;
+        childButtons.forEach(btn => { btn.style.width = 'auto'; const w = btn.offsetWidth; if (w > maxWidth) maxWidth = w; });
+        childButtons.forEach((btn, i) => { btn.style.display = originalDisplay[i] || ''; btn.style.visibility = ''; btn.style.position = ''; btn.style.width = maxWidth + 'px'; });
+    }
     button.addEventListener('click', (e) => {
         e.stopPropagation();
         container.classList.toggle('active');
