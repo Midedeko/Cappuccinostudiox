@@ -51,6 +51,16 @@ export function setupMenuSimple(containerId, buttonId) {
         childButtons.forEach(btn => { btn.style.width = 'auto'; const w = btn.offsetWidth; if (w > maxWidth) maxWidth = w; });
         childButtons.forEach((btn, i) => { btn.style.display = originalDisplay[i] || ''; btn.style.visibility = ''; btn.style.position = ''; btn.style.width = maxWidth + 'px'; });
     }
+    childButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const modal = btn.dataset.modal;
+            if (modal && typeof window.openModal === 'function') {
+                e.preventDefault();
+                window.openModal(modal);
+                container.classList.remove('active');
+            }
+        });
+    });
     button.addEventListener('click', (e) => {
         e.stopPropagation();
         container.classList.toggle('active');
